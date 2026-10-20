@@ -22,6 +22,10 @@ Daira is a clickable client-demo prototype of a WhatsApp-first CRM for independe
 - `src/views/` - One file per screen: `TodayView`, `ChatView` (chat + lead detail panel), `PipelineView`, `PropertiesView`, `FollowUpsView`, `CallsView`.
 - `src/modals/` - `AddLeadModal`, `CallPicker`, `CallModal`.
 
+## Product spec (required)
+
+`PRODUCT_SPEC.md` describes what the prototype does right now. **Any change to features, workflows, screens, seed data, saved state or UI copy must update `PRODUCT_SPEC.md` in the same commit**, including a dated line in its Changelog (§9). If the code and the spec disagree, fix whichever is wrong before finishing. Read the spec before changing behaviour so you don't break a documented workflow.
+
 ## Conventions
 
 - Every component has a co-located `.css` file with the same name, imported at the top of the component. Global tokens and shared classes (`.btn`, `.card`, `.page-head`, `.stat-strip`, `.segmented`, `.search-field`, `.empty-state`, `.heat`, `.eyebrow`) live in `src/index.css`.
