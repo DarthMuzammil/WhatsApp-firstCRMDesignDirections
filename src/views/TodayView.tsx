@@ -6,7 +6,7 @@ import { Avatar, LeadAvatar } from '../components/Avatar'
 import { Icon } from '../components/Icon'
 import { LeadRow } from '../components/LeadRow'
 import type { View } from '../components/navigation'
-import { DailySummary, WeeklyDigest } from '../components/TeamPulse'
+import { BrokeragePulse, DailySummary, WeeklyDigest } from '../components/TeamPulse'
 import { formatCrore, todayLabel } from '../lib/format'
 import type { DemoStore } from '../state/useDemoStore'
 import './TodayView.css'
@@ -18,7 +18,7 @@ const INBOX_PREVIEW = 12
 type TodayViewProps = {
   store: DemoStore
   onOpenLead: (lead: Lead) => void
-  onNavigate: (view: View) => void
+  onNavigate: (view: View, param?: string) => void
   onCall: (lead: Lead) => void
   notify: (message: string) => void
 }
@@ -143,6 +143,9 @@ export function TodayView({ store, onOpenLead, onNavigate, onCall, notify }: Tod
           )}
         </div>
       )}
+
+      {/* M14: below the four daily tiles, for people who see brokerage receivables. */}
+      {seesOthers && store.viewerCan('viewReceivables') && <BrokeragePulse store={store} onNavigate={onNavigate} />}
 
       <div className={`today-grid ${seesOthers ? 'has-digest' : ''}`}>
         <section className="card today-inbox">

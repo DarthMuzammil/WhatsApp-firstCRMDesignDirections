@@ -194,6 +194,10 @@ h1, h2, h3 { font-weight: 700; }
 .btn-success { color: var(--success-ink); background: var(--success-soft); }
 .btn-danger { color: var(--surface); background: var(--danger); }
 .btn-block { width: 100%; }
+.btn-ghost { color: var(--muted); background: transparent; }
+.btn-ghost:hover { color: var(--ink-soft); background: var(--surface-subtle); }
+.checkbox-row { flex-direction: row !important; align-items: center; gap: var(--space-2) !important; }
+.checkbox-row input { width: 20px; height: 20px !important; accent-color: var(--primary); }
 
 /* Page header used by every top-level view */
 .page-head { margin-bottom: var(--space-6); display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-4); }

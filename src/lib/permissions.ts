@@ -15,6 +15,9 @@ export type Permission =
   | 'seeOwnerContact'
   | 'viewAuditLog'
   | 'handleVisits'
+  | 'viewReceivables'
+  | 'manageReceivables'
+  | 'runLaunches'
 
 export const PERMISSION_LABELS: Record<Permission, string> = {
   seeAllLeads: 'See every lead in the company',
@@ -30,11 +33,14 @@ export const PERMISSION_LABELS: Record<Permission, string> = {
   seeOwnerContact: 'See property owners’ numbers',
   viewAuditLog: 'See the audit log',
   handleVisits: 'Run and track property visits',
+  viewReceivables: 'See brokerage receivables',
+  manageReceivables: 'Record invoices and payments',
+  runLaunches: 'Create and send launch broadcasts',
 }
 
 export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
-  owner: ['seeAllLeads', 'seeTeamLeads', 'reassignLeads', 'seeFullNumbers', 'manageTeam', 'manageSettings', 'viewReports', 'exportData', 'manageInventory', 'seeOwnerContact', 'viewAuditLog', 'handleVisits'],
-  manager: ['seeTeamLeads', 'reassignLeads', 'seeFullNumbers', 'manageTeam', 'viewReports', 'manageInventory', 'seeOwnerContact', 'handleVisits'],
+  owner: ['seeAllLeads', 'seeTeamLeads', 'reassignLeads', 'seeFullNumbers', 'manageTeam', 'manageSettings', 'viewReports', 'exportData', 'manageInventory', 'seeOwnerContact', 'viewAuditLog', 'handleVisits', 'viewReceivables', 'manageReceivables', 'runLaunches'],
+  manager: ['seeTeamLeads', 'reassignLeads', 'seeFullNumbers', 'manageTeam', 'viewReports', 'manageInventory', 'seeOwnerContact', 'handleVisits', 'viewReceivables', 'runLaunches'],
   sales: ['manageInventory', 'handleVisits'],
   presales: ['handToSales'],
 }

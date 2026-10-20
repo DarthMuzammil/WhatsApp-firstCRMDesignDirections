@@ -24,6 +24,10 @@ for (const [tag, w, h] of [['desk', 1440, 900], ['tab', 900, 1000], ['mob', 390,
   }
   for (const v of ['Visits', 'Attendance', 'Performance', 'Escalations', 'Lead sources', 'Team', 'Settings']) { await go(v); await audit(v.toLowerCase()) }
   await go('Escalations'); await p.click('.escalation .btn >> nth=0'); await p.waitForTimeout(500); await audit('assign')
+  await p.keyboard.press('Escape')
+  await go('Brokerage'); await audit('brokerage')
+  await p.click('.booking-main >> nth=0'); await p.waitForTimeout(400); await audit('brokerage-detail')
+  await p.click('.booking-detail-actions .btn:has-text("Send reminder")'); await p.waitForTimeout(400); await audit('brokerage-reminder')
   ok(errs.length === 0, `${tag}: no console errors ${errs.join(' | ')}`); await p.close()
 }
 await b.close()

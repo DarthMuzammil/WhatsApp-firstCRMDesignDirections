@@ -8,7 +8,7 @@ import type { View } from './navigation'
 import './NotificationBell.css'
 
 const KIND_ICON: Record<NotificationKind, IconName> = {
-  assigned: 'user', moved: 'swap', 'checkin-refused': 'pin', 'leave-request': 'calendar', 'leave-decision': 'calendar', correction: 'clock', 'deal-won': 'check',
+  assigned: 'user', moved: 'swap', 'checkin-refused': 'pin', 'leave-request': 'calendar', 'leave-decision': 'calendar', correction: 'clock', 'deal-won': 'check', 'cp-overdue': 'rupee', 'cp-paid': 'rupee', 'cp-dispute': 'alert',
 }
 
 /**

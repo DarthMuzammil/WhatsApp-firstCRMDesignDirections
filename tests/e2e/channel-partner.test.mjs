@@ -1,0 +1,90 @@
+import { chromium } from 'playwright-core'
+import { BASE_URL, SHOTS } from './helpers.mjs'
+const b = await chromium.launch()
+const ok = (c, m) => console.log(c ? 'PASS' : 'FAIL', m)
+// M14 · Channel partner (spec §8.17): brokerage receivables (checks 1–7 and 21 of §8.17).
+const errs = []
+let p = await b.newPage({ viewport: { width: 1440, height: 900 } })
+p.on('pageerror', e => errs.push(e.message)); p.on('console', m => m.type() === 'error' && errs.push(m.text()))
+await p.goto(BASE_URL); await p.evaluate(() => localStorage.clear()); await p.reload(); await p.waitForTimeout(800)
+const nav = (l) => p.click(`.sidebar-nav button:has-text("${l}")`)
+const viewAs = async (n) => { await p.click('.sidebar-user .account-menu-trigger'); await p.click(`.account-menu-popover button:has-text("${n}")`); await p.waitForTimeout(300) }
+const strip = async () => (await p.locator('.brokerage-strip > button').allInnerTexts()).map((t) => t.replace(/\n/g, ' '))
+const now = new Date(); const fyStart = now.getMonth() >= 3 ? now.getFullYear() : now.getFullYear() - 1
+const fy = `${String(fyStart).slice(2)}-${String(fyStart + 1).slice(2)}`
+
+// 21. Owner's Today: brokerage card
+ok((await p.locator('.brokerage-pulse').innerText()).includes('₹42 L · 3 overdue'), 'Today: "Brokerage pending ₹42 L · 3 overdue"')
+ok((await p.locator('.brokerage-pulse').innerText()).includes('₹15.4 L · oldest 43 days (Halcyon Habitats)'), 'Today: "₹15.4 L · oldest 43 days (Halcyon Habitats)"')
+ok((await p.locator('.digest').innerText()).includes('Kestrel Developers owes ₹18.7 L across 3 bookings; Vikrant Saluja’s invoice is 18 days overdue.'), 'AI digest names Kestrel and Vikrant’s overdue invoice')
+await p.click('.brokerage-pulse button >> nth=0'); await p.waitForTimeout(300)
+ok(await p.locator('.brokerage-view').count() === 1 && await p.locator('.booking').count() === 3 && (await p.locator('.brokerage-filters .chip.active').innerText()).startsWith('Overdue'), 'card opens Brokerage on Overdue: 3 rows')
+// 1. Strip and bars
+let s = await strip()
+ok(s[0].includes('₹42 L') && s[0].includes('8 bookings') && s[1].includes('₹15.4 L') && s[1].includes('3 bookings') && s[2].includes('₹5.7 L') && s[2].includes('1 booking') && s[3].includes('₹3.5 L'), `strip: ₹42 L · 8 / ₹15.4 L · 3 / ₹5.7 L · 1 / received ₹3.5 L (${s.join(' | ')})`)
+const bars = async (i) => (await p.locator('.brokerage-charts .card').nth(i).locator('.bar-track b').allInnerTexts()).join(',')
+ok(await bars(0) === '₹18.7 L,₹12.4 L,₹6 L,₹4.9 L', `by developer, largest first: ${await bars(0)}`)
+ok(await bars(1) === '₹16.6 L,₹6.2 L,₹10.6 L,₹8.6 L', `by age, in order: ${await bars(1)}`)
+await p.click('.brokerage-filters .chip:has-text("All")')
+ok((await p.locator('.booking .booking-status').first().innerText()) === 'Overdue 43 days' && await p.locator('.booking-paid-toggle').innerText().then((t) => t.includes('Paid · 2')), 'most overdue first; Paid · 2 folded last')
+await p.click('.brokerage-charts .card >> nth=0 >> .bar-row:has-text("Kestrel")')
+ok(await p.locator('.booking').count() === 3 && (await p.locator('.brokerage-filters select').inputValue()) === 'kestrel', 'tapping the Kestrel bar filters to its 3 bookings')
+await p.selectOption('.brokerage-filters select', 'all')
+// 2. Rajiv's detail
+await p.click('.booking-main:has-text("Rajiv")'); await p.waitForTimeout(300)
+const money = (await p.locator('.booking-money').innerText()).replace(/\n/g, ' ')
+ok(money.includes('₹4,86,000') && money.includes('₹87,480') && money.includes('−₹9,720') && money.includes('₹5,63,760'), `Rajiv: ₹4,86,000 · GST ₹87,480 · TDS −₹9,720 · net ₹5,63,760`)
+ok((await p.locator('.invoice-chip').innerText()).includes('BDR/26-27/014 · PDF (demo)'), 'invoice chip BDR/26-27/014')
+// 5. Gentle reminder (before paying it)
+await p.click('.booking-detail-actions .btn:has-text("Send reminder")')
+const preview = await p.locator('.booking-action textarea').inputValue()
+ok(preview.startsWith('Hi Rakesh') && preview.includes('₹5,63,760') && preview.includes('43 days'), 'gentle preview: "Hi Rakesh", ₹5,63,760, 43 days')
+await p.click('.booking-action .segmented button:has-text("Firm")')
+ok((await p.locator('.booking-action textarea').inputValue()).includes('is 43 days overdue. Please release it this week'), 'firm tone rewrites the message')
+await p.click('.booking-action .add-lead-submit'); await p.waitForTimeout(200)
+ok((await p.locator('.toast').innerText()).includes('Reminder sent to Rakesh Iyengar (Halcyon Habitats)'), 'toast: reminder sent to Rakesh Iyengar')
+await p.waitForSelector('.reminder-reply', { timeout: 5500 })
+ok((await p.locator('.reminder-reply').innerText()).includes('Checking with accounts'), 'CP manager’s reply appears within 5 s')
+// 3. Record payment on Rajiv, then undo
+await p.click('.booking-detail-actions .btn:has-text("Record payment")')
+ok((await p.locator('.booking-action-amount strong').innerText()) === '₹5,63,760', 'payment amount fixed to the net receivable')
+await p.fill('.booking-action input[placeholder^="e.g. HDFC"]', 'HDFCR52026102000777'); await p.check('.booking-action input[type="checkbox"]')
+await p.click('.booking-action .add-lead-submit'); await p.waitForTimeout(200)
+await p.keyboard.press('Escape')
+s = await strip()
+ok(s[0].includes('₹37.1 L') && s[0].includes('7 bookings') && s[1].includes('₹10.5 L') && s[1].includes('2 bookings') && s[3].includes('₹8.4 L'), `after payment: ₹37.1 L · 7 / ₹10.5 L · 2 / received ₹8.4 L (${s.join(' | ')})`)
+await nav('Audit log')
+ok((await p.locator('.audit-list li p').first().innerText()) === 'Recorded payment ₹5,63,760 from Halcyon Habitats (BDR/26-27/014)', 'audited: "Recorded payment ₹5,63,760 from Halcyon Habitats (BDR/26-27/014)"')
+// Vivek has no "View as" persona: check his notification exists in storage
+const vivek = await p.evaluate(() => JSON.parse(localStorage.getItem(Object.keys(localStorage).find((k) => k.endsWith(':notifications'))) ?? '[]').filter((n) => n.forId === 'm-vivek' && n.kind === 'cp-paid').map((n) => n.text))
+ok(vivek.length === 1 && vivek[0].startsWith('Halcyon Habitats paid the brokerage for Rajiv Menezes'), 'Vivek is notified of the payment')
+await nav('Brokerage'); await p.click('.booking-paid-toggle'); await p.click('.booking-main:has-text("Rajiv")'); await p.click('.booking-detail-actions .btn:has-text("Undo last step")'); await p.keyboard.press('Escape'); await p.waitForTimeout(200)
+s = await strip()
+ok(s[0].includes('₹42 L') && s[1].includes('₹15.4 L') && s[3].includes('₹3.5 L'), 'Undo restores the figures')
+// 4. Raise invoice on Ruchi Bhargava
+await p.click('.booking:has-text("Ruchi") .booking-next .btn:has-text("Raise invoice")')
+ok((await p.locator('.booking-action input').first().inputValue()) === `BDR/${fy}/025`, `next invoice number prefilled: BDR/${fy}/025`)
+await p.click('.booking-action .add-lead-submit'); await p.waitForTimeout(200)
+ok((await p.locator('.booking:has-text("Ruchi") .booking-status').innerText()) === 'Due in 30 days', 'Ruchi: "Due in 30 days"')
+await p.screenshot({ path: `${SHOTS}/m14-brokerage.png`, fullPage: true })
+// 6. Manager Neha: team's bookings, Send reminder only
+await viewAs('Neha Kapoor'); await nav('Brokerage')
+s = await strip()
+ok(s[0].includes('₹18.5 L') && s[0].includes('3 bookings'), `Neha: ₹18.5 L · 3 bookings (${s[0]})`)
+const steps = await p.locator('.booking-next .btn').allInnerTexts()
+ok(steps.length > 0 && steps.every((t) => t === 'Send reminder'), `Neha's next steps are Send reminder only (${steps.join(', ')})`)
+await p.click('.booking-main >> nth=0')
+ok(await p.locator('.booking-detail-actions .btn:has-text("Record payment"), .booking-detail-actions .btn:has-text("Undo")').count() === 0, 'Neha can’t record payments or undo')
+await p.keyboard.press('Escape')
+// 7. Priya: no Brokerage
+await viewAs('Priya Nair')
+ok(await p.locator('.sidebar-nav button:has-text("Brokerage")').count() === 0 && await p.locator('.brokerage-pulse').count() === 0, 'Sales: no Brokerage screen or card')
+// Phone: cards with full-width next steps
+await viewAs('Arjun Khanna'); await p.setViewportSize({ width: 390, height: 844 }); await p.waitForTimeout(300)
+await p.click('.mobile-tab-bar button:has-text("More")'); await p.click('.more-sheet button:has-text("Brokerage")'); await p.waitForTimeout(300)
+const btn = await p.locator('.booking-next .btn').first().boundingBox()
+ok(btn && btn.height >= 44 && btn.width > 300, 'phone: booking cards with a full-width, 44 px next step')
+ok(await p.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), 'phone: no sideways scroll')
+await p.screenshot({ path: `${SHOTS}/m14-brokerage-phone.png`, fullPage: true })
+ok(errs.length === 0, 'no console errors ' + errs.join(' | '))
+await b.close()

@@ -2,8 +2,8 @@
 // (pending leave of Aditya and Rohit, Vivek's refused check-in at 9:55 AM, routed leads).
 
 /** Screens a notification can open (a subset of the app's views). */
-export type NotificationView = 'attendance' | 'visits' | 'escalations' | 'pipeline' | 'team'
-export type NotificationKind = 'assigned' | 'moved' | 'checkin-refused' | 'leave-request' | 'leave-decision' | 'correction' | 'deal-won'
+export type NotificationView = 'attendance' | 'visits' | 'escalations' | 'pipeline' | 'team' | 'brokerage' | 'launches'
+export type NotificationKind = 'assigned' | 'moved' | 'checkin-refused' | 'leave-request' | 'leave-decision' | 'correction' | 'deal-won' | 'cp-overdue' | 'cp-paid' | 'cp-dispute'
 
 export type AppNotification = {
   id: number
@@ -26,10 +26,12 @@ export const SEED_NOTIFICATIONS: AppNotification[] = [
   { id: 6, forId: 'm-farah', kind: 'leave-request', text: 'Rohit V. asked for 1 day of Sick leave.', at: '8:15 AM', view: 'attendance', read: false },
   { id: 7, forId: 'm-priya', kind: 'assigned', text: 'Ishita Banerjee was assigned to you by routing.', at: 'Yesterday', leadId: 12, read: false },
   { id: 8, forId: 'm-kiran', kind: 'assigned', text: 'Pooja Venkatesh was assigned to you by routing.', at: 'Yesterday', leadId: 10, read: false },
+  // M14 (spec §8.17): the oldest unpaid developer invoice.
+  { id: 9, forId: 'm-arjun', kind: 'cp-overdue', text: 'Halcyon Habitats: invoice BDR/26-27/014 for Rajiv Menezes is 43 days overdue.', at: '8:00 AM', view: 'brokerage', read: false },
 ]
 
-export type AuditKind = 'reassign' | 'team' | 'settings' | 'property' | 'deal' | 'export'
-export const AUDIT_KIND_LABELS: Record<AuditKind, string> = { reassign: 'Reassignments', team: 'Team', settings: 'Settings', property: 'Properties', deal: 'Deals', export: 'Exports' }
+export type AuditKind = 'reassign' | 'team' | 'settings' | 'property' | 'deal' | 'channel-partner' | 'export'
+export const AUDIT_KIND_LABELS: Record<AuditKind, string> = { reassign: 'Reassignments', team: 'Team', settings: 'Settings', property: 'Properties', deal: 'Deals', 'channel-partner': 'Channel partner', export: 'Exports' }
 
 export type AuditEntry = {
   id: number

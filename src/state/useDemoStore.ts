@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { useChannelPartner } from './channelPartner'
 import {
   COMMISSION_RATE, RESPONSE_SLA_MINUTES, SEED_LEADS, SEED_RECORDINGS, SEED_TASKS, STAGES, STAGE_CLOSE_PROBABILITY,
   firstName, phoneKey, relativeMinutes, type Lead, type LeadSeed, type Recording, type Task, type TaskChannel,
@@ -330,7 +331,12 @@ export function useDemoStore() {
     setVisits((current) => current.map((visit) => (visit.id === visitId ? change(visit) : visit)))
   }
 
+
+  // ---------- M14 · Channel partner (spec §8.17): bookings, receivables, registrations, launches ----------
+  const cp = useChannelPartner({ viewer, viewerCan, members, findMember, nameOf, log, pushNotification, recordAudit, approversFor })
   return {
+    /** M14 · Channel partner (see state/channelPartner.ts). */
+    cp,
     // People & access
     viewer,
     viewerCan,

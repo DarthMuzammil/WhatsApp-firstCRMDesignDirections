@@ -36,7 +36,13 @@ export function callSummary(lead: Lead, durationSec: number): string {
 }
 
 /** Plain-language weekly digest for a manager from the numbers they can see. */
-export function weeklyDigest(input: { team: string; overdue: number; unassigned: number; stuck: number; topName?: string; topCommissionL?: number; notCheckedIn: number; pipelineCr: number }): string[] {
+export function weeklyDigest(input: {
+  team: string; overdue: number; unassigned: number; stuck: number; topName?: string; topCommissionL?: number; notCheckedIn: number; pipelineCr: number
+  /** M14: the developer that owes the most, and its most overdue invoice. */
+  owedBy?: { developer: string; amount: string; count: number; overdueBuyer?: string; overdueDays?: number }
+  /** M14: developer registrations expiring within 7 days. */
+  registrationsExpiring?: number
+}): string[] {
   const lines = [
     `${input.team} has ₹${input.pipelineCr.toFixed(1)} Cr in open pipeline.`,
     input.topName ? `${input.topName} leads the month with ₹${input.topCommissionL?.toFixed(1)} L in commission.` : '',
@@ -44,6 +50,8 @@ export function weeklyDigest(input: { team: string; overdue: number; unassigned:
     input.unassigned > 0 ? `${input.unassigned} new ${input.unassigned === 1 ? 'lead has' : 'leads have'} no owner yet.` : '',
     input.stuck > 0 ? `${input.stuck} ${input.stuck === 1 ? 'lead has' : 'leads have'} sat in the same stage for over a week. Worth a call.` : '',
     input.notCheckedIn > 0 ? `${input.notCheckedIn} ${input.notCheckedIn === 1 ? 'person hasn’t' : 'people haven’t'} checked in yet today.` : '',
+    input.owedBy ? `${input.owedBy.developer} owes ${input.owedBy.amount} across ${input.owedBy.count} ${input.owedBy.count === 1 ? 'booking' : 'bookings'}${input.owedBy.overdueBuyer ? `; ${input.owedBy.overdueBuyer}’s invoice is ${input.owedBy.overdueDays} days overdue` : ''}.` : '',
+    input.registrationsExpiring ? `${input.registrationsExpiring} developer ${input.registrationsExpiring === 1 ? 'registration expires' : 'registrations expire'} this week.` : '',
   ]
   return lines.filter(Boolean)
 }

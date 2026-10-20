@@ -1,0 +1,75 @@
+/* Stat strip with four clickable figures */
+.brokerage-strip { grid-template-columns: repeat(4, 1fr); }
+.brokerage-strip > button { padding: var(--space-4) var(--space-5); border: 0; border-right: 1px solid var(--border-soft); display: flex; flex-direction: column; gap: var(--space-1); text-align: left; background: transparent; }
+.brokerage-strip > button:last-child { border-right: 0; }
+.brokerage-strip > button.is-danger strong { color: var(--danger-text); }
+@media (hover: hover) {
+  .brokerage-strip > button:hover { background: var(--surface-subtle); }
+}
+
+.brokerage-charts { margin-bottom: var(--space-4); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; gap: var(--space-4); }
+.brokerage-mini-table { width: 100%; border-collapse: collapse; font-size: var(--fs-body-sm); }
+.brokerage-mini-table th { padding: var(--space-2) var(--space-5); color: var(--muted); font-size: var(--fs-meta); font-weight: 800; letter-spacing: .06em; text-align: left; text-transform: uppercase; }
+.brokerage-mini-table td { padding: var(--space-2) var(--space-5); border-top: 1px solid var(--border-soft); }
+.brokerage-mini-table th:last-child, .brokerage-mini-table td:last-child { text-align: right; }
+
+/* Bookings list: a table on desktop, cards on tablet and phone */
+.brokerage-filters { flex-wrap: wrap; }
+.brokerage-filters .chip-row { flex: 1; min-width: 0; }
+.brokerage-filters .chip b { margin-left: var(--space-1); color: inherit; opacity: .7; font-size: var(--fs-caption); }
+.brokerage-age-filter { margin: var(--space-3) var(--space-5) 0; display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-1) var(--space-1) var(--space-3); border-radius: var(--radius-pill); color: var(--primary); background: var(--primary-soft); font-size: var(--fs-caption); font-weight: 700; }
+.brokerage-age-filter .icon-button { width: 28px; height: 28px; }
+
+.booking-head, .booking-main { display: grid; grid-template-columns: minmax(150px, 1.4fr) minmax(120px, 1.1fr) 90px 92px minmax(120px, 1fr) 76px minmax(120px, 1fr); align-items: center; gap: var(--space-3); }
+.booking-head { margin-right: 168px; padding: var(--space-3) var(--space-5) var(--space-2); color: var(--muted); font-size: var(--fs-meta); font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.booking { padding: 0 var(--space-5) 0 0; border-top: 1px solid var(--border-soft); display: flex; align-items: center; gap: var(--space-3); }
+.booking.status-paid { opacity: .7; }
+.booking-main { min-width: 0; flex: 1; padding: var(--space-3) 0 var(--space-3) var(--space-5); border: 0; text-align: left; background: transparent; font-size: var(--fs-body-sm); }
+@media (hover: hover) {
+  .booking:hover { background: var(--surface-subtle); }
+}
+.booking-who, .booking-amount { min-width: 0; display: flex; flex-direction: column; gap: var(--space-half); }
+.booking-who strong { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.booking-who small, .booking-amount small { overflow: hidden; color: var(--muted); font-size: var(--fs-caption); white-space: nowrap; text-overflow: ellipsis; }
+.booking-project, .booking-agent { overflow: hidden; color: var(--ink-soft); white-space: nowrap; text-overflow: ellipsis; }
+.booking-agreement { color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.booking-amount strong { font-variant-numeric: tabular-nums; }
+.booking-next { width: 156px; flex: 0 0 auto; display: flex; justify-content: flex-end; }
+.booking-next .btn { min-height: 36px; font-size: var(--fs-caption); }
+.booking-paid-toggle { width: 100%; min-height: 48px; padding: 0 var(--space-5); border: 0; border-top: 1px solid var(--border); display: flex; align-items: center; gap: var(--space-1); color: var(--muted); background: var(--surface-subtle); font-size: var(--fs-caption); font-weight: 800; }
+.booking-paid-toggle svg { transition: transform .15s ease; }
+.booking-paid-toggle[aria-expanded="true"] svg { transform: rotate(90deg); }
+.brokerage-footnote { padding: var(--space-3) var(--space-5); border-top: 1px solid var(--border-soft); color: var(--muted); font-size: var(--fs-caption); }
+
+/* Status words, shared with the detail sheet */
+.booking-status { justify-self: start; padding: var(--space-half) var(--space-2); border-radius: var(--radius-sm); color: var(--ink-soft); background: var(--surface-sunken); font-size: var(--fs-caption); font-weight: 700; white-space: nowrap; }
+.booking-status.overdue, .booking-status.disputed { color: var(--danger-text); background: var(--danger-soft); }
+.booking-status.ready { color: var(--warning-ink); background: var(--warning-soft); }
+.booking-status.due { color: var(--primary); background: var(--primary-soft); }
+.booking-status.paid { color: var(--success-ink); background: var(--success-soft); }
+
+@media (max-width: 1100px) {
+  .brokerage-strip { grid-template-columns: 1fr 1fr; }
+  .brokerage-strip > button:nth-child(2) { border-right: 0; }
+  .brokerage-strip > button:nth-child(n + 3) { border-top: 1px solid var(--border-soft); }
+  .brokerage-charts { grid-template-columns: 1fr; }
+  .booking-head { display: none; }
+  .booking { padding: var(--space-4); flex-direction: column; align-items: stretch; gap: var(--space-3); }
+  .booking-main { padding: 0; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "who amount" "project status" "track status"; row-gap: var(--space-2); }
+  .booking-who { grid-area: who; }
+  .booking-amount { grid-area: amount; align-items: flex-end; text-align: right; }
+  .booking-project { grid-area: project; font-size: var(--fs-caption); }
+  .booking-agent, .booking-agreement { display: none; }
+  .milestone-track { grid-area: track; }
+  .booking-status { grid-area: status; justify-self: end; align-self: end; }
+  .booking-next { width: 100%; }
+  .booking-next .btn { width: 100%; min-height: var(--tap); font-size: var(--fs-body-sm); }
+  .booking-next:empty { display: none; }
+}
+
+@media (max-width: 760px) {
+  .brokerage-strip strong { font-size: var(--fs-title-lg); }
+  .brokerage-strip > button { padding: var(--space-4); }
+  .brokerage-filters .chip-row { flex: 1 1 100%; }
+  .brokerage-filters .source-filter { width: 100%; height: var(--tap); }
+}

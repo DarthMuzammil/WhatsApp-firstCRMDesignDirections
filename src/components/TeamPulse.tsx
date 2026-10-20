@@ -1,7 +1,9 @@
 import { tracksAttendance } from '../data/attendance'
+import { DEVELOPERS, bookingStatus, brokerageL, developerOfProject, type Booking } from '../data/channelPartner'
 import { DAYS_IN_STAGE, STUCK_AFTER_DAYS, monthStats } from '../data/performance'
 import { TEAMS, type Member } from '../data/team'
 import { weeklyDigest } from '../lib/ai'
+import { formatLakh } from '../lib/format'
 import type { DemoStore } from '../state/useDemoStore'
 import { Icon } from './Icon'
 import type { View } from './navigation'
@@ -52,11 +54,58 @@ export function WeeklyDigest({ store }: { store: DemoStore }) {
     notCheckedIn: store.members.filter((person) => inScope(store, person) && store.attendanceCode(person.id, 0) === 'pending').length,
     topName: top?.name,
     topCommissionL: top ? Math.round(commission(top.id) * 10) / 10 : undefined,
+    owedBy: store.viewerCan('viewReceivables') ? owedMost(store.cp.bookings) : undefined,
   })
   return (
     <section className="card digest">
       <header className="card-head"><div><span className="ai-chip"><Icon name="spark" size={12} /> AI weekly digest</span><h2>What needs your attention</h2></div></header>
       <ul>{lines.map((line) => <li key={line}>{line}</li>)}</ul>
+    </section>
+  )
+}
+
+/** The developer owing the most (unpaid bookings in scope) and its most overdue invoice, for the digest. */
+function owedMost(bookings: Booking[]) {
+  const open = bookings.filter((booking) => !booking.paid)
+  const rows = DEVELOPERS.map((developer) => {
+    const list = open.filter((booking) => developerOfProject(booking.projectId)?.id === developer.id)
+    return { developer, list, lakh: list.reduce((total, booking) => total + brokerageL(booking), 0) }
+  }).filter((row) => row.list.length > 0).sort((a, b) => b.lakh - a.lakh)
+  const top = rows[0]
+  if (!top) return undefined
+  const late = top.list.map((booking) => ({ booking, status: bookingStatus(booking) })).filter((item) => item.status.kind === 'overdue')
+    .sort((a, b) => (b.status.kind === 'overdue' ? b.status.days : 0) - (a.status.kind === 'overdue' ? a.status.days : 0))[0]
+  return {
+    developer: top.developer.name, amount: formatLakh(top.lakh), count: top.list.length,
+    overdueBuyer: late?.booking.buyer, overdueDays: late?.status.kind === 'overdue' ? late.status.days : undefined,
+  }
+}
+
+/**
+ * "Brokerage from developers" on the team home (spec §8.17.5), for people who see receivables:
+ * what's pending and overdue. The money lines open Brokerage on Overdue.
+ */
+export function BrokeragePulse({ store, onNavigate }: { store: DemoStore; onNavigate: (view: View, param?: string) => void }) {
+  const bookings = store.cp.bookings
+  const pending = store.cp.pending(bookings)
+  const overdue = store.cp.overdue(bookings)
+  const overdueLakh = overdue.reduce((total, booking) => total + brokerageL(booking), 0)
+  const oldest = overdue.map((booking) => ({ booking, status: bookingStatus(booking) }))
+    .sort((a, b) => (b.status.kind === 'overdue' ? b.status.days : 0) - (a.status.kind === 'overdue' ? a.status.days : 0))[0]
+  if (bookings.length === 0) return null
+  return (
+    <section className="card brokerage-pulse" aria-label="Brokerage from developers">
+      <header><Icon name="rupee" size={18} /><div><h2>Brokerage from developers</h2><p>Before GST and TDS</p></div></header>
+      <button onClick={() => onNavigate('brokerage', 'overdue')}>
+        <span>Brokerage pending</span>
+        <strong>{formatLakh(pending.lakh)} · {overdue.length} overdue</strong>
+        <Icon name="chevron" size={14} />
+      </button>
+      <button className={overdue.length ? 'is-danger' : ''} onClick={() => onNavigate('brokerage', 'overdue')}>
+        <span>Overdue</span>
+        <strong>{overdue.length ? `${formatLakh(overdueLakh)} · oldest ${oldest?.status.kind === 'overdue' ? oldest.status.days : 0} days (${developerOfProject(oldest!.booking.projectId)?.name})` : 'Nothing overdue'}</strong>
+        <Icon name="chevron" size={14} />
+      </button>
     </section>
   )
 }

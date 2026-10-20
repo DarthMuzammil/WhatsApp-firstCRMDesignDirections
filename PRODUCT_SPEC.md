@@ -31,7 +31,7 @@ Layouts: **phone** ≤ 760px, **tablet** 761–1100px, **desktop** > 1100px. Eve
 | Area | Desktop / tablet | Phone |
 |---|---|---|
 | Brand + status | Sidebar with the Bayana mark and name, the workspace name "Better Days Realty" under it (tap → Today), the **notifications bell** and a mint **Add lead** button | Top bar: the Bayana mark and name only (the workspace name is in the account menu, so the two names never crowd the bar), "● WhatsApp connected" 🧱 (just the dot on phones narrower than 430 px), **notifications bell**, viewer's avatar (account menu), **+** add lead |
-| Main nav | One name per screen on every size. Sidebar **Work** group: **Today** (unread badge), **Visits** (people who run visits: Owner, Managers, Sales), **Pipeline**, **Properties**, **Follow-ups** (tasks-left badge), **Calls**, **Attendance**, **Performance**. **Manage** group, by permission: **Escalations** (red count; Manager/Owner), **Lead sources** (Manager/Owner), **Team** (Manager/Owner), **Settings** (Owner), **Audit log** (Owner) | Bottom tabs: the first four of **Today** (unread badge), **Visits**, **Pipeline**, **Follow-ups**, **Calls** the viewer may use (Pre-sales: Today, Pipeline, Follow-ups, Calls), then **More**. **More** opens a sheet with the rest (Properties, Calls or Visits, Attendance, Performance), plus the Manage screens the viewer may use (a red "!" on More when escalations are waiting) |
+| Main nav | One name per screen on every size. Sidebar **Work** group: **Today** (unread badge), **Visits** (people who run visits: Owner, Managers, Sales), **Pipeline**, **Properties**, **Follow-ups** (tasks-left badge), **Calls**, **Attendance**, **Performance**. **Manage** group, by permission: **Brokerage** (Manager/Owner; §3.17), **Escalations** (red count; Manager/Owner), **Lead sources** (Manager/Owner), **Team** (Manager/Owner), **Settings** (Owner), **Audit log** (Owner) | Bottom tabs: the first four of **Today** (unread badge), **Visits**, **Pipeline**, **Follow-ups**, **Calls** the viewer may use (Pre-sales: Today, Pipeline, Follow-ups, Calls), then **More**. **More** opens a sheet with the rest (Properties, Calls or Visits, Attendance, Performance), plus the Manage screens the viewer may use (a red "!" on More when escalations are waiting) |
 | Progress card | "Today's progress" ✅: buyers awaiting a reply · follow-ups left, with a progress bar of completed tasks. Says "You're all caught up" only when both are zero. Hidden on windows shorter than 940 px; the nav list scrolls if needed so the user card always stays on screen. | — |
 | User card | Viewer's name and role ("Sales · Indiranagar") | — |
 | Account menu | "⋯" next to the user card (opens upwards, beside the sidebar) | Viewer's avatar |
@@ -50,7 +50,7 @@ Toasts confirm actions at the top of the screen for 2.6 s, with a tick; refusals
 - Every number and list on this screen covers only the leads the viewer may see (§3.8).
 - **Check-in reminder** ✅ for anyone who tracks attendance and hasn't checked in today: "You haven't checked in today · Work starts 9:30 AM" with **Check in** (opens Attendance).
 - **Three layouts, by what the viewer does all day:**
-  - **Managers and the Owner — team home:** the **daily summary** tiles ✅ (live, tappable: Overdue leads → Escalations, Not checked in → Attendance, Visits today → Visits, Requests waiting (leave + corrections) → Attendance; seed for the Owner: 4 · 4 · 4 · 3), then the lead inbox beside the **AI weekly digest** 🎭 ("What needs your attention": pipeline, top performer, overdue and unassigned leads, stuck leads, people not checked in) and **Team follow-ups today**. No personal "Up next" card.
+  - **Managers and the Owner — team home:** the **daily summary** tiles ✅ (live, tappable: Overdue leads → Escalations, Not checked in → Attendance, Visits today → Visits, Requests waiting (leave + corrections) → Attendance; seed for the Owner: 4 · 4 · 4 · 3); for people who see receivables, the **Brokerage from developers** card ✅ (§3.17: "Brokerage pending · ₹42 L · 3 overdue" and "Overdue · ₹15.4 L · oldest 43 days (Halcyon Habitats)", both opening Brokerage on Overdue; Neha: ₹18.5 L · 1 overdue); then the lead inbox beside the **AI weekly digest** 🎭 ("What needs your attention": pipeline, top performer, overdue and unassigned leads, stuck leads, people not checked in, and with receivables "Kestrel Developers owes ₹18.7 L across 3 bookings; Vikrant Saluja's invoice is 18 days overdue.") and **Team follow-ups today**. No personal "Up next" card.
   - **Sales:** the cards below (Up next visit, Waiting for a reply, Active value), then the inbox and Due today.
   - **Pre-sales:** **Up next · call** ✅ — the buyer who has waited longest for a reply (or, with nobody waiting, the newest unqualified lead): "Call Pooja · 2 BHK in HSR Layout · waiting 5m" with **Message** and **Call now** (opens the call screen); **Waiting for a reply**; and **Your queue** (open leads, "2 to qualify · 0 ready for Sales"). Then the inbox and Due today.
 - **Up next card** ✅ (Sales): the soonest open visit (planned, on the way or checked in) among the viewer's visits (§3.12), with "+N more visits booked". With none it says "No visits booked". **Directions** shows a toast ("Directions to … sent to your phone") 🎭. **Message** opens that lead's chat ✅.
@@ -146,7 +146,7 @@ Toasts confirm actions at the top of the screen for 2.6 s, with a tick; refusals
 - Saving creates a lead at the top of the inbox ✅: source "Quick capture", intent New, stage New lead, budget "Budget to qualify" (counts as ₹0 in totals), 1 unread, phone stored, and an ownership-history entry. Success screen says where it went: "now in your inbox", "assigned to <name>" or "in the unassigned queue".
 
 ### 3.8 Team, roles and visibility (M1)
-- **Roles** (permission bundles; one person can hold several): **Owner**, **Manager**, **Sales**, **Pre-sales**. Permissions: see all leads · see team's leads · assign/reassign · see full phone numbers · invite/deactivate people · change settings · view reports · export · hand leads to Sales · add and edit properties (Owner, Manager, Sales) · run and track property visits (Owner, Manager, Sales; so Pre-sales have no Visits screen) · see property owners' numbers (Owner, Manager) · see the audit log (Owner) (table in §3.10).
+- **Roles** (permission bundles; one person can hold several): **Owner**, **Manager**, **Sales**, **Pre-sales**. Permissions: see all leads · see team's leads · assign/reassign · see full phone numbers · invite/deactivate people · change settings · view reports · export · hand leads to Sales · add and edit properties (Owner, Manager, Sales) · run and track property visits (Owner, Manager, Sales; so Pre-sales have no Visits screen) · see property owners' numbers (Owner, Manager) · see the audit log (Owner) · see brokerage receivables (Owner, Manager) · record invoices and payments (Owner) · create and send launch broadcasts (Owner, Manager) (table in §3.10).
 - **Which leads someone sees** ✅: Owner, every lead. Manager, leads owned by their team plus unassigned leads. Sales and Pre-sales, only their own. Tasks, recordings, upcoming visits, badges and every total follow the same rule.
 - **Team screen** ✅ (Manager: own team; Owner: everyone):
   - Stat strip: Active / On leave / Deactivated.
@@ -233,8 +233,9 @@ Monthly figures (leads handled, visits booked/verified, deals, commission, first
   - leave requested → the person's team manager and the Owner; approved → the person and the cover; declined → the person;
   - attendance correction requested → manager and Owner; decided → the person;
   - a refused visit check-in → the agent's manager and the Owner;
-  - a deal won → the owner's manager and the Owner.
-- **Audit log** ✅ (Owner only; nav **Audit log**): newest first, who (avatar, short name), when, type and what. Types with counts as filter chips: Reassignments, Team (invite, deactivate with lead count, reactivate), Settings (pre-sales switch, routing, radius, work hours, auto-reply on/off/message, lead-source cost/team/connection), Properties (added; edited with what changed: price, availability, listing agent, owner contact), Deals (won with price, lost with reason, reopened), Exports. Repeated edits of the same setting by the same person update one entry, so typing a cost doesn't flood the log.
+  - a deal won → the owner's manager and the Owner;
+  - (M14) a developer's payment recorded → the booking's agent ("Kestrel Developers paid the brokerage for … Your share goes out with this month's payout."); a booking disputed → the Owner and the agent's manager. Seed: Arjun has "Halcyon Habitats: invoice BDR/26-27/014 for Rajiv Menezes is 43 days overdue." (opens Brokerage).
+- **Audit log** ✅ (Owner only; nav **Audit log**): newest first, who (avatar, short name), when, type and what. Types with counts as filter chips: Reassignments, Team (invite, deactivate with lead count, reactivate), Settings (pre-sales switch, routing, radius, work hours, auto-reply on/off/message, lead-source cost/team/connection), Properties (added; edited with what changed: price, availability, listing agent, owner contact), Deals (won with price, lost with reason, reopened), Channel partner (margin money, invoice raised, payment recorded with amount and invoice number, step undone, dispute marked or resolved), Exports (incl. brokerage bookings). Repeated edits of the same setting by the same person update one entry, so typing a cost doesn't flood the log.
 - **Export leads** and **Export log** ✅ download CSV files in the browser (`daira-leads.csv`: name, phone, source, owner, stage or Won/Lost, budget, looking for, localities; `daira-audit-log.csv`) and are themselves logged.
 - Not built: logging each time someone views a full phone number (Managers and the Owner always see full numbers in this prototype); editing permissions (the table is read-only, so there are no permission changes to log).
 
@@ -254,6 +255,18 @@ Monthly figures (leads handled, visits booked/verified, deals, commission, first
   11. **Negotiate and win**: moves to Negotiation, records the deal (asking = listing price; a buyer offer at 94% and the owner's counter at 98%, both today; agreed = the counter; ₹5 L token paid today; agreement in 14 days; KYC and token receipt done; 100% to the salesperson), marks it won, opens Pipeline.
   12. **The leaderboard moves**: back to the Owner on Performance; the salesperson's commission this month rises by agreed price × 2%. A toast says "Sneha P.: +₹2.9 L commission this month", and their leaderboard row scrolls into view and pulses green for a few seconds.
 - The finish card suggests resetting demo data before the next client. The guide's place in the script is not saved; reloading the page ends it.
+
+### 3.17 Brokerage receivables (M14 · channel partner, §8.17.1)
+What developers owe the firm for new-launch bookings it sold as their channel partner. Brokerage = agreement value × the developer's %; headline figures are **before GST and TDS**. Seed in §4.
+- **Brokerage screen** ✅ (nav **Brokerage**, first in Manage; `viewReceivables`: Owner every booking, Managers their team's agents' bookings; Sales and Pre-sales never see it). Title "Brokerage", subtitle "What developers owe Better Days Realty · brokerage before GST and TDS", **Export CSV** (`exportData`; `bayana-brokerage.csv`, audited).
+  - **Stat strip** (each tappable, sets the filter): **Pending** ₹42 L · 8 bookings · **Overdue** ₹15.4 L · 3 bookings (red) · **Ready to invoice** ₹5.7 L · 1 booking · **Received · last 30 days** ₹3.5 L · 1 booking. Lakh figures drop a trailing ".0" (`formatLakh`).
+  - **Charts** (`BarList`, with a Chart · Table toggle): **Pending by developer**, largest first (Kestrel ₹18.7 L, Banyan Bay ₹12.4 L, Larkspur ₹6 L, Halcyon ₹4.9 L) and **Age since booking** in order (0–30 ₹16.6 L, 31–60 ₹6.2 L, 61–90 ₹10.6 L, 90+ ₹8.6 L; "N bookings" under each). Tapping a developer bar sets the developer filter; an age bar adds a removable "Booked 61–90 days ago" filter.
+  - **Filters:** chips All · Overdue · Ready to invoice · Awaiting payment (waiting for the buyer's % or invoiced within terms) · Disputed · Paid, with counts, and a developer dropdown. Order: most overdue first, then disputed, ready to invoice, due soonest, waiting; in All, **Paid · N** is folded at the end.
+  - **Rows** (a table on desktop; cards on tablet and phone): buyer and unit, developer, agent, agreement, brokerage ("₹4.86 L · 3% of ₹1.62 Cr"), a 4-dot milestone track (booked → margin money → invoice → payment), the status (*Waiting for 10% payment* · *Ready to invoice* · *Due in N days* · **Overdue N days** · **Disputed** · *Paid*) and the next step: **Mark margin paid** / **Raise invoice** (Owner) or **Send reminder** (Owner, Manager; primary when overdue). Full-width 44 px buttons on phones.
+- **Booking detail** ✅ (sheet on phones): milestones with dates, **Brokerage @ %**, **GST @ 18%** (added), **TDS @ 2%** (deducted), **Net receivable** in rupees (Rajiv Menezes: ₹4,86,000 · + ₹87,480 · −₹9,720 · ₹5,63,760), the invoice chip "BDR/26-27/014 · PDF (demo)" 🎭, reminder history with replies, and actions: **Mark margin paid** · **Raise invoice** · **Record payment** · **Mark disputed** / **Resolve** · **Undo last step** (all Owner, `manageReceivables`) and **Send reminder** (Owner, Manager, once invoiced). Footnote: "GST 18% and TDS 2% are demo settings. Confirm with your CA."
+- **Recording** ✅ (dates Today … 14 days ago): margin money paid; **Raise invoice** with the next number prefilled ("BDR/26-27/025"; financial year from today) and the developer's terms; **Record payment** with the amount fixed to the net receivable, optional UTR and "TDS certificate received" (audited "Recorded payment ₹5,63,760 from Halcyon Habitats (BDR/26-27/014)"; the agent is notified); **Amount differs? Mark disputed** for short payments; **Mark disputed** with a reason (Developer says another CP registered this buyer first / Developer disputes the agreement value / Amount differs / Other; notifies the Owner and the agent's manager).
+- **Send reminder** ✅ 🎭: tone **Gentle · Firm** and an editable WhatsApp message to the developer's CP manager (Gentle: "Hi Rakesh, a gentle reminder from Better Days Realty. Our invoice BDR/26-27/014 for ₹5,63,760 (Rajiv Menezes, Halcyon Grove B-1204) was raised on <date> and is 43 days past your 45-day terms. Could you share the payment date? Thanks, Arjun Khanna"; Firm: "…is 43 days overdue. Please release it this week, or tell us what's pending from our side."). **Send on WhatsApp** → toast "Reminder sent to Rakesh Iyengar (Halcyon Habitats)"; about 4 s later the history shows the scripted reply "Noted. Checking with accounts, will confirm the date by Friday."
+- Rates (GST 18%, TDS 2%) are constants in `src/data/channelPartner.ts`.
 
 ## 4. Seed data (`src/data/demo.ts`, `src/data/team.ts`, `src/data/sources.ts`)
 - **Team (22, `team.ts`):** Owner Arjun Khanna; Indiranagar team (manager Neha Kapoor; Sales Priya Nair, Aditya Rao, Kavya Reddy *on leave*, Sameer Joshi, Divya Iyer); Whitefield (manager Rahul Menon; Sales Vivek Sharma, Ritu Bansal, Manoj Kumar, Ayesha Khan, Karthik Srinivas); HSR Layout (manager Farah Sheikh; Sales Sneha Pillai, Rohit Verma, Ananth Krishnan, Meghna Das, Tarun Gowda); central Pre-sales Kiran Patel, Lakshmi Narayan, Imran Ali.
@@ -286,16 +299,18 @@ Monthly figures (leads handled, visits booked/verified, deals, commission, first
 - **Visits and offices (`visits.ts`):** 6 seed visits (§3.12) plus 6 upcoming visits for the wider book (Sameer and Meghna tomorrow, Divya and Ritu in 2 days, Karthik in 3, Tarun in 4); offices in Indiranagar (HQ), Whitefield and HSR Layout with coordinates. Properties also carry coordinates.
 - **Lead sources (8, `sources.ts`)** with weekly leads, first-reply minutes, default cost per lead (₹450 / 400 / 350 / 180 / 0…) and default team; plus the pool of 6 buyers used for simulated arrivals.
 - **Tasks (8)**, all for today, and **recordings (5)** linked to the leads above. Reminders set in the demo are added to the same list (with a day).
+- **Channel partner (`channelPartner.ts`, M14):** developers Halcyon Habitats (CP manager Rakesh Iyengar; 3%, billable once the buyer paid 10%, pays within 45 days, registrations valid 30 days), Banyan Bay Developers (Deepa Raghunath; 2.5%, 10%, 60, 30), Kestrel Developers (Joseph D'Souza; 2%, 15%, 30, 45), Larkspur Estates (Nikhil Thakur; 2%, 20%, 30, 30); projects Halcyon Grove (Whitefield), Banyan Bay Residences (off Sarjapur Road, HSR Layout), Kestrel Heights (Koramangala), Larkspur Residences (Indiranagar), with fake RERA numbers ("PRM/KA/RERA/DEMO/0142"). **Bookings (10)**, days ago for booked · margin · invoiced · paid: Rajiv Menezes, Halcyon Grove B-1204, Vivek S., ₹1.62 Cr (120 · 95 · 88 /014) overdue 43 days · Sunaina Dutta, A-0703, Ayesha K., ₹1.18 Cr (60 · 45 · 40 /022 · 6) paid · Arun Pai, C-1502, Manoj K., ₹1.86 Cr (150 · 130 · 120 /009 · 60) paid · Prerna Chatterjee, Banyan Bay 2-1103, Sneha P., ₹1.48 Cr (110 · 100 · 95 /012) overdue 35 days · Manish Kothari, 3-0405, Rohit V., ₹1.96 Cr (30) waiting for 10% · Farida Lokhandwala, 1-0902, Meghna D., ₹1.52 Cr (75 · 60 · 58 /019) due in 2 days · Vikrant Saluja, Kestrel Heights T2-1801, Priya N., ₹3.42 Cr (70 · 50 · 48 /021) overdue 18 days · Ruchi Bhargava, T1-0602, Aditya R., ₹2.85 Cr (25 · 8) ready to invoice · Harpreet Sodhi, T2-2203, Ritu B., ₹3.10 Cr (45 · 30 · 28 /024) disputed "Developer says another CP registered this buyer first" · Neeraj Wadhwa, Larkspur Residences 3B, Divya I., ₹3.00 Cr (15) waiting for 20%. None is linked to a lead (they predate Bayana). By manager: Neha ₹18.5 L, Rahul ₹11.1 L, Farah ₹12.4 L, 1 overdue each.
 - **Fixed demo numbers** (`DEMO_METRICS`): follow-up rate 82% (+12%), weekly chart values, 18 calls this week (2h 14m), 72% answer rate (+8%).
 
 ## 5. Saved in the browser (localStorage)
-All keys use the prefix `daira:v8:`: `viewer`, `settings`, `pretend-location`, `attendance-today`, `corrections`, `leave`, `added-members`, `member-status`, `added-leads`, `owners`, `assignments`, `lead-edits`, `notes`, `tags`, `activity`, `source-settings`, `arrivals`, `stages`, `deals` (offer history with dates, token and agreement dates, documents, splits), `closures` (won/lost), `visits` (visit records with steps and outcomes), `read-leads`, `chats`, `ai-suggestions`, `qualify-steps`, `tasks`, `completed-tasks`, `recordings`, `saved-properties`, `properties` (inventory incl. edits and additions), `property-shares` (Sent/Seen per lead), `notifications` (everyone's, with read state), `audit`.
+All keys use the prefix `daira:v9:`: `viewer`, `settings`, `pretend-location`, `attendance-today`, `corrections`, `leave`, `added-members`, `member-status`, `added-leads`, `owners`, `assignments`, `lead-edits`, `notes`, `tags`, `activity`, `source-settings`, `arrivals`, `stages`, `deals` (offer history with dates, token and agreement dates, documents, splits), `closures` (won/lost), `visits` (visit records with steps and outcomes), `read-leads`, `chats`, `ai-suggestions`, `qualify-steps`, `tasks`, `completed-tasks`, `recordings`, `saved-properties`, `properties` (inventory incl. edits and additions), `property-shares` (Sent/Seen per lead), `cp-bookings` (M14 bookings with milestones, disputes and reminders), `notifications` (everyone's, with read state), `audit`.
 **Reset demo data** (account menu → confirm) deletes these, plus any older `daira:*` / `daira-*` keys, and reloads the page. Run it before every client demo.
 
 ## 6. Code map
 See `AGENTS.md` for conventions. Each component has a matching `.css` file next to it.
 - `src/App.tsx`: shell; owns the current view, the open lead, dialogs and toasts, and falls back when "View as" hides a screen.
 - `src/data/bookOfLeads.ts`: the wider book of 34 quieter seed leads (no unread messages), appended to the scripted twelve.
+- `src/data/channelPartner.ts`: M14 developers, projects, seed bookings, GST/TDS rates, brokerage maths, booking statuses, invoice numbering, reminder text.
 - `src/data/demo.ts`: lead/property/task types and seed data, stages, response SLA, commission settings, property matching.
 - `src/data/team.ts`: people, teams, roles, "View as" personas.
 - `src/data/sources.ts`: lead sources and the simulated-arrival buyer pool.
@@ -311,9 +326,10 @@ See `AGENTS.md` for conventions. Each component has a matching `.css` file next 
 - `src/state/useDemoStore.ts`: all saved state, the viewer, visibility filtering, routing, activity log and timeline, duplicate lookup, derived numbers and actions.
 - `src/lib/`: `ai.ts` (demo AI: reply drafts, lead score, call summary, weekly digest), `location.ts` (one-off location readings: demo readings, the browser's real location, distance), `permissions.ts` (role → permissions, who sees which lead), `storage.ts` (localStorage), `format.ts` (dates, money, durations, phone masking), `csv.ts` (CSV text and browser download), `useEscapeKey.ts`.
 - `src/components/`: `DemoGuide` (guided demo panel), `AppNavigation` (sidebar with Work/Manage groups, phone top bar, tab bar with More sheet), `navigation.ts` (items with required permission), `Dialog` (the one modal / sheet / full-screen shell), `AccountMenu`, `Avatar`, `HeatBadge`, `LeadActions`, `LeadRow`, `LeadTimeline`, `LeadNotes`, `LeadTags`, `IncomingLeadBanner`, `LocationControl` (slim demo location strip), `TeamPulse` (daily summary tiles and AI weekly digest for the team home), `BarList` (single-series bar chart), `PropertyCard` (also `PropertyPhoto`), `NotificationBell` (bell + notifications panel), `Toast`, `Icon`.
-- `src/views/`: `TodayView`, `ChatView` (chat + lead panel), `PipelineView`, `PropertiesView`, `FollowUpsView`, `CallsView`, `VisitsView` (with the visit outcome form), `AttendanceView` (My day, Leave, Register with team calendar, Requests), `ReportsView` (my performance, leaderboard, scorecard, owner insights), `EscalationsView`, `LeadSourcesView`, `TeamView` (with invite dialog), `SettingsView`, `AuditView` (Owner's audit log with CSV exports).
-- `src/modals/`: `AddLeadModal` (with duplicate check), `EditLeadDialog` (structured buyer brief), `ScheduleVisitDialog`, `ReminderDialog` (Remind me / Add reminder), `TemplateDialog`, `AssignDialog` (people picker for assign / reassign / hand-off / deactivate), `DealDialog` (offer tracker + commission split; also `LostDialog`), `PropertyDialog` (add/edit listing), `ShareDialog` (pick lead → pick homes → WhatsApp preview → send), `CallPicker`, `CallModal`.
-- `tests/e2e/`: 18 end-to-end suites (431 checks) covering every section of this spec, run with `pnpm test:e2e` (see its README for the suite → section map).
+- `src/state/channelPartner.ts`: M14 state and actions (`store.cp`: visible bookings, margin, invoice, payment, undo, dispute, reminder), used inside `useDemoStore`.
+- `src/views/`: `BrokerageView` (M14 receivables), `TodayView`, `ChatView` (chat + lead panel), `PipelineView`, `PropertiesView`, `FollowUpsView`, `CallsView`, `VisitsView` (with the visit outcome form), `AttendanceView` (My day, Leave, Register with team calendar, Requests), `ReportsView` (my performance, leaderboard, scorecard, owner insights), `EscalationsView`, `LeadSourcesView`, `TeamView` (with invite dialog), `SettingsView`, `AuditView` (Owner's audit log with CSV exports).
+- `src/modals/`: `BookingDialogs` (M14 booking detail, recording dialogs, reminder), `AddLeadModal` (with duplicate check), `EditLeadDialog` (structured buyer brief), `ScheduleVisitDialog`, `ReminderDialog` (Remind me / Add reminder), `TemplateDialog`, `AssignDialog` (people picker for assign / reassign / hand-off / deactivate), `DealDialog` (offer tracker + commission split; also `LostDialog`), `PropertyDialog` (add/edit listing), `ShareDialog` (pick lead → pick homes → WhatsApp preview → send), `CallPicker`, `CallModal`.
+- `tests/e2e/`: 19 end-to-end suites (469 checks) covering every section of this spec, run with `pnpm test:e2e` (see its README for the suite → section map).
 - `.github/workflows/deploy-pages.yml`: builds and publishes the demo to GitHub Pages on every push to `main`. Page title, description and no-index live in `.figma/make/site.json`.
 - `src/index.css`: the only place raw colours are defined. Design tokens (colour, 4px spacing scale, radius, shadow, `--fs-*` type sizes, `--tap`) and shared classes (`.btn`, `.card`, `.chip`, `.count-badge`, `.status-dot`, `.icon-badge`, `.is-done` and more).
 
@@ -458,6 +474,7 @@ Everything here is **UI only**: each item is a screen or flow driven by seed dat
 - **Manager:** adds Team, Attendance & leave, Reports, Escalations.
 - **Owner:** adds Settings (roles, offices, sources, templates, routing, auto-reply) and the Audit log.
 - The desktop sidebar groups items under **Work** and **Manage**.
+- **M14 (§8.17):** **New launches** (Work, everyone; Launches · Registrations) and **Brokerage** (first in Manage; Owner and Managers). On phones both are in **More**.
 
 ### 8.15 Backend notes for later (not part of the UI build)
 - **Masked calling (India).** Click-to-call through a cloud-telephony provider such as Exotel, Knowlarity, MyOperator or Ozonetel. The provider rings the agent's phone, then connects the buyer, who sees the company's virtual number. The agent never sees the buyer's number.
@@ -477,11 +494,256 @@ Everything here is **UI only**: each item is a screen or flow driven by seed dat
 5. M4, M13: chat automation and AI assist.
 6. M10, M11, M12: closing, inventory, notifications and audit.
 7. **Demo mode** — ✅ built as the guided demo (§3.16): a scripted run across all of the above (new 99acres lead → auto-reply → AI-filled brief → assigned → visit with verified check-in → won → leaderboard moves).
+8. **M14 channel partner** (§8.17): receivables → developer registrations → launch broadcasts → WhatsApp group capture → guided-demo bonus.
+
+### 8.17 M14 · Channel partner (new launches) — building in phases: **A receivables ✅ built (§3.1 card, §3.17, §3.15)** · B registrations · C launches · D group capture · E guided demo
+Developers pay CP brokerage late, and only after the buyer has paid a set share of the price. They pay only if the CP's registration of the buyer hasn't lapsed and no other CP registered the buyer first. Launches sell out in days, and many leads arrive in WhatsApp groups. Four parts, built in this order.
+
+- **Navigation:**
+  - **New launches** (Work, everyone, icon `bolt`, after Properties): tabs **Launches · Registrations**. It opens on Launches for people with `runLaunches`, otherwise Registrations.
+  - **Brokerage** (first in Manage; `viewReceivables`; new `rupee` icon).
+  - Phones: both in **More**; the bottom tabs don't change.
+- **Permissions:** `viewReceivables` "See brokerage receivables" (Owner, Manager) · `manageReceivables` "Record invoices and payments" (Owner) · `runLaunches` "Create and send launch broadcasts" (Owner, Manager).
+- **Who sees money:** the Owner sees all bookings. Managers see their team's agents' bookings with amounts. Sales and Pre-sales never see brokerage %, amounts or tax lines (commercially sensitive), only the status of their own bookings.
+- **Seed** (`src/data/channelPartner.ts`):
+
+| Developer | CP manager | Brokerage | Billable once buyer paid | Pays within | Registration valid |
+|---|---|---|---|---|---|
+| Halcyon Habitats | Rakesh Iyengar, +91 98450 70112 | 3% | 10% | 45 days of invoice | 30 days |
+| Banyan Bay Developers | Deepa Raghunath, +91 99000 81455 | 2.5% | 10% | 60 days | 30 days |
+| Kestrel Developers | Joseph D'Souza, +91 97400 62318 | 2% | 15% | 30 days | 45 days |
+| Larkspur Estates | Nikhil Thakur, +91 96320 50947 | 2% | 20% | 30 days | 30 days |
+
+- **Seed projects:**
+  - **Halcyon Grove**, Whitefield: 2 BHK ₹1.1–1.35 Cr, 3 BHK ₹1.6–1.9 Cr.
+  - **Banyan Bay Residences**, off Sarjapur Road, HSR Layout: 2 BHK ₹1.35–1.55 Cr, 3 BHK ₹1.85–2.1 Cr.
+  - **Kestrel Heights**, Koramangala: 3 BHK ₹2.6–3.1 Cr, 4 BHK ₹3.3–3.8 Cr.
+  - **Larkspur Residences**, Indiranagar: 3 BHK ₹2.6–3.2 Cr.
+  - RERA numbers are plainly fake ("PRM/KA/RERA/DEMO/0142").
+
+#### 8.17.1 Brokerage receivables (the Owner's money screen)
+- **Booking:** a unit sold through the firm, with dated milestones **Booked → Margin money paid → Invoice raised → Payment received**.
+  - Brokerage = agreement value × %. The detail sheet shows **GST @ 18%** (added), **TDS @ 2%** (deducted) and **Net receivable**, in rupees.
+  - Headline figures are brokerage before GST and TDS.
+  - **Statuses:** *Waiting for 10% payment* · *Ready to invoice* · *Due in N days* · **Overdue N days** (red; past the developer's terms) · *Paid* · **Disputed** (red, with a reason; still counted as pending).
+- **Screen** ✅ "Brokerage", subtitle "What developers owe Better Days Realty · brokerage before GST and TDS":
+  - **Stat strip:** **Pending** "₹42 L · 8 bookings" · **Overdue** "₹15.4 L · 3" · **Ready to invoice** "₹5.7 L · 1" · **Received · last 30 days** "₹3.5 L". New `formatLakh` drops a trailing ".0".
+  - **Charts:** `BarList`s with table views: **Pending by developer** (largest first) and **Age since booking** (0–30 / 31–60 / 61–90 / 90+ days, in order; tooltip "₹10.6 L · 2 bookings"). Tapping a bar filters.
+  - **Filters:** chips All · Overdue · Ready to invoice · Awaiting payment · Disputed · Paid, plus a developer dropdown. Most overdue first; **Paid · N** folded last.
+  - **Desktop:** a table (buyer · unit, project, agent, agreement, brokerage, 4-dot milestone track, due, next-step button: **Mark margin paid** / **Raise invoice** / **Send reminder**).
+  - **Phone:** cards ("Rajiv Menezes · Halcyon Grove B-1204", "₹4.86 L · 3% of ₹1.62 Cr", the track, "Overdue 43 days", a full-width button).
+  - **Row detail:** milestones, tax lines, an invoice chip "BDR/26-27/014 · PDF (demo)" 🎭, reminder history, **Undo last step**, **Mark disputed** / **Resolve**. **Export CSV** (`exportData`, audited).
+- **Recording** ✅ (`manageReceivables`; dates Today … 14 days ago):
+  - **Raise invoice:** the next number is prefilled ("BDR/26-27/025", financial year from today).
+  - **Record payment:** the amount is fixed to the net receivable; optional UTR; a "TDS certificate received" tick.
+  - **Short payments:** Disputed · "Amount differs".
+- **Send reminder** ✅ 🎭 (Owner, Manager): tone **Gentle · Firm** and an editable WhatsApp preview to the CP manager.
+  - **Gentle:** "Hi Rakesh, a gentle reminder from Better Days Realty. Our invoice BDR/26-27/014 for ₹5,63,760 (Rajiv Menezes, Halcyon Grove B-1204) was raised on <date> and is 43 days past your 45-day terms. Could you share the payment date? Thanks, Arjun Khanna"
+  - **Firm** ends: "…is 43 days overdue. Please release it this week, or tell us what's pending from our side."
+  - **Send:** toast "Reminder sent to Rakesh Iyengar (Halcyon Habitats)", then "Last reminder · just now". About 4 s later the history gets the scripted reply 🎭 "Noted. Checking with accounts, will confirm the date by Friday."
+- **From a won deal** ✅: if the lead has an active registration, the deal dialog offers "New-launch booking at Kestrel Heights" (off by default) and **Unit**.
+  - Saving creates *Booked · today* (agreement = agreed price), sets the registration to **Booked** and notifies the Owner.
+  - Lapsed registration → amber note: "Registration lapsed on <date>. The developer may refuse brokerage."
+- **Sales and Pre-sales:** **My bookings** (foot of Registrations) shows status words only, e.g. "Invoice raised · awaiting developer payment".
+- **Hooks:**
+  - **Audit** (new type **Channel partner**): invoice raised, payment recorded (amount and invoice number), step undone, dispute marked or resolved.
+  - **Notifications:**
+    - Payment → the agent: "Kestrel Developers paid the brokerage for Vikrant Saluja. Your share goes out with this month's payout."
+    - Dispute → the Owner and the agent's manager.
+  - **Timeline:** "Booked Kestrel Heights T1-1404 · ₹2.65 Cr".
+- **Seed bookings** (days ago; fixed invoice numbers; no linked lead, because they predate Bayana):
+
+| Buyer | Project · unit | Agent | Agreement | Brokerage | Booked · margin · invoiced · paid | Today |
+|---|---|---|---|---|---|---|
+| Rajiv Menezes | Halcyon Grove B-1204 | Vivek S. | ₹1.62 Cr | 3% · ₹4.86 L | 120 · 95 · 88 (/014) | Overdue 43 days |
+| Sunaina Dutta | Halcyon Grove A-0703 | Ayesha K. | ₹1.18 Cr | 3% · ₹3.54 L | 60 · 45 · 40 (/022) · 6 | Paid |
+| Arun Pai | Halcyon Grove C-1502 | Manoj K. | ₹1.86 Cr | 3% · ₹5.58 L | 150 · 130 · 120 (/009) · 60 | Paid |
+| Prerna Chatterjee | Banyan Bay 2-1103 | Sneha P. | ₹1.48 Cr | 2.5% · ₹3.70 L | 110 · 100 · 95 (/012) | Overdue 35 days |
+| Manish Kothari | Banyan Bay 3-0405 | Rohit V. | ₹1.96 Cr | 2.5% · ₹4.90 L | 30 | Waiting for 10% payment |
+| Farida Lokhandwala | Banyan Bay 1-0902 | Meghna D. | ₹1.52 Cr | 2.5% · ₹3.80 L | 75 · 60 · 58 (/019) | Due in 2 days |
+| Vikrant Saluja | Kestrel Heights T2-1801 | Priya N. | ₹3.42 Cr | 2% · ₹6.84 L | 70 · 50 · 48 (/021) | Overdue 18 days |
+| Ruchi Bhargava | Kestrel Heights T1-0602 | Aditya R. | ₹2.85 Cr | 2% · ₹5.70 L | 25 · 8 | Ready to invoice |
+| Harpreet Sodhi | Kestrel Heights T2-2203 | Ritu B. | ₹3.10 Cr | 2% · ₹6.20 L | 45 · 30 · 28 (/024) | Disputed: "Developer says another CP registered this buyer first" |
+| Neeraj Wadhwa | Larkspur Residences 3B | Divya I. | ₹3.00 Cr | 2% · ₹6.00 L | 15 | Waiting for 20% payment |
+
+  - **By developer:** Kestrel ₹18.7 L, Banyan Bay ₹12.4 L, Larkspur ₹6 L, Halcyon ₹4.9 L.
+  - **By age:** ₹16.6 L / ₹6.2 L / ₹10.6 L / ₹8.6 L.
+  - **Managers:** Neha ₹18.5 L, Rahul ₹11.1 L, Farah ₹12.4 L, 1 overdue each.
+- **Checks:**
+  1. **Owner:** the strip and bars show the values above.
+  2. **Rajiv's detail:** ₹4,86,000 · GST ₹87,480 · TDS −₹9,720 · Net ₹5,63,760.
+  3. **Record payment on Rajiv:**
+     - Strip: "₹37.1 L · 7 bookings", "₹10.5 L · 2", Received "₹8.4 L".
+     - Audit: "Recorded payment ₹5,63,760 from Halcyon Habitats (BDR/26-27/014)".
+     - Vivek is notified; Undo restores everything.
+  4. **Raise invoice on Ruchi Bhargava:** "BDR/26-27/025", "Due in 30 days".
+  5. **Gentle reminder:** the preview has "Hi Rakesh", "₹5,63,760" and "43 days"; the reply appears within 5 s.
+  6. **Neha:** "₹18.5 L · 3 bookings"; Send reminder only.
+  7. **Priya:** no Brokerage nav. My bookings lists Vikrant Saluja with no "₹".
+
+#### 8.17.2 Developer client registration
+- **Lead panel → Overview:** a **Developer registrations · N** card below the Deal panel. Each entry: "Kestrel Heights · Kestrel Developers", a status chip, "Valid until Fri, 23 Oct · 3 days left" with a thin meter, and who registered it. **Register with a developer** is for anyone who can see the lead (a bottom sheet on phones).
+- **Register dialog** ✅:
+  - **Fields:**
+    - Project.
+    - Buyer name (from the lead).
+    - Mobile (`displayPhone`, read-only).
+    - **PAN**, optional ("Some developers ask for it"; error "PAN should look like ABCDE1234F").
+    - How you registered: Developer's CP portal / Email to CP manager / WhatsApp to CP manager.
+    - Registered on: Today … 30 days ago.
+    - Developer's reference.
+  - **Add screenshot** 🎭 attaches a placeholder "registration-proof.png · demo".
+  - **Footer:** "Bayana keeps your proof and reminds you before it lapses. It doesn't submit anything to the developer."
+  - **Stamp:** "Recorded by Priya N. · Tue, 20 Oct, 2:14 PM".
+  - **PAN** always shows masked ("XXXXXX234K", new `maskPan`); `seeFullNumbers` gets **Show**.
+- **Conflict warning** ✅: checks every active registration in the firm, even on leads the viewer can't see, for the same phone and developer.
+  - **Alert:** "Already registered with Kestrel Developers by Kavya R. on <date> · valid until <date>. The firm is already protected; registering again won't extend it and may confuse the developer's CP desk."
+  - The submit button becomes **Register anyway**.
+- **Statuses:**
+  - **Registered**
+  - **Expiring** (≤ 7 days, amber; "Expires tomorrow")
+  - **Lapsed** ("Lapsed 2 days ago")
+  - **Disputed** (manual: Another CP registered first / Developer has no record / Other)
+  - **Booked** (countdown hidden)
+- **Actions:**
+  - **Renew:** new date and proof; restarts the window.
+  - **Mark disputed:** anyone who can see the lead.
+  - **Resolve** (Owner, Manager): "Developer accepted ours", or "Lost to another CP" (→ Lapsed).
+- **Registrations tab** ✅:
+  - Chips All · Expiring · Lapsed · Disputed · Booked, with counts; soonest expiry first.
+  - Each row: buyer (→ chat), project, agent ("Registered by Kavya R. · lead now with Aditya R."), status, days left, **Renew**.
+  - Lead visibility (§3.8) applies; cards on phones.
+- **Hooks:**
+  - **Notifications:**
+    - At 7, 3 and 1 days left → the registering agent and the lead owner.
+    - At 1 day and on lapsing → their manager too.
+    - **Register anyway** → both managers and the Owner (also audited).
+  - **Sales Today:** a banner like the check-in reminder at 3 days or fewer: "Ananya Rao's registration with Kestrel Developers expires in 3 days", with **Renew** and **Open lead**.
+  - **Timeline** (kind `registration`): registered, renewed, disputed, resolved, "Registered anyway (already registered by Kavya R.)".
+  - Time doesn't pass in the demo; alerts come from the seed.
+- **Seed registrations:**
+
+| Lead | Project | By | Registered | Today |
+|---|---|---|---|---|
+| Ananya Rao | Kestrel Heights | Priya N. | 42 days ago | Expiring · 3 days |
+| Ishita Banerjee | Larkspur Residences | Priya N. | 10 days ago | Registered · 20 days |
+| Kunal Mehra | Larkspur Residences | Priya N. | 12 days ago | Disputed · Another CP registered first |
+| Gaurav Bhatia | Kestrel Heights | Kavya R. (lead now Aditya R.) | 30 days ago | Registered · 15 days |
+| Meenakshi Raghavan | Larkspur Residences | Sameer J. | 32 days ago | Lapsed 2 days ago |
+| Deepak Malhotra | Kestrel Heights | Ritu B. | 20 days ago | Registered · 25 days |
+| Ishaan Malik | Halcyon Grove | Ayesha K. | 5 days ago | Registered · 25 days |
+| Nisha Kulkarni | Banyan Bay Residences | Rohit V. | 23 days ago | Expiring · 7 days |
+| Vikram Shah | Banyan Bay Residences | Sneha P. | 29 days ago | Expires tomorrow |
+
+  - **Seed notifications:** Priya (Ananya), Rohit (Nisha), Sneha and Farah (Vikram), Sameer and Neha (Meenakshi lapsed). Arjun: "Halcyon Habitats: invoice BDR/26-27/014 for Rajiv Menezes is 43 days overdue." (opens Brokerage).
+- **Checks:**
+  8. **Priya, Ananya Rao's lead:** "Expiring · 3 days left"; the banner on her Today; the alert in her bell.
+  9. **Priya registers Mohit Saxena** with Larkspur, PAN "ABCPM1234K": "Registered · 30 days left", "XXXXXX234K", a timeline entry. "ABC123" blocks Save.
+  10. **The Owner registers Gaurav Bhatia** with Kestrel: the Kavya R. alert and **Register anyway**; saving is audited.
+  11. **Owner's Registrations:** All 9 · Expiring 3 · Lapsed 1 · Disputed 1. **Renew** on Ananya → "45 days left", Expiring 2.
+  12. **Ananya won with the booking ticked:** the registration reads Booked; a new booking shows "Waiting for 15% payment"; Pending rises by the agreed price × 2%.
+
+#### 8.17.3 Launch broadcasts
+- **Launches tab** ✅: cards with project, developer, locality, configurations and prices, launch day and status (Draft / Sent). Sent cards add "Sent 8 · Delivered 8 · Read 6 · Replied 2" and the cost. Without `runLaunches`: "N of your buyers match", and no New launch or Send.
+- **New launch** (`runLaunches`; full screen on phones with a sticky button), three steps:
+  1. **Details:** project (or a new one), configurations (BHK + price from/to, **+ Add configuration**), launch day, EOI, possession, and **RERA number**, which is required: "Add the RERA number. It must appear in every launch message."
+  2. **Audience** ✅: open, visible leads matched on three on/off chips that update the count live ("13 buyers match"):
+     - **Locality:** one of the lead's localities is the launch's.
+     - **BHK:** a configured BHK. Investment flats match any; villas never.
+     - **Budget:** overlaps that configuration's price band.
+
+     Each row has a tick, the buyer, the owner, the reason ("HSR Layout · 2 BHK · ₹1.4–1.5 Cr fits ₹1.35–1.55 Cr") and "Registered with Banyan Bay" where it applies.
+     - **Note** 🧱: "Only buyers who agreed to receive updates from Better Days Realty are included."
+     - **Empty:** "None of your team's buyers match. Turn a filter off to widen it."
+  3. **Preview** ✅: a WhatsApp bubble tagged **Marketing**:
+     - "Hi Vikram, Banyan Bay Residences · Phase 2 by Banyan Bay Developers launches on Sat, 24 Oct off Sarjapur Road, HSR Layout. • 2 BHK · ₹1.35–1.55 Cr • 3 BHK · ₹1.85–2.1 Cr. Possession Dec 2029 · RERA PRM/KA/RERA/DEMO/0142. Early-access EOI ₹2 L (refundable). Want floor plans and a site visit? — Arjun, Better Days Realty"
+     - Buttons **Yes, send details** · **Not now**, footer "Reply STOP to opt out".
+     - Cost: "Marketing template · 13 × ₹0.86 = ₹11.18 (Meta's India rate, charged per delivered message)".
+- **Send to 13 buyers** 🎭 (asks to confirm):
+  - **Chats:** each one gets the message tagged "Template · New launch".
+  - **Ticks:** grey ✓ → grey ✓✓ (~1.5 s) → blue ✓✓ (3–6 s), with text labels. New tokens `--tick-sent` / `--tick-read`, ≥ 3:1 contrast.
+  - **Scripted:**
+    - Omkar Jadhav: "Not delivered · not on WhatsApp".
+    - Vinay Prabhu, Tejas Patil and Bhavana Shenoy: delivered, unread.
+    - **Replies** (6–8 s): Nisha Kulkarni "Yes, send details", Aman Khurana "Any 3 BHK on a high floor, east facing? Is the EOI fully refundable?", Asha Thomas "Yes, send details".
+  - **Replies** reach the inbox as buyer messages (1 unread, at the top).
+  - **Cost** becomes "₹10.32 · 12 delivered".
+  - **Other audiences:** about 80% read, and the first quarter reply.
+- **Hooks:**
+  - **Timeline** (kind `launch`): sent, each reply.
+  - **Notifications:** reply → the lead owner ("Nisha Kulkarni replied to the Banyan Bay Phase 2 launch: 'Yes, send details'").
+  - **Audit:** "Sent Banyan Bay Residences · Phase 2 to 13 buyers · ₹11.18".
+- **Seed launches:**
+  - **Banyan Bay Residences · Phase 2:** **Draft**, launching in 4 days, EOI ₹2 L. The Owner's 13 matches: Vikram Shah, Sana Fathima, Nisha Kulkarni, Rakesh Gupta, Aman Khurana, Sowmya Ramesh, Vinay Prabhu, Rajesh Naidu, Swati Agarwal, Tejas Patil, Bhavana Shenoy, Omkar Jadhav, Asha Thomas. Budget off adds Pooja Venkatesh, Zoya Begum and Nandini Bose.
+  - **Halcyon Grove · Tower D:** **Sent 6 days ago**, 8 / 8 / 6 / 2 🧱, ₹6.88.
+- **Checks:**
+  13. **Owner, draft:** "13 buyers match"; Vikram Shah and Nisha Kulkarni tagged registered. Budget off → 16.
+  14. **Preview:** has "Hi Vikram", the RERA number and "₹11.18". Clearing RERA blocks Next.
+  15. **Send:** within 10 s:
+      - Delivered 12 · Read 9 · Replied 3, and Omkar "Not delivered".
+      - Nisha's chat has her reply, with 1 unread in the inbox.
+      - Cost "₹10.32"; an audit entry.
+  16. **Neha:** the empty state. **Priya:** no New launch or Send.
+
+#### 8.17.4 WhatsApp group lead capture
+- **Why simulated:** Bayana can't read a broker's own WhatsApp groups, so agents paste or share messages in.
+- **Add lead** gets **Type it in · Paste a message**. Paste mode has:
+  - a text box, "Paste a message forwarded from a broker group";
+  - sample chips;
+  - **Group** (HSR Brokers Network / Whitefield Property Connect / Bengaluru Realty Partners / Other);
+  - **Read message**.
+- **Reading** ✅ 🎭 (`parseGroupMessage` in `ai.ts`; rules, not a model):
+  - **Finds:** the mobile (+91, 0 and spaces allowed); the name (after "Client:", "Contact" or "Call"); BHK or villa; localities (plus "HSR", "Kora", "WF"); the budget ("1.8–2.1 Cr", "90 L"); must-haves.
+  - Fields show **AI · Suggested** until edited or **Confirm all**.
+- **Number belongs to: The buyer · The broker who posted it.** The broker option is pre-picked on "brokers call", "Properties" or "Estates". Then the name becomes "Client of Manjunath (MG Estates)" with a **Co-broking** tag.
+- **Listing text** ("available", "resale", "for sale"): "This looks like a property for sale, not a buyer's requirement." with **It's a buyer, continue**.
+- **Saving:**
+  - The §3.7 duplicate check runs on the found number.
+  - Add lead's ownership rules apply.
+  - Source is **Broker groups**, a new Lead sources row (Messaging, "Manual capture", 7 a week 🧱, ₹0).
+  - The original message becomes a team note with numbers masked.
+  - Timeline: "Captured from WhatsApp group HSR Brokers Network".
+- **Phone share sheet** 🎭: account menu → **Simulate a forwarded group message** → "Share to" (WhatsApp, **Bayana**, Messages, Copy). **Bayana** opens paste mode with sample 1.
+- **Samples:**
+  1. "*URGENT requirement* 3 BHK in HSR / Koramangala, budget 1.8–2.1 Cr, OC received only. Client: Arnav Sethi 98451 62730. Loan pre-approved."
+  2. "Need 2 BHK Indiranagar near metro, 1.5–1.7 Cr. Contact Farhan 97390 22814" (Farhan Qureshi's number)
+  3. "Client requirement: 4 BHK villa Whitefield, 3.5–4 Cr, NRI visiting next week. Brokers with options call Manjunath 99000 81234 (MG Estates)"
+  4. "Resale available: 2 BHK Indiranagar, 1,150 sq ft, ₹1.65 Cr, east facing. Call 98860 44120"
+- **Checks:**
+  17. **Sample 1** suggests Arnav Sethi, 98451 62730, 3 BHK, HSR Layout + Koramangala, ₹1.8–2.1 Cr. Saving creates a Broker groups lead with a masked note.
+  18. **Sample 2:** the duplicate alert names Farhan Qureshi; Merge works.
+  19. **Sample 3:** the broker is pre-picked and the lead tagged Co-broking. **Sample 4:** shows the listing note.
+  20. **Phone (390 px):** the share sheet opens paste mode; controls ≥ 44 px. Layout audits pass for both new screens at 390, 900 and 1440 px.
+
+#### 8.17.5 Today and the guided demo
+- **Team home** (`viewReceivables`): a **Brokerage from developers** card below the four daily tiles (the tiles don't change):
+  - "Brokerage pending · ₹42 L · 3 overdue"
+  - "₹15.4 L overdue · oldest 43 days (Halcyon Habitats)"
+  - "Registrations: 3 expiring this week · 1 lapsed"
+
+  The money lines open Brokerage on Overdue; the last opens Registrations. Neha sees "₹18.5 L · 1 overdue" and "1 expiring · 1 lapsed".
+- **AI digest** 🎭 adds: "Kestrel Developers owes ₹18.7 L across 3 bookings; Vikrant Saluja's invoice is 18 days overdue." and "3 developer registrations expire this week."
+- **Guided demo (optional):** the finish card gets **Bonus: money developers owe you** (still "of 12").
+  - It views as the Owner, opens Brokerage on Overdue, opens Rajiv Menezes and sends the Gentle reminder.
+  - Panel text: "Developers pay brokerage late. Arjun sees ₹42 L pending and 3 overdue, and chases the oldest invoice in one tap."
+  - `DEMO_SCRIPT.md` gains "send a launch" and "paste a group message".
+- **Check:**
+  21. The Owner's Today reads "₹42 L · 3 overdue"; tapping it shows 3 overdue rows.
+- **Build notes:** `channelPartner.ts` (seed, rates, helpers incl. `buyersForLaunch`) · `BrokerageView`, `LaunchesView` · a `new-launch` Marketing template · saved keys `cp-bookings`, `cp-registrations`, `launches` · a `channel-partner` e2e suite.
+
+#### 8.17.6 Out of scope
+- Submitting registrations to developers or their portals.
+- Real WhatsApp sending, template approval, opt-in collection, or reading groups automatically.
+- Real invoices, e-invoicing, GST/TDS filing, bank feeds, agent payouts and part-payments.
+- Brokerage slabs, incentive schemes and launch inventory.
+- Using the developer's % on the leaderboard (won deals still count 2%).
+- Moving the seed out of Bengaluru.
 
 ---
 
 ## 9. Changelog
 Newest first. One line per change: date, what changed, which section was updated.
+- **2026-10-20:** M14 phase A: **Brokerage receivables**. New Brokerage screen (Manage; Owner and Managers): stat strip, pending by developer and by age (with table view), filters, desktop table / phone cards, booking detail with GST, TDS and net, raise invoice, record payment, undo, disputes, WhatsApp reminders with a scripted reply, CSV export. **Brokerage from developers** card on the team home and a digest line. New permissions (see receivables, record invoices and payments, send launch broadcasts), audit type Channel partner, three notification kinds and one seed alert for Arjun. Saved-data prefix `daira:v9:`. New `channel-partner` e2e suite. Updated §2, §3.1, §3.8, §3.15, §3.17 (new), §4, §5, §6, §8.17.
 - **2026-10-20:** Batch 3. **Guided demo** now 12 steps: opens on the Owner's team home, shows the telecaller's call queue, hands over from Pre-sales in their own view, and sets a "Call back Thursday" reminder before the visit. **Wider book of 34 seed leads** (46 in all) with 6 more upcoming visits and 3 more deals, so every salesperson has a realistic handful; the scripted twelve still top the inbox and drive escalations. Inbox shows 12 rows until **Show all** (filters and search list every match); on tablet/phone the team home puts the digest above the inbox. Colour rule written down (mint only on navy surfaces and the brand mark, indigo for main buttons on light surfaces, soft green for WhatsApp and positive actions). Added `DEMO_SCRIPT.md` (the presenter's script). Saved-data prefix bumped to `daira:v8:` so browsers with older saved visits and deals pick up the new seed. Updated §3.1, §3.16, §4, §5, §6.
 - **2026-10-20:** Demo polish batch 2. **Team home** on Today for Managers/Owner (daily summary tiles + AI digest + team follow-ups; moved off Performance). **Pre-sales:** no Visits screen (new *run and track property visits* permission), phone tabs Today · Pipeline · Follow-ups · Calls, Today leads with "Up next · call" and "Your queue", chat bar has **Hand to Sales**. **Remind me** in the chat bar and a real **Add reminder** dialog (buyer, what, day, time, how) with a **Coming up** list; the fixed extra reminder is gone. **One name per screen** (Today, Follow-ups) on every size. **Lighter lead rows** (one flag, owner and source as plain text, "Also with N brokers"). **Lead panel** reordered (shared warning and AI score first, AI suggestions above matches, matches above the brief, ownership history folded). **Phone location** demo control is a slim strip. **Full-screen chat on phones.** New `follow-ups` e2e suite. Updated §2, §3.1, §3.2, §3.5, §3.8, §3.12, §3.13, §3.14, §4, §6, §7.
 - **2026-10-20:** Rebrand to **Bayana** (app name only) with the workspace **Better Days Realty** (`src/data/brand.ts`): sidebar shows both, phone top bar Bayana only, account menu shows the workspace; buyer-facing messages (auto-reply, Welcome template, welcome quick reply) use the brokerage name; tab title "Bayana · WhatsApp-first CRM demo". Demo polish: seeded chat times count back from now with day labels; Share homes / Plan visit bar above the chat on every width (removed from the lead panel); Today's static follow-up-rate card replaced by a live "Waiting for a reply" card and phone day cards made compact; follow-ups sorted by time; refused check-in toast shows an alert icon; guided demo step 10 spotlights the salesperson's leaderboard row; Ananya's message and task now match her visit today at 11:30; AI score says "replied just now"; ownership-history line fixed; account menu closes on Escape. Saved-data prefix bumped to `daira:v8:` so browsers that opened the old build start fresh. Updated §1, §2, §3.1, §3.2, §3.5, §3.16, §5, §6, §7.

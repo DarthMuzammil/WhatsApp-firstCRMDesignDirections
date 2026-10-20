@@ -11,6 +11,23 @@
   .summary-item:hover { border-color: var(--border-strong); }
 }
 
+/* Brokerage from developers (M14) */
+.brokerage-pulse { margin-bottom: var(--space-4); padding: var(--space-3) var(--space-4); display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, 1.3fr); align-items: center; gap: var(--space-3); }
+.brokerage-pulse header { padding-right: var(--space-2); display: flex; align-items: center; gap: var(--space-3); color: var(--primary); }
+.brokerage-pulse h2 { color: var(--ink); font-size: var(--fs-body); }
+.brokerage-pulse header p { color: var(--muted); font-size: var(--fs-caption); }
+.brokerage-pulse > button { min-width: 0; min-height: 56px; padding: var(--space-2) var(--space-3); border: 1px solid var(--border-soft); border-radius: var(--radius-md); display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: var(--space-2); text-align: left; background: var(--surface-subtle); }
+.brokerage-pulse > button span { color: var(--muted); font-size: var(--fs-caption); font-weight: 700; }
+.brokerage-pulse > button strong { grid-column: 1; overflow: hidden; font-size: var(--fs-body-sm); white-space: nowrap; text-overflow: ellipsis; }
+.brokerage-pulse > button svg { grid-column: 2; grid-row: 1 / span 2; color: var(--faint); }
+.brokerage-pulse > button.is-danger strong { color: var(--danger-text); }
+@media (hover: hover) {
+  .brokerage-pulse > button:hover { border-color: var(--border-strong); }
+}
+@media (max-width: 1100px) {
+  .brokerage-pulse { grid-template-columns: 1fr; }
+}
+
 /* AI weekly digest */
 .digest .card-head > div { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2); }
 .digest ul { margin: 0; padding: var(--space-3) var(--space-5) var(--space-4) var(--space-8); display: flex; flex-direction: column; gap: var(--space-2); color: var(--ink-soft); font-size: var(--fs-body-sm); line-height: 1.5; }

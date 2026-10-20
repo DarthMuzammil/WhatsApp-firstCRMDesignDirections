@@ -20,6 +20,8 @@ import { PropertiesView } from './views/PropertiesView'
 import { ReportsView } from './views/ReportsView'
 import { SettingsView } from './views/SettingsView'
 import { AuditView } from './views/AuditView'
+import { BrokerageView } from './views/BrokerageView'
+import type { BookingFilter } from './data/channelPartner'
 import { TeamView } from './views/TeamView'
 import { TodayView } from './views/TodayView'
 import { VisitsView } from './views/VisitsView'
@@ -33,6 +35,8 @@ export default function App() {
   const store = useDemoStore()
   const { message: toast, notify } = useToast()
   const [view, setView] = useState<View>('today')
+  // Optional starting point for the next screen (e.g. Brokerage opened on "Overdue" from Today).
+  const [viewParam, setViewParam] = useState<string | undefined>()
   const [openLeadId, setOpenLeadId] = useState<number | null>(null)
   // Screen the chat was opened from: Back returns here and the nav keeps it highlighted.
   const [chatOrigin, setChatOrigin] = useState<Exclude<View, 'chat'>>('today')
@@ -61,7 +65,8 @@ export default function App() {
     window.scrollTo({ top: 0 })
   }, [view, openLeadId])
 
-  function navigate(next: View) {
+  function navigate(next: View, param?: string) {
+    setViewParam(param)
     setView(next === 'chat' && !openLead ? 'today' : next)
   }
 
@@ -105,6 +110,7 @@ export default function App() {
         {view === 'team' && <TeamView store={store} notify={notify} />}
         {view === 'settings' && <SettingsView store={store} notify={notify} />}
         {view === 'audit' && <AuditView store={store} notify={notify} />}
+        {view === 'brokerage' && <BrokerageView key={viewParam ?? 'all'} store={store} initialFilter={viewParam as BookingFilter | undefined} notify={notify} />}
       </main>
 
       <MobileTabBar store={store} view={navView} onNavigate={navigate} />

@@ -40,7 +40,7 @@
 /* Inbox + due-today */
 .today-grid { margin-top: var(--space-6); display: grid; grid-template-columns: minmax(0, 1fr) 340px; grid-template-areas: "inbox due"; align-items: start; gap: var(--space-4); }
 .today-grid.has-digest { grid-template-rows: auto 1fr; grid-template-areas: "inbox digest" "inbox due"; }
-.daily-summary + .today-grid { margin-top: 0; }
+.daily-summary + .today-grid, .brokerage-pulse + .today-grid { margin-top: 0; }
 .today-inbox { grid-area: inbox; }
 .today-digest { grid-area: digest; min-width: 0; }
 .today-digest .digest ul { padding-left: var(--space-7); }

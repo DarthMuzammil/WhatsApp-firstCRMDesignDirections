@@ -2,7 +2,7 @@ import type { Permission } from '../lib/permissions'
 import type { IconName } from './Icon'
 
 /** Every screen in the app. `chat` is reached from a lead, not from the nav; while it is open the nav highlights the screen it was opened from. */
-export type View = 'today' | 'chat' | 'visits' | 'attendance' | 'reports' | 'pipeline' | 'properties' | 'tasks' | 'calls' | 'escalations' | 'sources' | 'team' | 'settings' | 'audit'
+export type View = 'today' | 'chat' | 'visits' | 'attendance' | 'reports' | 'pipeline' | 'properties' | 'tasks' | 'calls' | 'escalations' | 'sources' | 'team' | 'settings' | 'audit' | 'brokerage' | 'launches'
 
 export type NavItem = {
   view: Exclude<View, 'chat'>
@@ -24,6 +24,7 @@ export const NAV_ITEMS: NavItem[] = [
   { view: 'calls', icon: 'phone', label: 'Calls', group: 'work' },
   { view: 'attendance', icon: 'clock', label: 'Attendance', group: 'work' },
   { view: 'reports', icon: 'chart', label: 'Performance', group: 'work' },
+  { view: 'brokerage', icon: 'rupee', label: 'Brokerage', group: 'manage', requires: 'viewReceivables' },
   { view: 'escalations', icon: 'alert', label: 'Escalations', group: 'manage', requires: 'reassignLeads' },
   { view: 'sources', icon: 'plug', label: 'Lead sources', group: 'manage', requires: 'viewReports' },
   { view: 'team', icon: 'users', label: 'Team', group: 'manage', requires: 'manageTeam' },

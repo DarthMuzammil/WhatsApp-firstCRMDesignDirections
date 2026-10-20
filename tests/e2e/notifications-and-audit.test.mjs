@@ -13,14 +13,14 @@ const bell = '.sidebar-head .notification-bell'
 const badge = async () => (await p.locator(`${bell} .count-badge`).count()) ? await p.locator(`${bell} .count-badge`).innerText() : '0'
 const tab = (t) => p.click(`.attendance-tabs button:has-text("${t}")`)
 // Owner seed
-ok(await badge() === '2', 'owner: 2 unread')
+ok(await badge() === '3', 'owner: 3 unread (incl. the overdue developer invoice)')
 await p.click(bell)
-ok(await p.locator('.notification-list li').count() === 3, 'owner: 3 notifications')
+ok(await p.locator('.notification-list li').count() === 4, 'owner: 4 notifications')
 ok((await p.locator('.notification-attention').innerText()).includes('waiting over 15 min'), 'needs-attention row for overdue leads')
 await p.screenshot({ path: `${SHOTS}/m12-panel.png` })
 await p.click('.notification-list button:has-text("check-in")'); await p.waitForTimeout(300)
 ok((await p.locator('h1').innerText()).length > 0 && await p.locator('.sidebar-nav button.active:has-text("Visits")').count() === 1, 'refused check-in opens Visits')
-ok(await badge() === '1', 'badge drops to 1')
+ok(await badge() === '2', 'badge drops to 2')
 await p.click(bell); await p.click('.notifications-head-buttons .btn:has-text("Mark all read")')
 ok(await p.locator('.notification-list button.unread').count() === 0, 'mark all read'); await p.keyboard.press('Escape')
 ok(await badge() === '0', 'badge hidden')

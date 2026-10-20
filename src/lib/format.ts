@@ -85,3 +85,14 @@ export function dayOfMinutesAgo(minutesAgo: number, now = new Date()): string {
   const startOf = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime()
   return dayLabel(Math.round((startOf(then) - startOf(now)) / 86_400_000), now)
 }
+
+/** ₹ lakh with one decimal, dropping a trailing ".0": 42 → "₹42 L", 15.4 → "₹15.4 L". */
+export function formatLakh(lakh: number): string {
+  const rounded = Math.round(lakh * 10) / 10
+  return `₹${Number.isInteger(rounded) ? rounded : rounded.toFixed(1)} L`
+}
+
+/** Whole rupees in the Indian grouping: 563760 → "₹5,63,760". */
+export function formatRupees(amount: number): string {
+  return `${amount < 0 ? '−' : ''}₹${Math.abs(Math.round(amount)).toLocaleString('en-IN')}`
+}
