@@ -138,7 +138,7 @@ Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with
   - Each person: avatar, name (and "(you)"), phone, role chips, status (Active / On leave / Deactivated), open-lead count, and **Deactivate** or **Reactivate** (never for yourself or the Owner).
   - **Deactivate** someone with open leads → picker "who takes them over" → every lead moves (with a history entry "Previous owner deactivated"), then the person is marked Deactivated. With no leads it deactivates directly.
   - **Invite person** 🎭: name, mobile, role (Owner may pick Sales / Pre-sales / Manager; a Manager can only add Sales to their own team), team. The person is added straight away and a toast says the WhatsApp invite was sent.
-- "On leave" is seed status only (Kavya Reddy) until M8 leave management.
+- "On leave" comes from approved leave covering today (§3.13); Kavya Reddy starts on leave.
 
 ### 3.9 Escalations (M2)
 - **Manager/Owner screen** with stat strip: overdue replies, unassigned, response target (15 min 🧱).
@@ -175,8 +175,8 @@ Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with
 - **Where is this phone? (Demo)** control: At office / Near client (~60 m) / Far away (~1.4 km) give scripted readings 🎭. **This device** uses the browser's real location (asks permission once) ✅. The panel states the limits: read once when you tap, no live tracking, refused beyond the radius.
 - **Seed visits:** Ananya (Priya, today 11:30, planned), Deepak (Ritu, today 4:00 PM, planned), Lavanya (Manoj, today 9:30, completed with outcome), Rohan & Meera (Vivek, today 10:00, checked in after one refused attempt), Nisha (Rohit, tomorrow 10:30), Vikram (Sneha, yesterday, no-show).
 
-### 3.13 Attendance (M7)
-- **Who:** everyone except the Owner (the Owner sees the register only). Tabs: **My day** (anyone tracked), **Register** and **Requests** (Manager: their team; Owner: everyone).
+### 3.13 Attendance & leave (M7, M8)
+- **Who:** everyone except the Owner (the Owner sees the register only). Tabs: **My day** and **Leave** (anyone tracked), **Register** and **Requests** (Manager: their team; Owner: everyone).
 - **My day:**
   - Demo location control (At office / Far away / This device).
   - Status card: Not checked in yet / In office since 9:12 · on time or marked late / Field day since … ("present once you check in at a client", then "Verified at The Courtyard House, 11:34") / Checked out / On leave. Refused office attempts are counted on the card.
@@ -186,7 +186,15 @@ Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with
   - Your office card (name, address, work start, grace, radius).
   - **Last 10 working days** (Sundays skipped) with codes; absent or late days offer **Request correction** (reason required) → "Correction pending / approved / rejected".
 - **Register:** today's counts (Present, Late, Field day, Not checked in yet, On leave) and a grid of people × last 10 working days + Today. Codes P / L / F / A / LV / –, with "*" for corrected days. The name column stays visible while the grid scrolls on phones.
-- **Requests:** attendance corrections in scope with **Approve** (day becomes Present*) or **Reject**.
+- **Requests:** leave requests (below), then attendance corrections in scope with **Approve** (day becomes Present*) or **Reject**. The tab label counts pending items of both kinds.
+- **Leave tab** ✅: balances for Casual / Sick / Earned (allowance 8 / 6 / 15 minus days used before the demo minus approved; pending shown separately). **Apply for leave:** type, from (today … 30 days ahead), to (up to 14 days on), reason. It is refused with a message when the last day is before the first, it overlaps your own pending/approved leave, or it exceeds the balance left after pending requests. **My requests** lists type, dates, days, reason, cover and status (pending / approved / rejected / back).
+- **Leave approvals (Requests tab):**
+  - **Approve…** opens a cover picker (teammates in the same area team; Pre-sales pick another Pre-sales person), telling the manager what will move.
+  - On approval, the person's **open visits on the leave days move to the cover immediately**. Their **leads move when the leave starts**: immediately if it covers today; for future leave the row says "leads move on <date>" and offers **Start cover now (demo)**, since time doesn't pass in the demo. Each moved lead gets an ownership-history entry "Leave cover (dates)".
+  - **Return leads** hands back the leads and visits that were moved and are still with the cover, and ends the leave from today. **Reject** declines.
+  - A note explains that the live product does both steps automatically.
+- **Team calendar (Register tab):** approved and pending leave in scope (with cover) and fixed-date public holidays in the next 90 days (e.g. Kannada Rajyotsava, Christmas).
+- **On leave** status: a person shows "On leave" (Team screen, pickers) and LV in attendance on any day an approved leave covers.
 
 ---
 
@@ -211,6 +219,7 @@ Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with
 
   Each lead also has a phone number, minutes since the last message, move-in timing, must-haves, opening enquiry and latest message. Portal leads carry a "shared with ~N brokers" figure 🎭: Ananya 6, Deepak 5, Farhan 4, Gaurav 3, Ishita 6. Vikram and Sanjay are marked Investment. The Owner's totals with this data: active value ₹27.4 Cr across 12 leads.
 - **Properties (3):** The Courtyard House (Indiranagar, 3 BHK, ₹2.65 Cr) · Windermere Residences (Whitefield, 4 BHK, ₹3.40 Cr) · Lakeview Terraces (HSR Layout, 2 BHK, ₹1.48 Cr). Photos load from Unsplash, so the demo needs internet.
+- **Leave (`leave.ts`):** Kavya (Casual, 3 days ago → tomorrow, approved, cover Sameer); Aditya (Casual, in 2–3 days, pending, 1 lead); Rohit (Sick, tomorrow, pending; he has a visit tomorrow). Allowances 8 / 6 / 15 and generated days already used.
 - **Attendance (`attendance.ts`):** generated history for the last 10 working days; today's records (most people checked in, some late or in the field; Priya, Neha, Kiran and Sameer not yet, so the demo can do it); Kavya on leave; one pending correction from Sameer for 3 working days ago.
 - **Visits and offices (`visits.ts`):** 6 seed visits (§3.12); offices in Indiranagar (HQ), Whitefield and HSR Layout with coordinates. Properties also carry coordinates.
 - **Lead sources (8, `sources.ts`)** with weekly leads, first-reply minutes, default cost per lead (₹450 / 400 / 350 / 180 / 0…) and default team; plus the pool of 6 buyers used for simulated arrivals.
@@ -218,7 +227,7 @@ Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with
 - **Fixed demo numbers** (`DEMO_METRICS`): follow-up rate 82% (+12%), weekly chart values, 18 calls this week (2h 14m), 72% answer rate (+8%).
 
 ## 5. Saved in the browser (localStorage)
-All keys use the prefix `daira:v4:`: `viewer`, `settings`, `pretend-location`, `attendance-today`, `corrections`, `added-members`, `member-status`, `added-leads`, `owners`, `assignments`, `lead-edits`, `notes`, `tags`, `activity`, `source-settings`, `arrivals`, `stages`, `visits` (visit records with steps and outcomes), `read-leads`, `sent-messages`, `tasks`, `completed-tasks`, `recordings`, `saved-properties`.
+All keys use the prefix `daira:v4:`: `viewer`, `settings`, `pretend-location`, `attendance-today`, `corrections`, `leave`, `added-members`, `member-status`, `added-leads`, `owners`, `assignments`, `lead-edits`, `notes`, `tags`, `activity`, `source-settings`, `arrivals`, `stages`, `visits` (visit records with steps and outcomes), `read-leads`, `sent-messages`, `tasks`, `completed-tasks`, `recordings`, `saved-properties`.
 **Reset demo data** (account menu → confirm) deletes these, plus any older `daira:*` / `daira-*` keys, and reloads the page. Run it before every client demo.
 
 ## 6. Code map
@@ -229,10 +238,11 @@ See `AGENTS.md` for conventions. Each component has a matching `.css` file next 
 - `src/data/sources.ts`: lead sources and the simulated-arrival buyer pool.
 - `src/data/visits.ts`: visit model, seed visits, offices, time slots, check-in limits.
 - `src/data/attendance.ts`: attendance codes, seed history and today's records, corrections, working-hours options.
+- `src/data/leave.ts`: leave types, allowances, seed requests, holidays, date-range helpers.
 - `src/state/useDemoStore.ts`: all saved state, the viewer, visibility filtering, routing, activity log and timeline, duplicate lookup, derived numbers and actions.
 - `src/lib/`: `location.ts` (one-off location readings: demo readings, the browser's real location, distance), `permissions.ts` (role → permissions, who sees which lead), `storage.ts` (localStorage), `format.ts` (dates, money, durations, phone masking), `useEscapeKey.ts`.
 - `src/components/`: `AppNavigation` (sidebar with Work/Manage groups, phone top bar, tab bar with More sheet), `navigation.ts` (items with required permission), `Dialog` (the one modal / sheet / full-screen shell), `AccountMenu`, `Avatar`, `HeatBadge`, `LeadActions`, `LeadRow`, `LeadTimeline`, `LeadNotes`, `LeadTags`, `IncomingLeadBanner`, `LocationControl` (demo location picker), `PropertyCard`, `Toast`, `Icon`.
-- `src/views/`: `TodayView`, `ChatView` (chat + lead panel), `PipelineView`, `PropertiesView`, `FollowUpsView`, `CallsView`, `VisitsView` (with the visit outcome form), `AttendanceView` (My day, Register, Requests), `EscalationsView`, `LeadSourcesView`, `TeamView` (with invite dialog), `SettingsView`.
+- `src/views/`: `TodayView`, `ChatView` (chat + lead panel), `PipelineView`, `PropertiesView`, `FollowUpsView`, `CallsView`, `VisitsView` (with the visit outcome form), `AttendanceView` (My day, Leave, Register with team calendar, Requests), `EscalationsView`, `LeadSourcesView`, `TeamView` (with invite dialog), `SettingsView`.
 - `src/modals/`: `AddLeadModal` (with duplicate check), `EditLeadDialog` (structured buyer brief), `ScheduleVisitDialog`, `AssignDialog` (people picker for assign / reassign / hand-off / deactivate), `CallPicker`, `CallModal`.
 - `src/index.css`: the only place raw colours are defined. Design tokens (colour, 4px spacing scale, radius, shadow, `--fs-*` type sizes, `--tap`) and shared classes (`.btn`, `.card`, `.chip`, `.count-badge`, `.status-dot`, `.icon-badge`, `.is-done` and more).
 
@@ -247,6 +257,7 @@ See `AGENTS.md` for conventions. Each component has a matching `.css` file next 
 - On desktop, Add lead is only on Today.
 - Sent messages show "Now" forever; lead times ("2m", "18m") and message timestamps are fixed seed values, so "Overdue" never appears or clears on its own.
 - The permissions table can't be edited.
+- Leave counts calendar days (weekends and holidays included). Leave can't be cancelled by the person once requested.
 - Today's attendance doesn't roll over at midnight (the demo always shows one "today"); history before today is generated, not recorded.
 - Visit step times use the real clock, but visit days are relative to today, so the demo always looks like "today". Nothing marks a visit as a no-show automatically, and visits can't be rescheduled or cancelled yet.
 - Lead-source weekly figures and first-reply times are fixed; connecting a source is a toggle, not a real login. Simulated buyers repeat after 6 arrivals.
@@ -324,7 +335,7 @@ Everything here is **UI only**: each item is a screen or flow driven by seed dat
 - **Correction request** ("Forgot to check in") → manager approves or rejects; the history is kept.
 - **Settings:** offices with address and radius, working hours, grace period.
 
-### 8.8 M8 · Leave management
+### 8.8 M8 · Leave management — ✅ built (§3.13); in the demo, leads move with "Start cover now" and come back with "Return leads"
 - **Apply:** type (casual / sick / earned), dates, reason → shown to the manager.
 - **Approve with cover:** before approving, the manager picks a **cover agent**. For the leave dates, the absent agent's leads, visits and tasks move to the cover (with a timeline note), and **return automatically** afterwards.
 - **Team calendar** showing leave, holidays and visits; **leave balances**; company **holiday list**.
@@ -403,6 +414,7 @@ Everything here is **UI only**: each item is a screen or flow driven by seed dat
 
 ## 9. Changelog
 Newest first. One line per change: date, what changed, which section was updated.
+- **2026-10-20:** Built M8: Leave tab (balances, validated apply form, my requests), manager approval with a cover agent (visits on leave days move now, leads when leave starts; demo Start cover now / Return leads), team calendar with holidays, on-leave status derived from approved leave. Updated §3.8, §3.13, §4–§7, §8.8.
 - **2026-10-20:** Built M7: Attendance screen (My day with office check-in refused beyond the radius, field day, check-out, late marks; register for managers/owner; correction requests and approvals), check-in reminder on Today, working-hours settings, shared LocationControl. Section order fixed (§3.11 before §3.12). Updated §2, §3.1, §3.10, §3.13, §4–§7, §8.7.
 - **2026-10-20:** Built M6: Visits screen (agent flow Left office → Check in → Check out → required outcome; manager visit log), check-ins refused beyond the radius or when imprecise, demo location control plus real browser location, Schedule visit dialog with WhatsApp confirmation, check-in radius setting, Visits phone tab (Properties moves to More). Storage bumped to v4. Updated §2, §3.1, §3.2, §3.10, §3.12, §4–§7, §8.6.
 - **2026-10-20:** Built M3: Lead sources screen (connected status, weekly leads, first reply, editable cost per lead and team, spend totals), simulated arrivals with a New lead banner and routing (account menu, header or per source), "By source" routing now real, inbox source filter, fresh-enquiry chats. Updated §2, §3.1, §3.2, §3.10, §3.11, §4–§7, §8.2, §8.3.

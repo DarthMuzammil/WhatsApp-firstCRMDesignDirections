@@ -263,6 +263,9 @@ h1, h2, h3 { font-weight: 700; }
 .inline-feedback.ok { color: var(--success-ink); background: var(--success-soft); }
 .inline-feedback.error { color: var(--danger-text); background: var(--danger-soft); }
 
+/* Validation message under a form field */
+.form-error { color: var(--danger-text); font-size: var(--fs-caption); font-weight: 600; }
+
 /* Empty state inside lists */
 .empty-state { padding: var(--space-10) var(--space-6); display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--space-2); }
 .empty-state h3 { font-size: var(--fs-title-sm); }

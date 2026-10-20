@@ -1,7 +1,9 @@
 import { useState, type FormEvent } from 'react'
 import { ATTENDANCE_LABEL, pastWorkingDays, tracksAttendance, type AttendanceCode } from '../data/attendance'
+import { LEAVE_TYPES, leaveDays, upcomingHolidays, type LeaveRequest, type LeaveType } from '../data/leave'
 import { TEAMS, shortName, type Member } from '../data/team'
 import { Avatar } from '../components/Avatar'
+import { AssignDialog } from '../modals/AssignDialog'
 import { Dialog } from '../components/Dialog'
 import { Icon } from '../components/Icon'
 import { LocationControl } from '../components/LocationControl'
@@ -10,7 +12,7 @@ import { deviceReading, pretendReading, type Reading } from '../lib/location'
 import type { DemoStore } from '../state/useDemoStore'
 import './AttendanceView.css'
 
-type Tab = 'mine' | 'register' | 'requests'
+type Tab = 'mine' | 'leave' | 'register' | 'requests'
 const REGISTER_DAYS = pastWorkingDays(10)
 
 /**
@@ -21,16 +23,19 @@ export function AttendanceView({ store, notify }: { store: DemoStore; notify: (m
   const tracked = tracksAttendance(store.viewer)
   const manages = store.viewerCan('manageTeam')
   const [tab, setTab] = useState<Tab>(tracked ? 'mine' : 'register')
-  const pending = store.corrections.filter((request) => request.status === 'pending' && inScope(store, request.memberId))
+  const pending = [
+    ...store.corrections.filter((request) => request.status === 'pending' && inScope(store, request.memberId)),
+    ...store.leaveRequests.filter((request) => request.status === 'pending' && inScope(store, request.memberId)),
+  ]
   const tabs: { id: Tab; label: string }[] = [
-    ...(tracked ? [{ id: 'mine' as const, label: 'My day' }] : []),
+    ...(tracked ? [{ id: 'mine' as const, label: 'My day' }, { id: 'leave' as const, label: 'Leave' }] : []),
     ...(manages ? [{ id: 'register' as const, label: 'Register' }, { id: 'requests' as const, label: pending.length ? `Requests · ${pending.length}` : 'Requests' }] : []),
   ]
 
   return (
     <section className="attendance-view">
       <header className="page-head">
-        <div><span className="eyebrow">{todayLabel()}</span><h1>Attendance</h1><p>Office check-ins are verified by location; field days count once you check in at a client.</p></div>
+        <div><span className="eyebrow">{todayLabel()}</span><h1>Attendance & leave</h1><p>Office check-ins are verified by location; field days count once you check in at a client.</p></div>
       </header>
       {tabs.length > 1 && (
         <div className="segmented attendance-tabs" role="tablist" aria-label="Attendance">
@@ -38,6 +43,7 @@ export function AttendanceView({ store, notify }: { store: DemoStore; notify: (m
         </div>
       )}
       {tab === 'mine' && tracked && <MyDay store={store} notify={notify} />}
+      {tab === 'leave' && tracked && <MyLeave store={store} notify={notify} />}
       {tab === 'register' && manages && <Register store={store} />}
       {tab === 'requests' && manages && <Requests store={store} notify={notify} />}
     </section>
@@ -198,12 +204,106 @@ function Register({ store }: { store: DemoStore }) {
       </div>
       <p className="register-legend">{(Object.keys(ATTENDANCE_LABEL) as AttendanceCode[]).map((code) => <span key={code}><CodeChip code={code} /> {ATTENDANCE_LABEL[code].long}</span>)}<span>* corrected</span></p>
     </section>
+    <TeamCalendar store={store} />
+  </>
+}
+
+const dateRange = (request: Pick<LeaveRequest, 'from' | 'to'>) => (request.from === request.to ? dayLabel(request.from) : `${dayLabel(request.from)} – ${dayLabel(request.to)}`)
+
+/** Upcoming leave (approved and pending) for the viewer's scope, plus public holidays (spec §8.8). */
+function TeamCalendar({ store }: { store: DemoStore }) {
+  const leave = store.leaveRequests
+    .filter((request) => inScope(store, request.memberId) && request.to >= 0 && (request.status === 'approved' || request.status === 'pending'))
+    .sort((a, b) => a.from - b.from)
+  const holidays = upcomingHolidays(90)
+  return (
+    <section className="card team-calendar">
+      <header className="card-head"><div><h2>Team calendar</h2><p>Leave and holidays coming up</p></div></header>
+      <ul>
+        {leave.map((request) => {
+          const person = store.findMember(request.memberId)
+          const cover = store.findMember(request.coverId)
+          return (
+            <li key={request.id} className={`calendar-${request.status}`}>
+              <span className="calendar-date">{dateRange(request)}</span>
+              <span><strong>{person?.name}</strong> · {request.type} leave{request.status === 'pending' ? ' (awaiting approval)' : cover ? ` · cover ${shortName(cover.name)}` : ''}</span>
+            </li>
+          )
+        })}
+        {holidays.map((holiday) => (
+          <li key={holiday.name} className="calendar-holiday"><span className="calendar-date">{dayLabel(holiday.day)}</span><span><strong>{holiday.name}</strong> · Public holiday</span></li>
+        ))}
+        {leave.length === 0 && holidays.length === 0 && <li><span>Nothing coming up.</span></li>}
+      </ul>
+    </section>
+  )
+}
+
+/** Balances, the apply form and the person's own requests. */
+function MyLeave({ store, notify }: { store: DemoStore; notify: (message: string) => void }) {
+  const [type, setType] = useState<LeaveType>('Casual')
+  const [from, setFrom] = useState(1)
+  const [to, setTo] = useState(1)
+  const [reason, setReason] = useState('')
+  const mine = store.leaveRequests.filter((request) => request.memberId === store.viewer.id).sort((a, b) => b.from - a.from)
+  const balance = store.leaveBalance(store.viewer.id, type)
+  const days = to - from + 1
+  const overlaps = mine.some((request) => (request.status === 'pending' || request.status === 'approved') && from <= request.to && to >= request.from)
+  const error = to < from ? 'The last day must be on or after the first day.'
+    : overlaps ? 'You already have leave requested for some of these days.'
+      : days > balance.remaining - balance.pending ? `Only ${Math.max(0, balance.remaining - balance.pending)} ${type.toLowerCase()} days left (including pending requests).`
+        : ''
+
+  function submit(event: FormEvent) {
+    event.preventDefault()
+    if (error || !reason.trim()) return
+    store.applyLeave({ type, from, to, reason: reason.trim() })
+    setReason('')
+    notify('Leave request sent to your manager')
+  }
+
+  return <>
+    <div className="leave-balances">
+      {LEAVE_TYPES.map((item) => {
+        const b = store.leaveBalance(store.viewer.id, item)
+        return <article key={item} className="card"><span>{item}</span><strong>{b.remaining}</strong><small>of {b.allowance} days left{b.pending ? ` · ${b.pending} pending` : ''}</small></article>
+      })}
+    </div>
+    <div className="attendance-grid">
+      <section className="card leave-form">
+        <header className="card-head"><div><h2>Apply for leave</h2><p>Your manager picks who covers your leads while you’re away.</p></div></header>
+        <form onSubmit={submit}>
+          <label>Type<select value={type} onChange={(event) => setType(event.target.value as LeaveType)}>{LEAVE_TYPES.map((item) => <option key={item}>{item}</option>)}</select></label>
+          <div className="form-row">
+            <label>From<select value={from} onChange={(event) => { const value = Number(event.target.value); setFrom(value); if (to < value) setTo(value) }}>{Array.from({ length: 31 }, (_, day) => <option key={day} value={day}>{dayLabel(day)}</option>)}</select></label>
+            <label>To<select value={to} onChange={(event) => setTo(Number(event.target.value))}>{Array.from({ length: 15 }, (_, index) => from + index).map((day) => <option key={day} value={day}>{dayLabel(day)}</option>)}</select></label>
+          </div>
+          <label>Reason<input value={reason} onChange={(event) => setReason(event.target.value)} placeholder="e.g. Family function in Mysuru" /></label>
+          {error && <p className="form-error" role="alert">{error}</p>}
+          <button className="btn btn-primary btn-block" disabled={!!error || !reason.trim()}>Request {days} {days === 1 ? 'day' : 'days'} <Icon name="arrow" /></button>
+        </form>
+      </section>
+      <section className="card">
+        <header className="card-head"><div><h2>My requests</h2><p>{mine.length} this year</p></div></header>
+        {mine.map((request) => {
+          const cover = store.findMember(request.coverId)
+          return (
+            <article key={request.id} className="request-row">
+              <span className="request-copy"><strong>{request.type} · {dateRange(request)} · {leaveDays(request)} {leaveDays(request) === 1 ? 'day' : 'days'}</strong><small>{request.reason}{cover ? ` · cover ${cover.name}` : ''}</small></span>
+              <span className={`request-status status-${request.status === 'ended' ? 'approved' : request.status}`}>{request.status === 'ended' ? 'Back' : request.status}</span>
+            </article>
+          )
+        })}
+        {mine.length === 0 && <div className="empty-state"><span className="icon-badge"><Icon name="calendar" /></span><h3>No leave requested</h3></div>}
+      </section>
+    </div>
   </>
 }
 
 function Requests({ store, notify }: { store: DemoStore; notify: (message: string) => void }) {
   const requests = store.corrections.filter((request) => inScope(store, request.memberId))
-  return (
+  return <>
+    <LeaveRequests store={store} notify={notify} />
     <section className="card">
       <header className="card-head"><div><h2>Attendance corrections</h2><p>Approving marks the day Present.</p></div></header>
       {requests.map((request) => {
@@ -222,6 +322,62 @@ function Requests({ store, notify }: { store: DemoStore; notify: (message: strin
         )
       })}
       {requests.length === 0 && <div className="empty-state"><span className="icon-badge"><Icon name="check" /></span><h3>No requests</h3></div>}
+    </section>
+  </>
+}
+
+/** Approve leave by choosing a cover (leads and in-range visits move now), reject, or return leads afterwards. */
+function LeaveRequests({ store, notify }: { store: DemoStore; notify: (message: string) => void }) {
+  const [approving, setApproving] = useState<LeaveRequest | null>(null)
+  const requests = store.leaveRequests.filter((request) => inScope(store, request.memberId) && request.status !== 'rejected').sort((a, b) => a.from - b.from)
+  const person = approving ? store.findMember(approving.memberId) : undefined
+  const leadCount = approving ? store.openLeadCount(approving.memberId) : 0
+  const visitCount = approving ? store.visits.filter((visit) => visit.agentId === approving.memberId && visit.day >= approving.from && visit.day <= approving.to && (visit.status === 'planned' || visit.status === 'on-the-way')).length : 0
+  return (
+    <section className="card leave-requests">
+      <header className="card-head"><div><h2>Leave</h2><p>Approving moves the person’s visits on those days to the cover now; their leads move when the leave starts.</p></div></header>
+      {requests.map((request) => {
+        const member = store.findMember(request.memberId)
+        const cover = store.findMember(request.coverId)
+        return (
+          <article key={request.id} className="request-row">
+            {member && <Avatar initials={member.initials} color={member.color} size="sm" />}
+            <span className="request-copy">
+              <strong>{member?.name} · {request.type} · {dateRange(request)}</strong>
+              <small>“{request.reason}” · {store.openLeadCount(request.memberId)} open leads{cover ? ` · covered by ${cover.name}${request.status === 'approved' && !request.movedLeadIds ? ` · leads move on ${dayLabel(request.from)}` : ''}` : ''}</small>
+            </span>
+            {request.status === 'pending' && <span className="request-actions">
+              <button className="btn btn-secondary" onClick={() => { store.decideLeave(request.id, false); notify('Leave rejected') }}>Reject</button>
+              <button className="btn btn-primary" onClick={() => setApproving(request)}>Approve…</button>
+            </span>}
+            {request.status === 'approved' && <span className="request-actions">
+              <span className="request-status status-approved">Approved</span>
+              {request.movedLeadIds
+                ? <button className="btn btn-soft" onClick={() => { store.returnFromLeave(request.id); notify(`${member?.name}’s leads are back with them`) }}>Return leads</button>
+                : <button className="btn btn-soft" onClick={() => { store.startCover(request.id); notify(`${member?.name}’s leads moved to ${cover?.name}`) }}>Start cover now (demo)</button>}
+            </span>}
+            {request.status === 'ended' && <span className="request-status status-approved">Back · leads returned</span>}
+          </article>
+        )
+      })}
+      {requests.length === 0 && <div className="empty-state"><span className="icon-badge"><Icon name="check" /></span><h3>No leave requests</h3></div>}
+      <p className="leave-note"><Icon name="info" size={14} /> In the live product leads move on the first day of leave and come back automatically afterwards. In the demo, use Start cover now and Return leads.</p>
+      {approving && person && (
+        <AssignDialog
+          title={`Approve ${person.name}’s leave`}
+          description={`${dateRange(approving)}. Choose a cover: ${visitCount ? `${visitCount} ${visitCount === 1 ? 'visit' : 'visits'} on those days move now, and ` : ''}${leadCount} open ${leadCount === 1 ? 'lead' : 'leads'} move ${approving.from <= 0 ? 'now' : `on ${dayLabel(approving.from)}`}. Everything comes back when the leave ends.`}
+          candidates={store.members.filter((candidate) => candidate.id !== person.id && candidate.status === 'active' &&
+            (person.teamId ? candidate.teamId === person.teamId && candidate.roles.includes('sales') : candidate.roles.includes('presales')))}
+          openLeadCount={store.openLeadCount}
+          confirmLabel="Approve with this cover"
+          onConfirm={(coverId) => {
+            store.decideLeave(approving.id, true, coverId)
+            notify(`Leave approved · ${store.findMember(coverId)?.name} is covering`)
+            setApproving(null)
+          }}
+          onClose={() => setApproving(null)}
+        />
+      )}
     </section>
   )
 }

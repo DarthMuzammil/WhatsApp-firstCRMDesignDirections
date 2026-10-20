@@ -4,6 +4,7 @@ import {
   phoneKey, relativeMinutes, type Lead, type LeadSeed, type Recording, type Task,
 } from '../data/demo'
 import { SEED_CORRECTIONS, SEED_TODAY, seedAttendance, type AttendanceCode, type CorrectionRequest, type TodayAttendance } from '../data/attendance'
+import { LEAVE_ALLOWANCE, SEED_LEAVE, coversDay, leaveDays, seedLeaveUsed, type LeaveRequest, type LeaveType } from '../data/leave'
 import { INCOMING_LEAD_TEMPLATES, LEAD_SOURCES, findSource } from '../data/sources'
 import { DEFAULT_VIEWER_ID, SEED_MEMBERS, TEAMS, type Member, type MemberStatus, type TeamId } from '../data/team'
 import { MAX_ACCURACY_M, OFFICES, SEED_VISITS, formatDistance, slotMinutes, type Office, type Visit, type VisitOutcome } from '../data/visits'
@@ -78,6 +79,7 @@ export function useDemoStore() {
   const [pretendLocation, setPretendLocation] = useLocalState<PretendLocation>('pretend-location', 'client')
   const [todayAttendance, setTodayAttendance] = useLocalState<Record<string, TodayAttendance>>('attendance-today', SEED_TODAY)
   const [corrections, setCorrections] = useLocalState<CorrectionRequest[]>('corrections', SEED_CORRECTIONS)
+  const [leaveRequests, setLeaveRequests] = useLocalState<LeaveRequest[]>('leave', SEED_LEAVE)
   const [sourceSettings, setSourceSettings] = useLocalState<Record<string, SourceSetting>>('source-settings', DEFAULT_SOURCE_SETTINGS)
   const [arrivals, setArrivals] = useLocalState<number>('arrivals', 0)
   const [addedMembers, setAddedMembers] = useLocalState<Member[]>('added-members', [])
@@ -98,9 +100,14 @@ export function useDemoStore() {
   const [savedPropertyIds, setSavedPropertyIds] = useLocalState<number[]>('saved-properties', [])
 
   // ---------- People ----------
+  const onLeave = (memberId: string, day: number) => leaveRequests.some((request) => request.memberId === memberId && coversDay(request, day))
+  // "On leave" comes from approved leave covering today; a manual deactivation always wins.
   const members: Member[] = useMemo(
-    () => [...SEED_MEMBERS, ...addedMembers].map((person) => ({ ...person, status: memberStatus[person.id] ?? person.status })),
-    [addedMembers, memberStatus],
+    () => [...SEED_MEMBERS, ...addedMembers].map((person) => ({
+      ...person,
+      status: memberStatus[person.id] ?? (onLeave(person.id, 0) ? 'on-leave' : person.status === 'on-leave' ? 'active' : person.status),
+    })),
+    [addedMembers, memberStatus, leaveRequests], // onLeave reads leaveRequests
   )
   const findMember = (id: string | null | undefined) => (id ? members.find((person) => person.id === id) : undefined)
   const viewer = findMember(viewerId) ?? members[0]
@@ -210,9 +217,14 @@ export function useDemoStore() {
   const officeFor = (person: Member | undefined): Office => OFFICES.find((office) => office.teamId === person?.teamId) ?? OFFICES[0]
 
   // ---------- Attendance (spec §8.7) ----------
-  const todayFor = (memberId: string): TodayAttendance => todayAttendance[memberId] ?? { status: 'not-in' }
+  const todayFor = (memberId: string): TodayAttendance => {
+    if (onLeave(memberId, 0)) return { status: 'leave' }
+    const record = todayAttendance[memberId]
+    return !record || record.status === 'leave' ? { status: 'not-in' } : record
+  }
   /** Register code for one person on one day (0 = today, from the live record). */
   function attendanceCode(memberId: string, day: number): AttendanceCode {
+    if (onLeave(memberId, day)) return 'leave'
     if (day === 0) {
       const today = todayFor(memberId)
       if (today.status === 'leave') return 'leave'
@@ -221,10 +233,19 @@ export function useDemoStore() {
       return today.late ? 'late' : 'present'
     }
     if (corrections.some((request) => request.memberId === memberId && request.day === day && request.status === 'approved')) return 'present'
-    return seedAttendance(memberId, day)
+    const seeded = seedAttendance(memberId, day)
+    return seeded === 'leave' ? 'present' : seeded
   }
   const setToday = (patch: Partial<TodayAttendance>) =>
     setTodayAttendance((current) => ({ ...current, [viewer.id]: { ...(current[viewer.id] ?? { status: 'not-in' }), ...patch } }))
+
+  /** Moves every lead the absent person owns to the cover; returns their ids so they can come back. */
+  function moveLeadsToCover(request: LeaveRequest, coverId: string): number[] {
+    const range = request.from === request.to ? dayLabel(request.from) : `${dayLabel(request.from)} – ${dayLabel(request.to)}`
+    const ids = allLeads.filter((lead) => lead.ownerId === request.memberId).map((lead) => lead.id)
+    ids.forEach((leadId) => assign(leadId, coverId, `Leave cover (${range})`))
+    return ids
+  }
 
   function updateVisit(visitId: number, change: (visit: Visit) => Visit) {
     setVisits((current) => current.map((visit) => (visit.id === visitId ? change(visit) : visit)))
@@ -269,6 +290,14 @@ export function useDemoStore() {
     todayFor,
     attendanceCode,
     corrections,
+    leaveRequests,
+    /** Days left of a leave type: allowance − used before the demo − approved; `pending` is shown separately. */
+    leaveBalance: (memberId: string, type: LeaveType) => {
+      const mine = leaveRequests.filter((request) => request.memberId === memberId && request.type === type)
+      const taken = mine.filter((request) => request.status === 'approved' || request.status === 'ended').reduce((sum, request) => sum + leaveDays(request), 0)
+      const pending = mine.filter((request) => request.status === 'pending').reduce((sum, request) => sum + leaveDays(request), 0)
+      return { allowance: LEAVE_ALLOWANCE[type], remaining: LEAVE_ALLOWANCE[type] - seedLeaveUsed(memberId, type) - taken, pending }
+    },
     pretendLocation,
     officeFor,
     extraReminderAdded: tasks.some((task) => task.id === EXTRA_REMINDER.id),
@@ -388,6 +417,46 @@ export function useDemoStore() {
       }
       setToday({ status: 'out', outAt: clockLabel() })
       return { ok: true, message: 'Checked out for the day.' }
+    },
+    applyLeave: (request: Pick<LeaveRequest, 'type' | 'from' | 'to' | 'reason'>) =>
+      setLeaveRequests((current) => [...current, { ...request, id: Date.now(), memberId: viewer.id, status: 'pending' }]),
+    /**
+     * Approve (with a cover) or reject (spec §8.8). Visits on the leave days move to the cover now.
+     * Leads move when the leave starts: immediately if it covers today, otherwise via startCover.
+     */
+    decideLeave: (id: number, approve: boolean, coverId?: string) => {
+      const request = leaveRequests.find((item) => item.id === id)
+      if (!request) return
+      if (!approve || !coverId) {
+        setLeaveRequests((current) => current.map((item) => (item.id === id ? { ...item, status: 'rejected' } : item)))
+        return
+      }
+      const movedVisitIds = visits
+        .filter((visit) => visit.agentId === request.memberId && isOpenVisit(visit) && visit.day >= request.from && visit.day <= request.to)
+        .map((visit) => visit.id)
+      setVisits((current) => current.map((visit) => (movedVisitIds.includes(visit.id) ? { ...visit, agentId: coverId } : visit)))
+      const movedLeadIds = request.from <= 0 ? moveLeadsToCover(request, coverId) : undefined
+      setLeaveRequests((current) => current.map((item) => (item.id === id ? { ...item, status: 'approved', coverId, movedLeadIds, movedVisitIds } : item)))
+    },
+    /** Hand the person's leads to their cover (when leave starts; a demo button for future leave). */
+    startCover: (id: number) => {
+      const request = leaveRequests.find((item) => item.id === id)
+      if (!request?.coverId || request.movedLeadIds) return
+      const movedLeadIds = moveLeadsToCover(request, request.coverId)
+      setLeaveRequests((current) => current.map((item) => (item.id === id ? { ...item, movedLeadIds } : item)))
+    },
+    /** Leave over (or cut short): leads still with the cover go back to the person. */
+    returnFromLeave: (id: number) => {
+      const request = leaveRequests.find((item) => item.id === id)
+      if (!request || !request.coverId) return
+      // Only what was moved for this leave, and only if the cover still has it.
+      for (const leadId of request.movedLeadIds ?? []) {
+        if (allLeads.find((lead) => lead.id === leadId)?.ownerId === request.coverId) assign(leadId, request.memberId, 'Back from leave')
+      }
+      const visitIds = request.movedVisitIds ?? []
+      setVisits((current) => current.map((visit) =>
+        visitIds.includes(visit.id) && visit.agentId === request.coverId && isOpenVisit(visit) ? { ...visit, agentId: request.memberId } : visit))
+      setLeaveRequests((current) => current.map((item) => (item.id === id ? { ...item, status: 'ended', endedOn: Math.max(request.from, 0) } : item)))
     },
     requestCorrection: (day: number, reason: string) =>
       setCorrections((current) => [...current, { id: Date.now(), memberId: viewer.id, day, reason, status: 'pending' }]),
