@@ -14,3 +14,6 @@
   .app.is-chat .mobile-top-bar, .app.is-chat .mobile-tab-bar { display: none; }
   .app.is-chat .app-main { padding: 0; }
 }
+
+/* Placeholder while a lazy-loaded screen arrives (normally invisible: the chunks are prefetched after the first paint). */
+.screen-loading { min-height: 40vh; }

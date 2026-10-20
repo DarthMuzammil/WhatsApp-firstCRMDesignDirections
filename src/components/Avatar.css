@@ -6,4 +6,3 @@
 .avatar-violet { background: var(--avatar-violet); }
 .avatar-blue { background: var(--avatar-blue); }
 .avatar-gold { background: var(--avatar-gold); }
-.avatar-online { position: absolute; right: 0; bottom: 1px; width: 11px; height: 11px; border: 2px solid var(--surface); border-radius: 50%; background: var(--success); }

@@ -21,7 +21,7 @@ export function LeadRow({ lead, onOpen, ownerLabel }: { lead: Lead; onOpen: () =
   const flag = rowFlag(lead)
   return (
     <button className={`lead-row ${lead.unread > 0 ? 'has-unread' : ''}`} onClick={onOpen}>
-      <LeadAvatar lead={lead} showStatus />
+      <LeadAvatar lead={lead} />
       <div className="lead-row-copy">
         <div className="lead-row-top"><strong>{lead.name}</strong><time>{relativeMinutes(lead.inboxMinutesAgo ?? lead.minutesAgo)}</time></div>
         <span className="lead-row-need">{lead.need} · {lead.budget}</span>

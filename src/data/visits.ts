@@ -2,7 +2,8 @@
 import type { TeamId } from './team'
 
 export type VisitStatus = 'planned' | 'on-the-way' | 'checked-in' | 'completed' | 'no-show'
-export type VisitStepKind = 'left-office' | 'check-in' | 'check-in-refused' | 'check-out'
+/** `check-in-unverified`: the agent checked in at a listing with no location pin, so the distance couldn't be checked (spec §8.18). */
+export type VisitStepKind = 'left-office' | 'check-in' | 'check-in-unverified' | 'check-in-refused' | 'check-out'
 /** One location reading taken when the agent tapped a button. */
 export type VisitStep = { kind: VisitStepKind; at: string; distanceM: number; accuracyM: number; note?: string }
 export type VisitResult = 'Liked it' | 'Not interested' | 'Wants another visit'

@@ -36,7 +36,6 @@ export type LeadSeed = {
   temp: Temperature
   source: string
   color: AvatarColor
-  online: boolean
   phone: string
   moveIn: string
   mustHave: string
@@ -83,73 +82,73 @@ const STORY_LEADS: LeadSeed[] = [
   {
     id: 1, name: 'Ananya Rao', initials: 'AR', need: '3 BHK in Indiranagar', budget: '₹2.4–2.8 Cr', budgetCr: 2.6, locality: 'Indiranagar',
     message: 'See you at 11:30 today. Can we also see the corner unit?', enquiry: 'Hi, I’m looking for a 3 BHK in Indiranagar. Is anything good available?',
-    minutesAgo: 2, unread: 2, temp: 'Hot', source: '99acres', color: 'coral', online: true, phone: '+91 98861 24018',
+    minutesAgo: 2, unread: 2, temp: 'Hot', source: '99acres', color: 'coral', phone: '+91 98861 24018',
     moveIn: 'Within 3 months', mustHave: 'Natural light · Balcony', initialStage: 2, ownerId: 'm-priya',
   },
   {
     id: 2, name: 'Rohan & Meera', initials: 'RM', need: 'Villa near Whitefield', budget: '₹3.5 Cr', budgetCr: 3.5, locality: 'Whitefield',
     message: 'The garden is lovely. Is the price negotiable?', enquiry: 'Hello! We’re looking for a villa near Whitefield with a garden.',
-    minutesAgo: 18, unread: 1, temp: 'Warm', source: 'Referral', color: 'violet', online: true, phone: '+91 99001 55234',
+    minutesAgo: 18, unread: 1, temp: 'Warm', source: 'Referral', color: 'violet', phone: '+91 99001 55234',
     moveIn: 'Before school year', mustHave: 'Garden · 4 bedrooms', initialStage: 3, ownerId: 'm-vivek',
   },
   {
     id: 3, name: 'Vikram Shah', initials: 'VS', need: 'Investment flat, HSR Layout', budget: '₹1.2–1.5 Cr', budgetCr: 1.35, locality: 'HSR Layout',
     message: 'Please share the rental yield calculation.', enquiry: 'Hi, I want an investment flat that rents out easily. Budget around ₹1.3 Cr.',
-    minutesAgo: 60, unread: 0, temp: 'Warm', source: 'MagicBricks', color: 'blue', online: false, phone: '+91 97411 80923',
+    minutesAgo: 60, unread: 0, temp: 'Warm', source: 'MagicBricks', color: 'blue', phone: '+91 97411 80923',
     moveIn: 'Investment', mustHave: 'Rental yield > 3%', initialStage: 1, ownerId: 'm-sneha', purpose: 'Investment',
   },
   {
     id: 4, name: 'Sana Fathima', initials: 'SF', need: '2 BHK in HSR Layout', budget: '₹1.4 Cr', budgetCr: 1.4, locality: 'HSR Layout',
     message: 'I will confirm after speaking to my family.', enquiry: 'Hi, I’m looking for a 2 BHK in HSR Layout, close to the park.',
-    minutesAgo: 180, unread: 0, temp: 'New', source: 'WhatsApp', color: 'gold', online: false, phone: '+91 90080 33671',
+    minutesAgo: 180, unread: 0, temp: 'New', source: 'WhatsApp', color: 'gold', phone: '+91 90080 33671',
     moveIn: 'Within 6 months', mustHave: 'Near a park · Lift', initialStage: 0, ownerId: 'm-kiran',
   },
   {
     id: 5, name: 'Deepak Malhotra', initials: 'DM', need: '4 BHK in Whitefield', budget: '₹3–3.4 Cr', budgetCr: 3.2, locality: 'Whitefield',
     message: 'Is the clubhouse ready? Can I visit on Sunday?', enquiry: 'Looking for a 4 BHK in a gated community in Whitefield.',
-    minutesAgo: 35, unread: 1, temp: 'Hot', source: 'Housing', color: 'blue', online: true, phone: '+91 98455 61207',
+    minutesAgo: 35, unread: 1, temp: 'Hot', source: 'Housing', color: 'blue', phone: '+91 98455 61207',
     moveIn: 'Within 2 months', mustHave: 'Gated · Clubhouse', initialStage: 2, ownerId: 'm-ritu',
   },
   {
     id: 6, name: 'Nisha Kulkarni', initials: 'NK', need: '3 BHK in HSR Layout', budget: '₹1.8–2 Cr', budgetCr: 1.9, locality: 'HSR Layout',
     message: 'Thanks, we’ll discuss the shortlist tonight.', enquiry: 'Hi, we saw your ad for HSR Layout 3 BHKs. Anything near 27th Main?',
-    minutesAgo: 120, unread: 0, temp: 'Warm', source: 'Facebook ads', color: 'violet', online: false, phone: '+91 99800 47215',
+    minutesAgo: 120, unread: 0, temp: 'Warm', source: 'Facebook ads', color: 'violet', phone: '+91 99800 47215',
     moveIn: 'Within 4 months', mustHave: 'Near school · East facing', initialStage: 1, ownerId: 'm-rohit',
   },
   {
     id: 7, name: 'Farhan Qureshi', initials: 'FQ', need: '2 BHK in Indiranagar', budget: '₹1.5–1.7 Cr', budgetCr: 1.6, locality: 'Indiranagar',
     message: 'Hi, is the 2 BHK on 12th Main still available?', enquiry: 'Hi, is the 2 BHK on 12th Main still available?',
-    minutesAgo: 8, unread: 1, temp: 'New', source: '99acres', color: 'gold', online: true, phone: '+91 97390 22814',
+    minutesAgo: 8, unread: 1, temp: 'New', source: '99acres', color: 'gold', phone: '+91 97390 22814',
     moveIn: 'To confirm', mustHave: 'To confirm', initialStage: 0, ownerId: null,
   },
   {
     id: 8, name: 'Lavanya Subramaniam', initials: 'LS', need: 'Villa in Whitefield', budget: '₹4–4.2 Cr', budgetCr: 4.1, locality: 'Whitefield',
     message: 'We can close this week if the owner agrees to ₹4 Cr.', enquiry: 'We want a ready-to-move villa in Whitefield, budget around ₹4 Cr.',
-    minutesAgo: 50, unread: 0, temp: 'Hot', source: 'Referral', color: 'coral', online: false, phone: '+91 98868 70321',
+    minutesAgo: 50, unread: 0, temp: 'Hot', source: 'Referral', color: 'coral', phone: '+91 98868 70321',
     moveIn: 'Immediately', mustHave: 'Ready to move · 2 car parks', initialStage: 3, ownerId: 'm-manoj',
   },
   {
     id: 9, name: 'Gaurav Bhatia', initials: 'GB', need: '3 BHK in Indiranagar', budget: '₹2.8–3 Cr', budgetCr: 2.9, locality: 'Indiranagar',
     message: 'What are the maintenance charges and is there covered parking?', enquiry: 'Interested in 3 BHK options near 100 Feet Road.',
-    minutesAgo: 25, unread: 2, temp: 'Warm', source: 'MagicBricks', color: 'blue', online: false, phone: '+91 99459 31876',
+    minutesAgo: 25, unread: 2, temp: 'Warm', source: 'MagicBricks', color: 'blue', phone: '+91 99459 31876',
     moveIn: 'Within 6 months', mustHave: 'Covered parking', initialStage: 1, ownerId: 'm-aditya',
   },
   {
     id: 10, name: 'Pooja Venkatesh', initials: 'PV', need: '2 BHK in HSR Layout', budget: '₹1.2–1.3 Cr', budgetCr: 1.25, locality: 'HSR Layout',
     message: 'Walked in to your office yesterday. Please call me.', enquiry: 'Walked in to your office yesterday. Please call me.',
-    minutesAgo: 5, unread: 1, temp: 'New', source: 'Walk-in', color: 'violet', online: true, phone: '+91 96860 54419',
+    minutesAgo: 5, unread: 1, temp: 'New', source: 'Walk-in', color: 'violet', phone: '+91 96860 54419',
     moveIn: 'To confirm', mustHave: 'To confirm', initialStage: 0, ownerId: 'm-kiran',
   },
   {
     id: 11, name: 'Sanjay Mehta', initials: 'SM', need: 'Investment flat, Whitefield', budget: '₹1–1.2 Cr', budgetCr: 1.1, locality: 'Whitefield',
     message: 'Looking for something near ITPL that rents well.', enquiry: 'Looking for something near ITPL that rents well.',
-    minutesAgo: 22, unread: 1, temp: 'New', source: 'WhatsApp', color: 'gold', online: false, phone: '+91 98804 66132',
+    minutesAgo: 22, unread: 1, temp: 'New', source: 'WhatsApp', color: 'gold', phone: '+91 98804 66132',
     moveIn: 'Investment', mustHave: 'Near ITPL', initialStage: 0, ownerId: null, purpose: 'Investment',
   },
   {
     id: 12, name: 'Ishita Banerjee', initials: 'IB', need: '3 BHK in Indiranagar', budget: '₹2.4–2.6 Cr', budgetCr: 2.5, locality: 'Indiranagar',
     message: 'Could you send the floor plans for the Courtyard House?', enquiry: 'Hi, I liked the Courtyard House listing. Is it still available?',
-    minutesAgo: 1580, unread: 0, temp: 'Hot', source: '99acres', color: 'coral', online: false, phone: '+91 99723 18850',
+    minutesAgo: 1580, unread: 0, temp: 'Hot', source: '99acres', color: 'coral', phone: '+91 99723 18850',
     moveIn: 'Within 3 months', mustHave: 'Low floor · Pet friendly', initialStage: 1, ownerId: 'm-priya',
   },
 ]

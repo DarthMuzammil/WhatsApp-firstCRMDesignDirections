@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import type { Lead } from './data/demo'
 import { MobileTabBar, MobileTopBar, Sidebar } from './components/AppNavigation'
 import { navItemsFor, type View } from './components/navigation'
@@ -11,24 +11,36 @@ import { AddLeadModal } from './modals/AddLeadModal'
 import { CallModal } from './modals/CallModal'
 import { CallPicker } from './modals/CallPicker'
 import { useDemoStore } from './state/useDemoStore'
-import { AttendanceView } from './views/AttendanceView'
-import { CallsView } from './views/CallsView'
-import { EscalationsView } from './views/EscalationsView'
-import { LeadSourcesView } from './views/LeadSourcesView'
 import { ChatView } from './views/ChatView'
 import { FollowUpsView } from './views/FollowUpsView'
 import { PipelineView } from './views/PipelineView'
 import { PropertiesView } from './views/PropertiesView'
-import { ReportsView } from './views/ReportsView'
-import { SettingsView } from './views/SettingsView'
-import { AuditView } from './views/AuditView'
-import { BrokerageView } from './views/BrokerageView'
-import { LaunchesView, type LaunchesTab } from './views/LaunchesView'
+import type { LaunchesTab } from './views/LaunchesView'
 import type { BookingFilter } from './data/channelPartner'
-import { TeamView } from './views/TeamView'
 import { TodayView } from './views/TodayView'
 import { VisitsView } from './views/VisitsView'
+import { lazyView } from './lib/lazyView'
 import './App.css'
+
+// The screens an agent lives in (Today, chat, Visits, Pipeline, Properties, Follow-ups) ship in the first download.
+// The heavier and less-visited screens are separate chunks (spec §7) that load when first opened, and are fetched in
+// the background right after the first paint so opening them later is instant (see lib/lazyView).
+const CallsView = lazyView(() => import('./views/CallsView').then((m) => m.CallsView))
+const AttendanceView = lazyView(() => import('./views/AttendanceView').then((m) => m.AttendanceView))
+const ReportsView = lazyView(() => import('./views/ReportsView').then((m) => m.ReportsView))
+const EscalationsView = lazyView(() => import('./views/EscalationsView').then((m) => m.EscalationsView))
+const LeadSourcesView = lazyView(() => import('./views/LeadSourcesView').then((m) => m.LeadSourcesView))
+const TeamView = lazyView(() => import('./views/TeamView').then((m) => m.TeamView))
+const SettingsView = lazyView(() => import('./views/SettingsView').then((m) => m.SettingsView))
+const AuditView = lazyView(() => import('./views/AuditView').then((m) => m.AuditView))
+const BrokerageView = lazyView(() => import('./views/BrokerageView').then((m) => m.BrokerageView))
+const LaunchesView = lazyView(() => import('./views/LaunchesView').then((m) => m.LaunchesView))
+const LAZY_VIEWS = [CallsView, AttendanceView, ReportsView, EscalationsView, LeadSourcesView, TeamView, SettingsView, AuditView, BrokerageView, LaunchesView]
+
+/** Shown for the moment a lazy screen takes to arrive (normally never seen, because the chunks are prefetched). */
+function ScreenLoading() {
+  return <section className="screen-loading" aria-busy="true" aria-label="Loading" />
+}
 
 /**
  * Bayana — WhatsApp-first CRM for brokerage teams (client demo prototype).
@@ -72,6 +84,15 @@ export default function App() {
     window.scrollTo({ top: 0 })
   }, [view, openLeadId])
 
+  // Prefetch the lazy screens right after the first paint, so a tap later opens them instantly.
+  // `data-screens="ready"` on <html> tells the end-to-end checks the prefetch is done.
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      Promise.allSettled(LAZY_VIEWS.map((view) => view.preload())).then(() => { document.documentElement.dataset.screens = 'ready' })
+    }, 0)
+    return () => window.clearTimeout(timer)
+  }, [])
+
   function navigate(next: View, param?: string) {
     setViewParam(param)
     setView(next === 'chat' && !openLead ? 'today' : next)
@@ -103,6 +124,7 @@ export default function App() {
       <MobileTopBar store={store} onNavigate={navigate} onAddLead={() => setAddLeadOpen(true)} onSimulateLead={simulateLead} onSimulateForward={() => setForwardOpen(true)} onStartDemo={() => setDemoOpen(true)} onOpenLead={showLead} />
 
       <main className="app-main" ref={mainRef}>
+        <Suspense fallback={<ScreenLoading />}>
         {view === 'today' && <TodayView store={store} onOpenLead={showLead} onNavigate={navigate} onCall={startCall} notify={notify} />}
         {view === 'chat' && openLead && <ChatView key={openLead.id} lead={openLead} store={store} onBack={() => setView(chatOrigin)} onCall={startCall} onNavigate={navigate} notify={notify} />}
         {view === 'visits' && <VisitsView store={store} onOpenLead={showLead} notify={notify} />}
@@ -120,6 +142,7 @@ export default function App() {
         {view === 'launches' && <LaunchesView key={`${viewParam ?? 'default'}-${store.viewer.id}`} store={store} initialTab={viewParam as LaunchesTab | undefined} onOpenLead={showLead} notify={notify} />}
         {/* Brokerage params: a filter ("overdue"), optionally with a booking to open ("overdue#1"). */}
         {view === 'brokerage' && <BrokerageView key={viewParam ?? 'all'} store={store} initialFilter={viewParam?.split('#')[0] as BookingFilter | undefined} initialOpenId={viewParam?.includes('#') ? Number(viewParam.split('#')[1]) : undefined} notify={notify} />}
+        </Suspense>
       </main>
 
       <MobileTabBar store={store} view={navView} onNavigate={navigate} />

@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import type { Lead } from '../data/demo'
 import { shortName } from '../data/team'
+import { localityCentre } from '../data/inventory'
 import { VISIT_RESULTS, formatDistance, type VisitResult, type VisitStep } from '../data/visits'
 import { LeadAvatar } from '../components/Avatar'
 import { Dialog } from '../components/Dialog'
@@ -36,9 +37,10 @@ export function VisitsView({ store, onOpenLead, notify }: { store: DemoStore; on
     try {
       const property = store.findProperty(visit.propertyId)
       if (!property) throw new Error('Property not found.')
+      // Unpinned listing: "Near client" pretends to be at the locality's centre; the check-in is recorded unverified either way.
       const reading = store.pretendLocation === 'device'
         ? await deviceReading()
-        : pretendReading(store.pretendLocation, property, store.officeFor(store.findMember(visit.agentId)))
+        : pretendReading(store.pretendLocation, property.pin ?? localityCentre(property.locality), store.officeFor(store.findMember(visit.agentId)))
       const result = store.recordVisitStep(visit.id, kind, reading)
       setFeedback({ visitId: visit.id, ...result })
       if (kind === 'check-out' && result.ok) setOutcomeFor(visit)
@@ -52,6 +54,7 @@ export function VisitsView({ store, onOpenLead, notify }: { store: DemoStore; on
   const card = (visit: VisitView) => {
     const mine = visit.agentId === store.viewer.id
     const agent = store.findMember(visit.agentId)
+    const unpinned = !store.findProperty(visit.propertyId)?.pin
     const canAct = mine && visit.day === 0 && (visit.status === 'planned' || visit.status === 'on-the-way' || visit.status === 'checked-in')
     const message = feedback?.visitId === visit.id ? feedback : null
     return (
@@ -63,6 +66,7 @@ export function VisitsView({ store, onOpenLead, notify }: { store: DemoStore; on
             <span><strong>{visit.lead.name}</strong><small>{visit.propertyName} · {store.findProperty(visit.propertyId)?.locality}</small></span>
           </button>
           {(seesOthers || !mine) && agent && <span className="visit-agent"><Icon name="user" size={14} /> {mine ? 'You' : shortName(agent.name)}</span>}
+          {unpinned && visit.status !== 'completed' && visit.status !== 'no-show' && <span className="visit-unpinned"><Icon name="alert" size={14} /> Location not set · check-ins here can’t be verified</span>}
           {visit.steps.length > 0 && <ol className="visit-steps">{visit.steps.map((step, index) => <StepRow key={index} step={step} />)}</ol>}
           {visit.outcome && <p className="visit-outcome"><strong>{visit.outcome.result}</strong>{visit.outcome.feedback ? ` · ${visit.outcome.feedback}` : ''}{visit.outcome.nextStep ? ` · Next: ${visit.outcome.nextStep}` : ''}</p>}
           {message && <p className={`inline-feedback ${message.ok ? 'ok' : 'error'}`} role={message.ok ? 'status' : 'alert'}><Icon name={message.ok ? 'check' : 'alert'} size={16} />{message.message}</p>}
@@ -97,7 +101,7 @@ export function VisitsView({ store, onOpenLead, notify }: { store: DemoStore; on
 
       <div className="stat-strip">
         <div><span>Visits today</span><strong>{today.length}</strong><small>{today.filter((visit) => visit.status === 'completed').length} completed</small></div>
-        <div><span>Verified check-ins</span><strong>{todaySteps.filter((step) => step.kind === 'check-in').length}</strong><small>Within {store.settings.checkInRadiusM} m of the address</small></div>
+        <div><span>Verified check-ins</span><strong>{todaySteps.filter((step) => step.kind === 'check-in').length}</strong><small>Within {store.settings.checkInRadiusM} m of the pin</small></div>
         <div><span>Refused attempts</span><strong>{todaySteps.filter((step) => step.kind === 'check-in-refused').length}</strong><small>{earlier.filter((visit) => visit.status === 'no-show').length} no-show yesterday</small></div>
       </div>
 
@@ -127,6 +131,7 @@ export function VisitsView({ store, onOpenLead, notify }: { store: DemoStore; on
 function StepRow({ step }: { step: VisitStep }) {
   if (step.kind === 'left-office') return <li><Icon name="arrow" size={14} /> Left {step.note ? <em>{step.note}</em> : 'the office'} · {step.at}</li>
   if (step.kind === 'check-in') return <li className="verified"><Icon name="check" size={14} /> Verified check-in · {step.at} · {formatDistance(step.distanceM)} away</li>
+  if (step.kind === 'check-in-unverified') return <li className="unverified"><Icon name="pin" size={14} /> Checked in · {step.at} · not verified (no location pin)</li>
   if (step.kind === 'check-in-refused') return <li className="refused"><Icon name="alert" size={14} /> Check-in refused · {step.at} · {step.note === 'Location too imprecise' ? `accuracy ${formatDistance(step.accuracyM)}` : `${formatDistance(step.distanceM)} away`}</li>
   return <li><Icon name="check" size={14} /> Checked out · {step.at}</li>
 }

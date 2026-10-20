@@ -5,6 +5,7 @@
 // Without BASE_URL it uses the dev server on port 5199, starting one if nothing is running there.
 // Each suite prints PASS/FAIL lines; the run fails if any line is FAIL or a suite crashes.
 import { spawn } from 'node:child_process'
+import { chromium } from 'playwright-core'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -28,6 +29,21 @@ if (!baseUrl) {
     for (let i = 0; i < 60 && !(await isUp(baseUrl)); i++) await new Promise((resolve) => setTimeout(resolve, 500))
     if (!(await isUp(baseUrl))) { console.error('The dev server did not start.'); server.kill(); process.exit(1) }
   }
+}
+
+// Open the app once and wait for its lazy screens to be prefetched (`<html data-screens="ready">`), so the dev
+// server has transformed every chunk before the suites start clicking; otherwise the first visit to a lazy screen
+// can take longer than a suite's fixed waits.
+{
+  const browser = await chromium.launch()
+  const page = await browser.newPage()
+  try {
+    await page.goto(baseUrl)
+    await page.waitForSelector('html[data-screens="ready"]', { timeout: 60000 })
+  } catch (error) {
+    console.log(`Warm-up did not finish: ${error.message.split('\n')[0]}`)
+  }
+  await browser.close()
 }
 
 function runSuite(file) {

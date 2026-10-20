@@ -11,11 +11,11 @@ import { DEFAULT_VIEWER_ID, ROLE_LABELS, SEED_MEMBERS, TEAMS, shortName, type Me
 import { SEED_AUDIT, SEED_NOTIFICATIONS, type AppNotification, type AuditEntry, type AuditKind, type NotificationKind, type NotificationView } from '../data/notifications'
 import { MAX_ACCURACY_M, OFFICES, SEED_VISITS, formatDistance, slotMinutes, type Office, type Visit, type VisitOutcome } from '../data/visits'
 import { DOC_LABELS, OFFER_BY_LABELS, SEED_DEALS, type Closure, type Deal } from '../data/deals'
-import { SEED_PROPERTIES, matchesForLead, priceLabel, type Property } from '../data/inventory'
+import { SEED_PROPERTIES, matchesForLead, priceLabel, type Property, PIN_SOURCE_LABELS } from '../data/inventory'
 import { DEFAULT_AUTO_REPLY, SERVICE_WINDOW_MINUTES } from '../data/templates'
 import { maskNumbersInText } from '../lib/ai'
 import { clockLabel, dayLabel, formatDuration, maskPhone, minutesOfDay } from '../lib/format'
-import { distanceM, type PretendLocation, type Reading } from '../lib/location'
+import { distanceM, type LatLng, type PretendLocation, type Reading } from '../lib/location'
 import { can, canSeeLead, type Permission } from '../lib/permissions'
 import { clearDemoStorage, useLocalState } from '../lib/storage'
 
@@ -61,6 +61,11 @@ export const SYSTEM_ID = 'system'
 
 let activitySeq = 0
 /** Unique id for notes and activity, even for several created in the same millisecond. */
+/** "Brookside Towers" → "Brookside Towers’", "Maple Court" → "Maple Court’s". */
+function possessive(name: string): string {
+  return /s$/i.test(name) ? `${name}’` : `${name}’s`
+}
+
 function nextId(): number {
   activitySeq = (activitySeq + 1) % 100
   return Date.now() * 100 + activitySeq
@@ -472,7 +477,7 @@ export function useDemoStore() {
       const id = Date.now()
       // The portal tells us what and where; budget and timing are what qualification finds out.
       const lead: LeadSeed = {
-        ...template, id, source: source.name, enquiry: template.message, minutesAgo: 0, unread: 1, online: true,
+        ...template, id, source: source.name, enquiry: template.message, minutesAgo: 0, unread: 1,
         budget: 'Budget to qualify', budgetCr: 0, moveIn: 'To confirm', mustHave: 'To confirm',
         initialStage: 0, ownerId: null, freshEnquiry: true,
         answers: { budget: template.budget, budgetCr: template.budgetCr, moveIn: template.moveIn === 'To confirm' ? 'Within 3 months' : template.moveIn },
@@ -720,7 +725,18 @@ export function useDemoStore() {
         log(visit.leadId, 'visit', `Left for the visit at ${at}${note ? ` (${note})` : ' from the office'}`)
         return { ok: true, message: note ? `Recorded. You were ${note}.` : 'Recorded: left the office.' }
       }
-      const away = Math.round(distanceM(reading, property))
+      // No pin (spec §8.18): the distance can't be measured, so a check-in is recorded but never "verified".
+      if (!property.pin) {
+        if (step === 'check-in') {
+          updateVisit(visitId, (current) => ({ ...current, status: 'checked-in', steps: [...current.steps, { kind: 'check-in-unverified', at, distanceM: 0, accuracyM: reading.accuracyM, note: 'Property location not set' }] }))
+          log(visit.leadId, 'visit', `Checked in at ${property.name} at ${at} (not verified: the property has no location pin)`)
+          return { ok: true, message: `Checked in at ${property.name}, but not verified: this listing has no location pin yet.` }
+        }
+        if (visit.status !== 'checked-in') return { ok: false, message: 'Check in before checking out.' }
+        updateVisit(visitId, (current) => ({ ...current, steps: [...current.steps, { kind: 'check-out', at, distanceM: 0, accuracyM: reading.accuracyM }] }))
+        return { ok: true, message: 'Checked out. Add the visit outcome.' }
+      }
+      const away = Math.round(distanceM(reading, property.pin))
       if (step === 'check-in') {
         const tooVague = reading.accuracyM > MAX_ACCURACY_M
         if (away > radius || tooVague) {
@@ -787,7 +803,16 @@ export function useDemoStore() {
       setRecordings((current) => [{ id: Date.now(), leadId, when: 'Just now', duration, note }, ...current])
       log(leadId, 'call', `Call recorded (${formatDuration(duration)})`)
     },
-    /** Adds a listing (id 0) or replaces an existing one. Returns the saved listing. */
+    /**
+     * Who may set this listing's location pin (spec §8.18): the listing agent while it has none, or anyone who can
+     * move pins (Owner, Managers). A new listing can be pinned by whoever adds it.
+     */
+    canPinProperty: (property?: Property): boolean => {
+      if (!can(viewer, 'manageInventory')) return false
+      if (can(viewer, 'pinProperties') || !property) return true
+      return !property.pin && property.listingAgentId === viewer.id
+    },
+    /** Adds a listing (id 0) or replaces an existing one. Returns the saved listing. Pin changes are audited separately. */
     saveProperty: (property: Property): Property => {
       const saved = property.id ? property : { ...property, id: Math.max(0, ...properties.map((item) => item.id)) + 1, addedInDemo: true }
       setProperties((current) => (property.id ? current.map((item) => (item.id === property.id ? saved : item)) : [...current, saved]))
@@ -797,8 +822,18 @@ export function useDemoStore() {
         before.status !== saved.status && `availability → ${saved.status === 'hold' ? 'on hold' : saved.status}`,
         before.listingAgentId !== saved.listingAgentId && `listing agent → ${nameOf(saved.listingAgentId)}`,
         (before.ownerName !== saved.ownerName || before.ownerPhone !== saved.ownerPhone) && 'owner contact',
+        before.address !== saved.address && 'address',
       ].filter(Boolean) : []
-      recordAudit('property', before ? `Edited ${saved.name}${changed.length ? `: ${changed.join(', ')}` : ''}` : `Added ${saved.name} (${saved.locality}, ${priceLabel(saved)})`)
+      if (!before || changed.length || before.pin === saved.pin) {
+        recordAudit('property', before ? `Edited ${saved.name}${changed.length ? `: ${changed.join(', ')}` : ''}` : `Added ${saved.name} (${saved.locality}, ${priceLabel(saved)})${saved.pin ? ` · location ${PIN_SOURCE_LABELS[saved.pin.source]}` : ' · no location pin'}`)
+      }
+      // The pin decides whether visit check-ins can be verified, so every change to it is traceable (spec §8.18).
+      if (before && saved.pin && before.pin !== saved.pin) {
+        const moved = before.pin ? Math.round(distanceM(before.pin as LatLng, saved.pin)) : 0
+        recordAudit('property', before.pin ? `Moved ${possessive(saved.name)} location pin ${formatDistance(moved)} (${PIN_SOURCE_LABELS[saved.pin.source]})` : `Pinned ${possessive(saved.name)} location (${PIN_SOURCE_LABELS[saved.pin.source]})`)
+      } else if (before?.pin && !saved.pin) {
+        recordAudit('property', `Removed ${possessive(saved.name)} location pin (locality changed to ${saved.locality})`)
+      }
       return saved
     },
     /** Sends listings to a lead on WhatsApp (as a template outside the 24-hour window); "Seen" follows a few seconds later 🎭. */

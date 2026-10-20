@@ -61,7 +61,7 @@ export function DemoGuide({ store, onSimulate, onOpenLead, onNavigate, notify, o
   const visit = store.visits.find((item) => item.leadId === leadId && item.day === 0)
   const agreedCr = property ? Math.round(property.priceCr * 0.98 * 100) / 100 : 0
   const open = () => { if (lead) onOpenLead(lead) }
-  const reading = (mode: 'far' | 'client') => (property ? pretendReading(mode, property, store.officeFor(agent)) : undefined)
+  const reading = (mode: 'far' | 'client') => (property?.pin ? pretendReading(mode, property.pin, store.officeFor(agent)) : undefined)
   const checkIn = (mode: 'far' | 'client') => {
     const at = reading(mode)
     if (!visit || !at) return

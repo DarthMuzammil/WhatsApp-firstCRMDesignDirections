@@ -1,0 +1,13 @@
+/* A plain grid standing in for a map (demo only): 1600 m across, 2:1, 100 m squares. */
+.pin-map { position: relative; width: 100%; aspect-ratio: 2 / 1; overflow: hidden; border: 1px solid var(--border-strong); border-radius: var(--radius-md); cursor: crosshair; background-color: var(--surface-subtle); background-image: linear-gradient(to right, var(--border-soft) 1px, transparent 1px), linear-gradient(to bottom, var(--border-soft) 1px, transparent 1px); background-size: 6.25% 12.5%; }
+.pin-map:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
+.pin-map-tag { position: absolute; top: var(--space-2); left: var(--space-2); display: inline-flex; align-items: center; gap: var(--space-2); color: var(--muted); font-size: var(--fs-meta); font-weight: 600; }
+.pin-map-tag em { padding: var(--space-half) var(--space-2); border-radius: var(--radius-pill); color: var(--warning-ink); background: var(--warning-soft); font-style: normal; font-weight: 800; }
+.pin-map-centre { position: absolute; left: 50%; top: 50%; display: flex; flex-direction: column; align-items: center; gap: var(--space-1); transform: translate(-50%, -50%); color: var(--faint); font-size: var(--fs-meta); font-weight: 700; pointer-events: none; }
+.pin-map-centre i { width: 10px; height: 10px; border: 2px solid var(--border-strong); border-radius: 50%; background: var(--surface); }
+.pin-map-centre b { white-space: nowrap; font-weight: 700; }
+.pin-map-scale { position: absolute; left: var(--space-2); bottom: var(--space-2); padding-top: var(--space-half); border-top: 2px solid var(--ink-soft); color: var(--ink-soft); font-size: var(--fs-meta); font-weight: 700; text-align: center; }
+.pin-map-radius { position: absolute; aspect-ratio: 1 / 1; border: 1.5px dashed var(--primary-line); border-radius: 50%; background: var(--primary-soft); opacity: .8; transform: translate(-50%, -50%); pointer-events: none; }
+.pin-map-pin { position: absolute; color: var(--primary); transform: translate(-50%, -100%); filter: drop-shadow(var(--shadow-sm)); pointer-events: none; }
+.pin-map-pin svg { stroke-width: 2.2; }
+.pin-map-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

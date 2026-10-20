@@ -13,11 +13,14 @@ type StatusFilter = 'all' | PropertyStatus
 /**
  * Inventory (spec §8.11): listings with availability, listing agent and owner contact (masked unless allowed).
  * Add / Edit for people with `manageInventory`; Share picks a lead, previews the WhatsApp message and sends it.
+ * Each card says who pinned the location; an unpinned listing shows a notice (and a shortcut for whoever may pin it).
  */
 export function PropertiesView({ store, notify }: { store: DemoStore; notify: (message: string) => void }) {
   const [locality, setLocality] = useState('All')
   const [status, setStatus] = useState<StatusFilter>('all')
   const [editing, setEditing] = useState<Property | 'new' | null>(null)
+  // Opened from "Pin it now": the edit dialog starts with the map showing (spec §8.18).
+  const [focusPin, setFocusPin] = useState(false)
   const [sharing, setSharing] = useState<number | null>(null)
   const canManage = store.viewerCan('manageInventory')
   const localities = ['All', ...LOCALITIES.map((item) => item.name).filter((name) => store.properties.some((property) => property.locality === name))]
@@ -52,6 +55,8 @@ export function PropertiesView({ store, notify }: { store: DemoStore; notify: (m
         {visible.map((property) => {
           const saved = store.savedPropertyIds.includes(property.id)
           const agent = store.findMember(property.listingAgentId)
+          const setter = property.pin ? store.findMember(property.pin.setById) : undefined
+          const canPin = !property.pin && store.canPinProperty(property)
           return (
             <article key={property.id} className={`listing listing-${property.status}`}>
               <div className="listing-image">
@@ -68,7 +73,12 @@ export function PropertiesView({ store, notify }: { store: DemoStore; notify: (m
                 <dl className="listing-people">
                   <div><dt>Listed by</dt><dd>{agent ? shortName(agent.name) : '—'}</dd></div>
                   <div><dt>Owner</dt><dd>{property.ownerName} · {store.ownerPhone(property)}</dd></div>
+                  <div><dt>Address</dt><dd className="listing-address">{property.address}</dd></div>
+                  {property.pin && <div><dt>Location</dt><dd className="listing-pin"><Icon name="pin" size={13} />{property.pin.source === 'device' ? 'Pinned on site' : 'Pinned on the map'} by {setter ? shortName(setter.name) : 'the team'} · {property.pin.setAt}</dd></div>}
                 </dl>
+                {!property.pin && (canPin
+                  ? <button className="listing-pin-notice is-action" onClick={() => { setFocusPin(true); setEditing(property) }}><Icon name="alert" size={16} /><span><strong>Location not set</strong> · visits here can’t be verified</span><b>Pin it now <Icon name="chevron" size={14} /></b></button>
+                  : <p className="listing-pin-notice"><Icon name="alert" size={16} /><span><strong>Location not set</strong> · {agent ? shortName(agent.name) : 'the listing agent'} or a Manager needs to pin it</span></p>)}
                 <footer>
                   <strong>{priceLabel(property)}</strong>
                   <span className="listing-buttons">
@@ -83,7 +93,7 @@ export function PropertiesView({ store, notify }: { store: DemoStore; notify: (m
         {visible.length === 0 && <div className="empty-state"><span className="icon-badge"><Icon name="home" /></span><strong>No homes match these filters</strong></div>}
       </div>
 
-      {editing && <PropertyDialog store={store} property={editing === 'new' ? undefined : editing} onClose={() => setEditing(null)} onSaved={(message) => { setEditing(null); notify(message) }} />}
+      {editing && <PropertyDialog store={store} property={editing === 'new' ? undefined : editing} focusPin={focusPin} onClose={() => { setEditing(null); setFocusPin(false) }} onSaved={(message) => { setEditing(null); setFocusPin(false); notify(message) }} />}
       {sharing !== null && <ShareDialog store={store} propertyId={sharing} onClose={() => setSharing(null)} onSent={(message) => { setSharing(null); notify(message) }} />}
     </section>
   )

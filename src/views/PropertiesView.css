@@ -21,6 +21,18 @@
 .listing-people div { display: flex; justify-content: space-between; gap: var(--space-3); }
 .listing-people dt { color: var(--muted); }
 .listing-people dd { margin: 0; color: var(--ink-soft); font-weight: 600; text-align: right; }
+.listing-address { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.listing-pin { display: flex; align-items: flex-start; justify-content: flex-end; gap: var(--space-1); color: var(--success-ink); }
+.listing-pin svg { flex: 0 0 auto; margin-top: 2px; }
+.listing-people dt { flex: 0 0 auto; }
+/* Unpinned listing (spec §8.18): a notice everyone sees; a tappable one for whoever may set the pin. */
+.listing-pin-notice { width: 100%; margin: var(--space-3) 0 0; padding: var(--space-2) var(--space-3); border: 1px solid transparent; border-radius: var(--radius-sm); display: flex; align-items: center; gap: var(--space-2); color: var(--warning-ink); background: var(--warning-soft); font-size: var(--fs-caption); line-height: 1.4; text-align: left; }
+.listing-pin-notice > svg { flex: 0 0 auto; }
+.listing-pin-notice > span { flex: 1; min-width: 0; }
+.listing-pin-notice strong { color: var(--warning-ink); font-size: var(--fs-caption); }
+.listing-pin-notice b { flex: 0 0 auto; display: inline-flex; align-items: center; gap: var(--space-half); font-weight: 800; white-space: nowrap; }
+.listing-pin-notice.is-action { min-height: 40px; cursor: pointer; }
+.listing-pin-notice.is-action:hover { border-color: var(--warning-ink); }
 .listing-buttons { display: flex; align-items: center; gap: var(--space-2); }
 .listing-buttons .btn:disabled { opacity: .45; box-shadow: none; }
 .listing-copy footer { margin-top: var(--space-4); padding-top: var(--space-4); border-top: 1px solid var(--border-soft); display: flex; align-items: center; justify-content: space-between; }
@@ -45,4 +57,5 @@
   .property-grid { grid-template-columns: 1fr; }
   .listing-image { height: 210px; }
   .listing-image button { width: var(--tap); height: var(--tap); }
+  .listing-pin-notice.is-action { min-height: var(--tap); }
 }

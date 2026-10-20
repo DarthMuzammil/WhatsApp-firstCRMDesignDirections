@@ -3,16 +3,11 @@ import './Avatar.css'
 
 type AvatarSize = 'sm' | 'md' | 'lg'
 
-export function Avatar({ initials, color, size = 'md', online = false }: { initials: string; color: AvatarColor; size?: AvatarSize; online?: boolean }) {
-  return (
-    <span className={`avatar avatar-${size} avatar-${color}`}>
-      {initials}
-      {online && <span className="avatar-online" aria-label="Online" />}
-    </span>
-  )
+export function Avatar({ initials, color, size = 'md' }: { initials: string; color: AvatarColor; size?: AvatarSize }) {
+  return <span className={`avatar avatar-${size} avatar-${color}`}>{initials}</span>
 }
 
-/** Avatar for a lead. The online dot appears only where `showStatus` is set (inbox rows, chat header). */
-export function LeadAvatar({ lead, size, showStatus = false }: { lead: Lead; size?: AvatarSize; showStatus?: boolean }) {
-  return <Avatar initials={lead.initials} color={lead.color} size={size} online={showStatus && lead.online} />
+/** Avatar for a lead. No presence dot: WhatsApp's Business API doesn't report whether a buyer is online. */
+export function LeadAvatar({ lead, size }: { lead: Lead; size?: AvatarSize }) {
+  return <Avatar initials={lead.initials} color={lead.color} size={size} />
 }
