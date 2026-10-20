@@ -51,7 +51,7 @@ export function CallsView({ store, onOpenLead, onNewCall }: { store: DemoStore; 
                 <span className={playing ? 'moving' : ''} />
               </div>
               <time>{formatDuration(recording.duration)}</time>
-              <p>{recording.note}</p>
+              <p>{recording.aiSummary && <span className="ai-chip">AI summary</span>} {recording.note}</p>
             </article>
           )
         })}

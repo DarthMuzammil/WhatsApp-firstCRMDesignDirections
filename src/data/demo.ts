@@ -50,6 +50,8 @@ export type LeadSeed = {
   addedInDemo?: boolean
   /** True for leads that arrived from a source during the demo; the chat shows only their enquiry. */
   freshEnquiry?: boolean
+  /** Demo arrivals: what the buyer will answer to the auto-qualification questions. */
+  answers?: { budget: string; budgetCr: number; moveIn: string }
 }
 
 /** A lead with its live demo state applied. This is what components receive. */
@@ -80,7 +82,7 @@ export type Property = {
 export type TaskChannel = 'WhatsApp' | 'Call' | 'Send details'
 export type Task = { id: number; leadId: number; time: string; title: string; note: string; channel: TaskChannel }
 
-export type Recording = { id: number; leadId: number; when: string; duration: number; note: string }
+export type Recording = { id: number; leadId: number; when: string; duration: number; note: string; aiSummary?: boolean }
 
 export const PROPERTIES: Property[] = [
   { id: 1, name: 'The Courtyard House', locality: 'Indiranagar', city: 'Bengaluru', price: '₹2.65 Cr', bedrooms: '3 BHK', area: '1,865 sq ft', lat: 12.9784, lng: 77.6408, image: 'https://images.unsplash.com/photo-1745301558339-44eb3217d5da?auto=format&fit=crop&w=1200&q=85' },
@@ -158,7 +160,7 @@ export const SEED_LEADS: LeadSeed[] = [
   {
     id: 12, name: 'Ishita Banerjee', initials: 'IB', need: '3 BHK in Indiranagar', budget: '₹2.4–2.6 Cr', budgetCr: 2.5, locality: 'Indiranagar',
     message: 'Could you send the floor plans for the Courtyard House?', enquiry: 'Hi, I liked the Courtyard House listing. Is it still available?',
-    minutesAgo: 190, unread: 0, temp: 'Hot', source: '99acres', color: 'coral', online: false, phone: '+91 99723 18850',
+    minutesAgo: 1580, unread: 0, temp: 'Hot', source: '99acres', color: 'coral', online: false, phone: '+91 99723 18850',
     moveIn: 'Within 3 months', mustHave: 'Low floor · Pet friendly', initialStage: 1, ownerId: 'm-priya', sharedWith: 6,
   },
 ]

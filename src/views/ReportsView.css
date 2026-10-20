@@ -13,6 +13,9 @@
 .summary-item.tone-danger strong { color: var(--danger-text); }
 .summary-item.tone-warning strong { color: var(--warning-ink); }
 
+.digest { margin-bottom: var(--space-4); }
+.digest .card-head > div { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2); }
+.digest ul { margin: 0; padding: var(--space-3) var(--space-5) var(--space-4) var(--space-8); display: flex; flex-direction: column; gap: var(--space-2); color: var(--ink-soft); font-size: var(--fs-body-sm); line-height: 1.5; }
 .reports-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; gap: var(--space-4); }
 .leaderboard-head select { flex: 0 0 auto; }
 

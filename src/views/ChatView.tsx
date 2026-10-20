@@ -14,7 +14,10 @@ import type { View } from '../components/navigation'
 import { AssignDialog } from '../modals/AssignDialog'
 import { EditLeadDialog } from '../modals/EditLeadDialog'
 import { ScheduleVisitDialog } from '../modals/ScheduleVisitDialog'
-import type { DemoStore } from '../state/useDemoStore'
+import { TemplateDialog } from '../modals/TemplateDialog'
+import { QUALIFICATION_QUESTIONS, SERVICE_WINDOW_MINUTES } from '../data/templates'
+import { draftReplies, leadScore } from '../lib/ai'
+import { SYSTEM_ID, type DemoStore } from '../state/useDemoStore'
 import './ChatView.css'
 
 type ChatViewProps = {
@@ -116,25 +119,54 @@ type ChatPanelProps = { lead: Lead; store: DemoStore; actions: LeadActionHandler
 
 function ChatPanel({ lead, store, actions, onBack, onCall, onShowDetails }: ChatPanelProps) {
   const [draft, setDraft] = useState('')
-  const [showAttachments, setShowAttachments] = useState(false)
+  const [menu, setMenu] = useState<'attach' | 'drafts' | null>(null)
+  const [templatesOpen, setTemplatesOpen] = useState(false)
   const messagesRef = useRef<HTMLDivElement>(null)
-  const sent = store.sentMessages[lead.id] ?? []
+  const chat = store.chatFor(lead.id)
   const property = matchPropertyForLead(lead)
+  // WhatsApp allows free text only within 24 h of the buyer's last message (spec §8.4).
+  const windowClosed = lead.minutesAgo > SERVICE_WINDOW_MINUTES && !chat.some((entry) => entry.from === 'buyer')
+
+  // Auto-qualification for leads that arrived in the demo: question, answer, question… one every ~1.4 s.
+  // The step is stored, so leaving and coming back continues where it stopped.
+  const qualifying = !!lead.freshEnquiry && !!lead.answers && store.settings.autoReply.enabled && store.settings.autoReply.qualify
+  const step = store.qualifyStepFor(lead.id)
+  const qualifyDone = step >= QUALIFICATION_QUESTIONS.length * 2
+  useEffect(() => {
+    if (!qualifying || qualifyDone || !lead.answers) return
+    const timer = window.setTimeout(() => {
+      const question = QUALIFICATION_QUESTIONS[Math.floor(step / 2)]
+      if (step % 2 === 0) {
+        store.sendMessage(lead.id, question.ask, { from: 'auto' })
+      } else if (question.key === 'budget') {
+        store.sendMessage(lead.id, `${lead.answers!.budget} is my range.`, { from: 'buyer' })
+        store.suggestProfile(lead.id, { budget: lead.answers!.budget, budgetCr: lead.answers!.budgetCr })
+      } else if (question.key === 'need') {
+        store.sendMessage(lead.id, `${lead.need}, ideally.`, { from: 'buyer' })
+        store.suggestProfile(lead.id, { need: lead.need, locality: lead.locality, localities: [lead.locality] })
+      } else {
+        store.sendMessage(lead.id, `${lead.answers!.moveIn}.`, { from: 'buyer' })
+        store.suggestProfile(lead.id, { moveIn: lead.answers!.moveIn })
+      }
+      store.setQualifyStep(lead.id, step + 1)
+    }, step === 0 ? 1200 : 1400)
+    return () => window.clearTimeout(timer)
+  }, [qualifying, qualifyDone, step, lead.id]) // store functions are recreated every render; the step drives this effect
 
   useEffect(() => {
     messagesRef.current?.scrollTo({ top: messagesRef.current.scrollHeight, behavior: 'smooth' })
-  }, [sent.length])
+  }, [chat.length])
 
   function submit(event: FormEvent) {
     event.preventDefault()
-    if (!draft.trim()) return
+    if (!draft.trim() || windowClosed) return
     store.sendMessage(lead.id, draft.trim())
     setDraft('')
   }
 
   function fillDraft(text: string) {
     setDraft(text)
-    setShowAttachments(false)
+    setMenu(null)
   }
 
   const quickReplies = lead.addedInDemo || lead.freshEnquiry
@@ -172,30 +204,69 @@ function ChatPanel({ lead, store, actions, onBack, onCall, onShowDetails }: Chat
           <div className="message theirs">{lead.enquiry}<time>Just now</time></div>
         ) : <>
           <div className="message theirs">{lead.enquiry}<time>10:16</time></div>
+          <div className="message mine message-auto"><span className="message-tag">Automatic</span>Hi {firstName(lead.name)}, thanks for reaching out to Daira! A property expert will reply in a few minutes.<time>10:16 <Icon name="check" size={12} /></time></div>
           <div className="message mine">Hi {firstName(lead.name)}! Yes, I have a strong match within your {lead.budget} budget. Sharing it here.<time>10:18 <Icon name="check" size={12} /></time></div>
           <div className="message mine message-property"><PropertyCard property={property} /><time>10:18 <Icon name="check" size={12} /></time></div>
           <div className="message theirs">{lead.message}<time>10:24</time></div>
         </>}
-        {sent.map((text, index) => <div className="message mine new-message" key={index}>{text}<time>Now <Icon name="check" size={12} /></time></div>)}
-      </div>
-
-      <div className="chip-row quick-replies">
-        {quickReplies.map((reply) => <button key={reply.label} className="chip chip-success" onClick={() => fillDraft(reply.text)}>{reply.label}</button>)}
-      </div>
-
-      <form className="composer" onSubmit={submit}>
-        {showAttachments && (
-          <div className="attachment-menu">
-            <button type="button" onClick={() => fillDraft(`Sharing ${property.name} with you: ${property.bedrooms}, ${property.area}, ${property.price}.`)}><Icon name="home" size={16} /> Property</button>
-            <button type="button" onClick={() => fillDraft('Sharing the location pin for our visit.')}><Icon name="pin" size={16} /> Location</button>
+        {chat.map((entry, index) => (
+          <div key={index} className={`message new-message ${entry.from === 'buyer' ? 'theirs' : 'mine'} ${entry.from === 'auto' ? 'message-auto' : ''}`}>
+            {entry.from === 'auto' && <span className="message-tag">Automatic</span>}
+            {entry.template && <span className="message-tag">Template · {entry.template}</span>}
+            {entry.text}
+            <time>{entry.at}{entry.from !== 'buyer' && <> <Icon name="check" size={12} /></>}</time>
           </div>
+        ))}
+        {qualifying && !qualifyDone && <p className="chat-typing" aria-live="polite">Auto-qualifying… {Math.floor(step / 2) + 1} of {QUALIFICATION_QUESTIONS.length}</p>}
+        {qualifying && qualifyDone && store.aiSuggestionsFor(lead.id) && (
+          <button className="chat-note chat-note-ai" onClick={onShowDetails}><Icon name="spark" size={14} /> AI read the answers and suggested brief fields. Review them in the lead details.</button>
         )}
-        <button type="button" className="icon-button" aria-label={showAttachments ? 'Close attachments' : 'Attach'} aria-expanded={showAttachments} onClick={() => setShowAttachments(!showAttachments)}>
-          <Icon name={showAttachments ? 'close' : 'plus'} />
-        </button>
-        <input value={draft} onChange={(event) => setDraft(event.target.value)} placeholder="Write a WhatsApp message…" aria-label="Message" />
-        <button className="send-button" aria-label="Send" disabled={!draft.trim()}><Icon name="send" /></button>
-      </form>
+      </div>
+
+      {windowClosed ? (
+        <div className="window-closed" role="note">
+          <Icon name="clock" size={16} />
+          <span><strong>Outside WhatsApp’s 24-hour window</strong><small>The buyer last wrote {relativeMinutes(lead.minutesAgo)} ago. Only approved templates can be sent.</small></span>
+          <button className="btn btn-primary" onClick={() => setTemplatesOpen(true)}>Use a template</button>
+        </div>
+      ) : <>
+        <div className="chip-row quick-replies">
+          {quickReplies.map((reply) => <button key={reply.label} className="chip chip-success" onClick={() => fillDraft(reply.text)}>{reply.label}</button>)}
+          <button className="chip" onClick={() => setTemplatesOpen(true)}><Icon name="whatsapp" size={14} /> Templates</button>
+        </div>
+
+        <form className="composer" onSubmit={submit}>
+          {menu === 'attach' && (
+            <div className="attachment-menu">
+              <button type="button" onClick={() => fillDraft(`Sharing ${property.name} with you: ${property.bedrooms}, ${property.area}, ${property.price}.`)}><Icon name="home" size={16} /> Property</button>
+              <button type="button" onClick={() => fillDraft('Sharing the location pin for our visit.')}><Icon name="pin" size={16} /> Location</button>
+            </div>
+          )}
+          {menu === 'drafts' && (
+            <div className="attachment-menu draft-menu" role="menu" aria-label="AI reply drafts">
+              <span className="eyebrow"><Icon name="spark" size={12} /> AI drafts · edit before sending</span>
+              {draftReplies(lead, store.viewer.name).map((item) => (
+                <button type="button" role="menuitem" key={item.language} onClick={() => fillDraft(item.text)}><small>{item.language}</small>{item.text}</button>
+              ))}
+            </div>
+          )}
+          <button type="button" className="icon-button" aria-label={menu === 'attach' ? 'Close attachments' : 'Attach'} aria-expanded={menu === 'attach'} onClick={() => setMenu(menu === 'attach' ? null : 'attach')}>
+            <Icon name={menu === 'attach' ? 'close' : 'plus'} />
+          </button>
+          <input value={draft} onChange={(event) => setDraft(event.target.value)} placeholder="Write a WhatsApp message…" aria-label="Message" />
+          <button type="button" className="icon-button draft-button" aria-label="AI reply drafts" aria-expanded={menu === 'drafts'} onClick={() => setMenu(menu === 'drafts' ? null : 'drafts')}><Icon name="spark" /></button>
+          <button className="send-button" aria-label="Send" disabled={!draft.trim()}><Icon name="send" /></button>
+        </form>
+      </>}
+
+      {templatesOpen && (
+        <TemplateDialog
+          lead={lead}
+          store={store}
+          onClose={() => setTemplatesOpen(false)}
+          onSend={(text, label) => { store.sendMessage(lead.id, text, { template: label }); setTemplatesOpen(false) }}
+        />
+      )}
     </section>
   )
 }
@@ -253,7 +324,7 @@ function LeadOverview({ lead, store, actions, onAssign, onEdit }: LeadDetailsPro
         {history.map((entry, index) => (
           <li key={index}>
             <strong>{store.findMember(entry.toId)?.name}</strong> · {entry.reason}
-            <small>{entry.fromId ? `from ${store.findMember(entry.fromId)?.name} · ` : ''}by {store.findMember(entry.byId)?.name} · {entry.at}</small>
+            <small>{entry.fromId ? `from ${store.findMember(entry.fromId)?.name} · ` : ''}{entry.byId === SYSTEM_ID ? 'automatically' : `by ${store.findMember(entry.byId)?.name}`} · {entry.at}</small>
           </li>
         ))}
       </ol>
@@ -263,6 +334,8 @@ function LeadOverview({ lead, store, actions, onAssign, onEdit }: LeadDetailsPro
       <div><span className="eyebrow">{STAGES[lead.stage]}</span><h2>{lead.budget}</h2><p>{lead.need}</p></div>
       <HeatBadge temp={lead.temp} />
     </div>
+
+    <AiScore lead={lead} />
 
     {lead.sharedWith ? (
       <p className="shared-lead" role="note"><Icon name="alert" size={16} /><span><strong>Also sent to ~{lead.sharedWith} brokers</strong> by {lead.source}. Call now to be first.</span></p>
@@ -276,6 +349,7 @@ function LeadOverview({ lead, store, actions, onAssign, onEdit }: LeadDetailsPro
 
     <div className="buyer-brief">
       <header><strong>Buyer brief</strong><button className="brief-edit" onClick={onEdit}><Icon name="spark" size={14} /> Edit</button></header>
+      <AiSuggestions lead={lead} store={store} />
       <div><span>Purpose</span><strong>{lead.purpose ?? (lead.moveIn === 'Investment' ? 'Investment' : 'Live-in')}</strong></div>
       <div><span>Localities</span><strong>{(lead.localities ?? [lead.locality]).join(', ')}</strong></div>
       <div><span>Move-in</span><strong>{lead.moveIn}</strong></div>
@@ -293,4 +367,38 @@ function LeadOverview({ lead, store, actions, onAssign, onEdit }: LeadDetailsPro
     <div className="lead-detail-actions"><LeadActions lead={lead} actions={actions} layout="cards" visitLabel={store.upcomingVisits.find((visit) => visit.leadId === lead.id)?.when} /></div>
     <button className="btn btn-primary btn-block" onClick={actions.showMatches}>See all property matches <Icon name="arrow" size={16} /></button>
   </>
+}
+
+/** AI lead score with plain-language reasons (spec §8.13, demo heuristic). */
+function AiScore({ lead }: { lead: Lead }) {
+  const { score, label, reasons } = leadScore(lead)
+  return (
+    <div className="ai-score">
+      <span className="ai-chip"><Icon name="spark" size={12} /> AI score</span>
+      <strong>{score}</strong>
+      <span className="ai-score-label">{label}</span>
+      <small>{reasons.join(' · ')}</small>
+    </div>
+  )
+}
+
+/** Brief fields AI read from the chat. They change nothing until someone accepts them (spec §8.13). */
+function AiSuggestions({ lead, store }: { lead: Lead; store: DemoStore }) {
+  const suggestion = store.aiSuggestionsFor(lead.id)
+  if (!suggestion) return null
+  const rows = [
+    suggestion.budget && ['Budget', suggestion.budget],
+    suggestion.need && ['Looking for', suggestion.need],
+    suggestion.moveIn && ['Move-in', suggestion.moveIn],
+  ].filter((row): row is [string, string] => !!row)
+  return (
+    <div className="ai-suggestions" role="group" aria-label="AI suggestions">
+      <span className="ai-chip"><Icon name="spark" size={12} /> Suggested from the chat</span>
+      {rows.map(([label, value]) => <div key={label}><span>{label}</span><strong>{value}</strong></div>)}
+      <footer>
+        <button className="btn btn-secondary" onClick={() => store.dismissSuggestions(lead.id)}>Dismiss</button>
+        <button className="btn btn-primary" onClick={() => store.acceptSuggestions(lead.id)}><Icon name="check" size={16} /> Accept</button>
+      </footer>
+    </div>
+  )
 }

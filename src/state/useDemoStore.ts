@@ -1,13 +1,15 @@
 import { useMemo } from 'react'
 import {
   COMMISSION_RATE, EXTRA_REMINDER, PROPERTIES, RESPONSE_SLA_MINUTES, SEED_LEADS, SEED_RECORDINGS, SEED_TASKS, STAGES, STAGE_CLOSE_PROBABILITY,
-  phoneKey, relativeMinutes, type Lead, type LeadSeed, type Recording, type Task,
+  firstName, phoneKey, relativeMinutes, type Lead, type LeadSeed, type Recording, type Task,
 } from '../data/demo'
 import { SEED_CORRECTIONS, SEED_TODAY, seedAttendance, type AttendanceCode, type CorrectionRequest, type TodayAttendance } from '../data/attendance'
 import { LEAVE_ALLOWANCE, SEED_LEAVE, coversDay, leaveDays, seedLeaveUsed, type LeaveRequest, type LeaveType } from '../data/leave'
 import { INCOMING_LEAD_TEMPLATES, LEAD_SOURCES, findSource } from '../data/sources'
 import { DEFAULT_VIEWER_ID, SEED_MEMBERS, TEAMS, type Member, type MemberStatus, type TeamId } from '../data/team'
 import { MAX_ACCURACY_M, OFFICES, SEED_VISITS, formatDistance, slotMinutes, type Office, type Visit, type VisitOutcome } from '../data/visits'
+import { DEFAULT_AUTO_REPLY } from '../data/templates'
+import { callSummary } from '../lib/ai'
 import { clockLabel, dayLabel, formatDuration, maskPhone } from '../lib/format'
 import { distanceM, type PretendLocation, type Reading } from '../lib/location'
 import { can, canSeeLead, type Permission } from '../lib/permissions'
@@ -23,10 +25,14 @@ export type CompanySettings = {
   /** Office check-in after workStart + graceMin is marked late (spec §8.7). */
   workStart: string
   graceMin: number
+  /** WhatsApp auto-reply to new enquiries (spec §8.4). `{name}` is replaced with the buyer's first name. */
+  autoReply: { enabled: boolean; message: string; qualify: boolean }
 }
 /** One change of lead owner, shown on the lead's history (spec §8.2). */
 export type Assignment = { leadId: number; fromId: string | null; toId: string; byId: string; reason: string; at: string }
 export type Note = { id: number; text: string; byId: string; at: string }
+/** A WhatsApp message added during the demo: by the team, by the auto-reply, or by the buyer (scripted). */
+export type ChatEntry = { from: 'agent' | 'auto' | 'buyer'; text: string; at: string; template?: string }
 export type ActivityKind = 'enquiry' | 'message' | 'assign' | 'stage' | 'visit' | 'call' | 'note' | 'profile' | 'tag' | 'merge'
 /** Something that happened on a lead during the demo; newest first in the store. */
 export type Activity = { id: number; leadId: number; kind: ActivityKind; text: string; byId: string; at: string }
@@ -35,7 +41,15 @@ export type TimelineEvent = { key: string; kind: ActivityKind; text: string; at:
 /** Fields a person can edit on the lead profile (spec §8.5). */
 export type LeadProfileEdit = Pick<LeadSeed, 'need' | 'budget' | 'budgetCr' | 'locality' | 'localities' | 'moveIn' | 'mustHave' | 'purpose'>
 
+/** Author id for things the product did by itself (routing, auto-reply). */
+export const SYSTEM_ID = 'system'
+
 let activitySeq = 0
+/** Unique id for notes and activity, even for several created in the same millisecond. */
+function nextId(): number {
+  activitySeq = (activitySeq + 1) % 100
+  return Date.now() * 100 + activitySeq
+}
 
 /** A visit still to happen or in progress. */
 function isOpenVisit(visit: Pick<Visit, 'status'>): boolean {
@@ -54,7 +68,7 @@ function seedVisitEvents(visit: Visit): TimelineEvent[] {
   return events
 }
 
-const DEFAULT_SETTINGS: CompanySettings = { separatePresales: true, routing: 'round-robin', checkInRadiusM: 200, workStart: '9:30 AM', graceMin: 15 }
+const DEFAULT_SETTINGS: CompanySettings = { separatePresales: true, routing: 'round-robin', checkInRadiusM: 200, workStart: '9:30 AM', graceMin: 15, autoReply: { enabled: true, message: DEFAULT_AUTO_REPLY, qualify: true } }
 /** A visit with its lead and property resolved, for screens. */
 export type VisitView = Visit & { lead: Lead; propertyName: string; when: string }
 export type VisitStepResult = { ok: boolean; message: string }
@@ -93,7 +107,9 @@ export function useDemoStore() {
   const [activity, setActivity] = useLocalState<Activity[]>('activity', [])
   const [stageOverrides, setStageOverrides] = useLocalState<Record<number, number>>('stages', {})
   const [readLeadIds, setReadLeadIds] = useLocalState<number[]>('read-leads', [])
-  const [sentMessages, setSentMessages] = useLocalState<Record<number, string[]>>('sent-messages', {})
+  const [chats, setChats] = useLocalState<Record<number, ChatEntry[]>>('chats', {})
+  const [aiSuggestions, setAiSuggestions] = useLocalState<Record<number, Partial<LeadProfileEdit>>>('ai-suggestions', {})
+  const [qualifySteps, setQualifySteps] = useLocalState<Record<number, number>>('qualify-steps', {})
   const [tasks, setTasks] = useLocalState<Task[]>('tasks', SEED_TASKS)
   const [completedTaskIds, setCompletedTaskIds] = useLocalState<number[]>('completed-tasks', [])
   const [recordings, setRecordings] = useLocalState<Recording[]>('recordings', SEED_RECORDINGS)
@@ -162,10 +178,10 @@ export function useDemoStore() {
   /** Sources the demo can simulate an arrival from right now (connected and not manual-entry). */
   const simulatableSources = LEAD_SOURCES.filter((source) => source.canSimulate && sourceSettings[source.name]?.connected)
 
-  /** Records a demo action on the lead's timeline. */
-  function log(leadId: number, kind: ActivityKind, text: string) {
-    activitySeq += 1
-    setActivity((current) => [{ id: Date.now() * 100 + (activitySeq % 100), leadId, kind, text, byId: viewer.id, at: 'Just now' }, ...current])
+  /** Records a demo action on the lead's timeline. `byId` is SYSTEM_ID for things the product did on its own. */
+  function log(leadId: number, kind: ActivityKind, text: string, byId: string = viewer.id) {
+    const id = nextId() // computed now, not inside the updater, so several logs in one action get different ids
+    setActivity((current) => [{ id, leadId, kind, text, byId, at: 'Just now' }, ...current])
   }
 
   function assign(leadId: number, toId: string, reason: string) {
@@ -279,7 +295,9 @@ export function useDemoStore() {
     completedTaskIds,
     recordings: visibleRecordings,
     savedPropertyIds,
-    sentMessages,
+    chatFor: (leadId: number) => chats[leadId] ?? [],
+    aiSuggestionsFor: (leadId: number) => aiSuggestions[leadId],
+    qualifyStepFor: (leadId: number) => qualifySteps[leadId] ?? 0,
     unreadTotal,
     leadsAwaitingReply,
     escalations,
@@ -316,18 +334,26 @@ export function useDemoStore() {
       if (!source || !sourceSettings[source.name]?.connected) return undefined
       const template = INCOMING_LEAD_TEMPLATES[arrivals % INCOMING_LEAD_TEMPLATES.length]
       const id = Date.now()
+      // The portal tells us what and where; budget and timing are what qualification finds out.
       const lead: LeadSeed = {
         ...template, id, source: source.name, enquiry: template.message, minutesAgo: 0, unread: 1, online: true,
+        budget: 'Budget to qualify', budgetCr: 0, moveIn: 'To confirm', mustHave: 'To confirm',
         initialStage: 0, ownerId: null, sharedWith: source.sharedWith, freshEnquiry: true,
+        answers: { budget: template.budget, budgetCr: template.budgetCr, moveIn: template.moveIn === 'To confirm' ? 'Within 3 months' : template.moveIn },
       }
       const ownerId = routeLead(lead)
       setAddedLeads((current) => [{ ...lead, ownerId }, ...current])
       setArrivals((current) => current + 1)
       if (ownerId) {
         const reason = settings.separatePresales ? 'Routing: Pre-sales first' : `Routing: ${settings.routing.replace('-', ' ')}`
-        setAssignments((current) => [{ leadId: id, fromId: null, toId: ownerId, byId: viewer.id, reason, at: 'Just now' }, ...current])
+        setAssignments((current) => [{ leadId: id, fromId: null, toId: ownerId, byId: SYSTEM_ID, reason, at: 'Just now' }, ...current])
       }
-      log(id, 'enquiry', `New enquiry via ${source.name}${ownerId ? ` · routed to ${findMember(ownerId)?.name}` : ''}`)
+      log(id, 'enquiry', `New enquiry via ${source.name}${ownerId ? ` · routed to ${findMember(ownerId)?.name}` : ''}`, SYSTEM_ID)
+      if (settings.autoReply.enabled) {
+        const text = settings.autoReply.message.replace(/\{name\}/g, firstName(template.name))
+        setChats((current) => ({ ...current, [id]: [{ from: 'auto', text, at: clockLabel() }] }))
+        log(id, 'message', `Auto-reply sent within seconds`, SYSTEM_ID)
+      }
       const arrived: Lead = { ...lead, ownerId, stage: 0, visitScheduled: false, overdue: false }
       return { lead: arrived, owner: findMember(ownerId), visible: canSeeLead(viewer, ownerId, members) }
     },
@@ -338,7 +364,7 @@ export function useDemoStore() {
       setAddedLeads((current) => [{ ...lead, ownerId }, ...current])
       if (ownerId) {
         const reason = ownedByViewer ? 'Added by them' : ownerChoice === 'auto' ? `Routing: ${settings.routing.replace('-', ' ')}` : 'Assigned on capture'
-        setAssignments((current) => [{ leadId: lead.id, fromId: null, toId: ownerId, byId: viewer.id, reason, at: 'Just now' }, ...current])
+        setAssignments((current) => [{ leadId: lead.id, fromId: null, toId: ownerId, byId: !ownedByViewer && ownerChoice === 'auto' ? SYSTEM_ID : viewer.id, reason, at: 'Just now' }, ...current])
       }
       return findMember(ownerId)
     },
@@ -348,8 +374,8 @@ export function useDemoStore() {
       log(leadId, 'profile', `Buyer brief updated: ${edit.need} · ${edit.budget}`)
     },
     addNote: (leadId: number, text: string) => {
-      activitySeq += 1
-      setNotes((current) => ({ ...current, [leadId]: [{ id: Date.now() * 100 + (activitySeq % 100), text, byId: viewer.id, at: 'Just now' }, ...(current[leadId] ?? [])] }))
+      const id = nextId()
+      setNotes((current) => ({ ...current, [leadId]: [{ id, text, byId: viewer.id, at: 'Just now' }, ...(current[leadId] ?? [])] }))
       log(leadId, 'note', `Note: ${text.length > 80 ? `${text.slice(0, 80)}…` : text}`)
     },
     toggleTag: (leadId: number, tag: string) => {
@@ -359,8 +385,8 @@ export function useDemoStore() {
     },
     /** Duplicate found on capture: keep the existing lead and record the new enquiry on it. */
     mergeEnquiry: (leadId: number, summary: string) => {
-      activitySeq += 1
-      setNotes((current) => ({ ...current, [leadId]: [{ id: Date.now() * 100 + (activitySeq % 100), text: `New enquiry merged: ${summary}`, byId: viewer.id, at: 'Just now' }, ...(current[leadId] ?? [])] }))
+      const id = nextId()
+      setNotes((current) => ({ ...current, [leadId]: [{ id, text: `New enquiry merged: ${summary}`, byId: viewer.id, at: 'Just now' }, ...(current[leadId] ?? [])] }))
       log(leadId, 'merge', `Duplicate enquiry merged: ${summary}`)
     },
     inviteMember: (person: Member) => setAddedMembers((current) => [...current, person]),
@@ -507,10 +533,30 @@ export function useDemoStore() {
       updateVisit(visitId, (current) => ({ ...current, status: 'completed', outcome }))
       log(visit.leadId, 'visit', `Visit outcome: ${outcome.result}${outcome.feedback ? ` · ${outcome.feedback}` : ''}${outcome.nextStep ? ` · Next: ${outcome.nextStep}` : ''}`)
     },
-    sendMessage: (leadId: number, text: string) => {
-      setSentMessages((current) => ({ ...current, [leadId]: [...(current[leadId] ?? []), text] }))
-      log(leadId, 'message', `WhatsApp sent: “${text.length > 80 ? `${text.slice(0, 80)}…` : text}”`)
+    /** Adds a WhatsApp message to the lead's chat. Team and auto-reply messages are logged on the timeline. */
+    sendMessage: (leadId: number, text: string, options: { from?: ChatEntry['from']; template?: string } = {}) => {
+      const from = options.from ?? 'agent'
+      setChats((current) => ({ ...current, [leadId]: [...(current[leadId] ?? []), { from, text, at: clockLabel(), template: options.template }] }))
+      if (from === 'buyer') return
+      const short = text.length > 80 ? `${text.slice(0, 80)}…` : text
+      if (from === 'auto') log(leadId, 'message', `Auto-reply sent: “${short}”`, SYSTEM_ID)
+      else log(leadId, 'message', options.template ? `Template “${options.template}” sent` : `WhatsApp sent: “${short}”`)
     },
+    setQualifyStep: (leadId: number, step: number) => setQualifySteps((current) => ({ ...current, [leadId]: step })),
+    /** AI read the chat and suggests brief fields; they stay suggestions until a person accepts them (spec §8.13). */
+    suggestProfile: (leadId: number, patch: Partial<LeadProfileEdit>) =>
+      setAiSuggestions((current) => ({ ...current, [leadId]: { ...current[leadId], ...patch } })),
+    acceptSuggestions: (leadId: number) => {
+      const lead = allLeads.find((item) => item.id === leadId)
+      const patch = aiSuggestions[leadId]
+      if (!lead || !patch) return
+      const { need, budget, budgetCr, locality, localities, moveIn, mustHave, purpose } = { ...lead, ...patch }
+      setLeadEdits((current) => ({ ...current, [leadId]: { need, budget, budgetCr, locality, localities, moveIn, mustHave, purpose } }))
+      setAiSuggestions((current) => { const next = { ...current }; delete next[leadId]; return next })
+      log(leadId, 'profile', `AI suggestions accepted: ${[patch.budget, patch.need, patch.moveIn].filter(Boolean).join(' · ')}`)
+    },
+    dismissSuggestions: (leadId: number) =>
+      setAiSuggestions((current) => { const next = { ...current }; delete next[leadId]; return next }),
     toggleTask: (taskId: number) =>
       setCompletedTaskIds((current) => (current.includes(taskId) ? current.filter((id) => id !== taskId) : [...current, taskId])),
     addExtraReminder: () => {
@@ -518,9 +564,12 @@ export function useDemoStore() {
       if (leadId === undefined) return
       setTasks((current) => (current.some((task) => task.id === EXTRA_REMINDER.id) ? current : [...current, { ...EXTRA_REMINDER, leadId }]))
     },
+    /** Saves a recorded call with an AI summary (demo text) as its note. */
     addRecording: (leadId: number, duration: number) => {
-      setRecordings((current) => [{ id: Date.now(), leadId, when: 'Just now', duration, note: 'New recorded call · Add a note' }, ...current])
-      log(leadId, 'call', `Call recorded (${formatDuration(duration)})`)
+      const lead = allLeads.find((item) => item.id === leadId)
+      const note = lead ? callSummary(lead, duration) : 'New recorded call'
+      setRecordings((current) => [{ id: Date.now(), leadId, when: 'Just now', duration, note, aiSummary: true }, ...current])
+      log(leadId, 'call', `Call recorded (${formatDuration(duration)}) · AI summary: ${note}`)
     },
     toggleSavedProperty: (propertyId: number) =>
       setSavedPropertyIds((current) => (current.includes(propertyId) ? current.filter((id) => id !== propertyId) : [...current, propertyId])),

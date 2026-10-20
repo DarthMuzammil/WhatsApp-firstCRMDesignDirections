@@ -65,9 +65,13 @@ Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with
   - **Shortlist** ✅ posts a "Sharing 3 homes…" message into the chat and shows a toast.
   - **Plan visit** ✅ opens Schedule visit (below); once booked it reads "Visit booked" and opens Visits.
   - **Matches** opens Properties.
-- Messages 🎭: the lead's own opening enquiry, a scripted reply with the lead's budget, the matched property card, and the lead's latest message. Leads added in the demo start with an empty chat and a "Lead captured just now" note. Leads that **arrived from a source in the demo** show only the buyer's enquiry ("Just now").
-- Quick replies ✅ fill the composer: "Suggest a time", "Share location" (or "Send a welcome message" for added and newly arrived leads). The **+** menu offers *Property* (fills the matched property's details) and *Location*.
-- Sending ✅ adds the message to the thread. Sent messages are **saved per lead** and survive switching leads and refreshing.
+- Messages 🎭: the lead's own opening enquiry, an **Automatic** reply (tagged), a scripted reply with the lead's budget, the matched property card, and the lead's latest message. Leads added in the demo start with an empty chat and a "Lead captured just now" note. Leads that **arrived from a source in the demo** show only the buyer's enquiry ("Just now").
+- Quick replies ✅ fill the composer: "Suggest a time", "Share location" (or "Send a welcome message" for added and newly arrived leads), plus a **Templates** chip. The **+** menu offers *Property* (fills the matched property's details) and *Location*.
+- **AI drafts** ✅ 🎭 (sparkle button in the composer): three reply drafts for the buyer's last message: English, Hindi, Kannada + English. Picking one only fills the composer; nothing is sent automatically.
+- **Templates** ✅: a sheet with Welcome / Share shortlist / Visit reminder / Follow-up. Fields (buyer name, property, day and time, your name) are prefilled and editable, with a live preview; **Send template** posts it tagged "Template · <name>".
+- **24-hour window** ✅: if the buyer last wrote more than 24 h ago and hasn't written since, the composer is replaced by "Outside WhatsApp's 24-hour window · only approved templates can be sent" with **Use a template** (seed: Ishita, quiet for 1 day).
+- **Auto-qualification** ✅ 🎭 for leads that arrived in the demo (when auto-reply and qualifying questions are on): the automatic reply, then three questions and the buyer's answers appear one by one (~1.4 s apart; "Auto-qualifying… 2 of 3"), resuming if you leave and return. The answers become **AI suggestions**, not changes: a link in the chat and a box in the brief.
+- Sending ✅ adds the message to the thread. Messages (yours, automatic and the buyer's scripted answers) are **saved per lead** and survive switching leads and refreshing.
 - The thread scrolls to the newest message.
 
 **Lead panel** (side panel on desktop/tablet; bottom sheet from **Details** on phones), in three tabs: **Overview · Timeline · Notes** (counts in the labels).
@@ -79,9 +83,10 @@ Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with
   - Sales: no reassign button.
 - **Ownership history** ✅ under the card: each change with new owner, reason, previous owner, who did it and when.
 - Stage name, budget, requirement, intent tag.
+- **AI score** 🎭: 0–100 with Hot / Warm / Cool and the reasons ("budget confirmed · visit planned · replied 2 min ago · also with ~6 brokers").
 - **Shared-lead warning** 🎭 (portal leads only): "Also sent to ~6 brokers by 99acres. Call now to be first."
 - **Stage track** ✅ shows the lead's real stage: New / Qualified / Visit / Offer.
-- **Buyer brief** (per lead): purpose (Live-in / Investment), localities, move-in, must-have, phone, source. **Edit** ✅ opens a form with structured fields: Looking for (2/3/4 BHK, Villa, Plot), Purpose, budget from/up to in ₹ Cr (must be max ≥ min, otherwise Save is disabled with an error), localities (comma separated; the first is the main one), Move-in, Must-haves. Saving rebuilds the requirement and budget text everywhere (inbox, pipeline, totals) and adds a timeline entry. On phones, Edit closes the sheet and opens the form. **Phone numbers are masked** (`+91 98XXX XX018`) for Sales and Pre-sales; Managers and the Owner see full numbers.
+- **Buyer brief** (per lead): when AI has suggestions from the chat, a "Suggested from the chat" box lists them (budget, looking for, move-in) with **Accept** (applies them and logs it) or **Dismiss**. Then purpose (Live-in / Investment), localities, move-in, must-have, phone, source. **Edit** ✅ opens a form with structured fields: Looking for (2/3/4 BHK, Villa, Plot), Purpose, budget from/up to in ₹ Cr (must be max ≥ min, otherwise Save is disabled with an error), localities (comma separated; the first is the main one), Move-in, Must-haves. Saving rebuilds the requirement and budget text everywhere (inbox, pipeline, totals) and adds a timeline entry. On phones, Edit closes the sheet and opens the form. **Phone numbers are masked** (`+91 98XXX XX018`) for Sales and Pre-sales; Managers and the Owner see full numbers.
 - **Tags** ✅: applied tags as removable chips; **+ Tag** shows suggestions (First-time buyer, Loan needed, NRI, Investor, Urgent, Price sensitive, Repeat client) and a custom-tag field (Enter to add).
 - **Top property match** ✅: the first listing in the lead's locality, otherwise the first with the same BHK, otherwise the first listing. Budget is not used yet.
 - **Share shortlist** ✅ posts the shortlist message into the chat and shows a toast.
@@ -117,7 +122,7 @@ Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with
 
 ### 3.6 Calls & recordings
 - Stats: calls this week 18 🧱, answer rate 72% 🧱, recorded count ✅.
-- Recording list: play/pause toggle (visual only 🎭, moving playhead), waveform, duration, note. Search by buyer ✅. Tapping a person opens the chat.
+- Recording list: play/pause toggle (visual only 🎭, moving playhead), waveform, duration, note. Calls saved in the demo get an **AI summary** 🎭 as their note (what was discussed and the next step), labelled "AI summary" and logged on the lead's timeline. Search by buyer ✅. Tapping a person opens the chat.
 - **New call** opens the lead picker ✅ (search by name, area or budget; a bottom sheet on phones) and then the call screen.
 - **Call screen** 🎭: "Calling…" (button reads **Cancel**; Escape also cancels while dialling, but never during or after a call) → connected after 1.2 s, live timer ✅, REC badge, Mute / Speaker / Record toggles. **End call** shows the duration and recording status, then **Save recording** adds it to the top of the list ("Just now") and shows a toast ✅ (saved locally). If recording was turned off, **Done** closes without saving. Full screen on phones.
 - Copy: "Secure internet call", "Your personal number stays private", and a consent reminder about recording.
@@ -150,6 +155,7 @@ Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with
 ### 3.10 Settings (M1/M2, Owner only)
 - **Separate pre-sales team** ✅ on/off (the whole row is the switch). On: new leads route to Pre-sales first and they get **Hand to Sales**. Off: Sales handle leads end to end; hand-off is hidden and Pre-sales are left out of routing and pickers.
 - **Lead routing** ✅: Round-robin (fewest open leads) / By locality (team covering the buyer's area) / By source (team chosen per source on Lead sources, §3.11). Within the team, whoever has the fewest open leads.
+- **WhatsApp auto-reply** ✅: on/off; the message (`{name}` = buyer's first name); **Ask qualifying questions** on/off (budget, area and bedrooms, move-in; answers become AI suggestions to confirm).
 - **Field check-ins and attendance** ✅: check-in radius 100 / 200 / 300 / 500 m (default 200); working hours (start 9:00 / 9:30 / 10:00 AM, grace 10 / 15 / 30 min; defaults 9:30 and 15); the three offices with addresses.
 - **Roles and permissions** table 🧱 (read-only; custom roles later).
 
@@ -160,7 +166,7 @@ Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with
   - Each row: status (Connected / Not connected / Manual entry), leads this week 🧱, first-reply time 🧱, **cost per lead** (₹, editable by the Owner, totals update live), **Feeds team** (used by "By source" routing; editable by the Owner), **Disconnect/Connect** 🎭 (online sources, Owner), **Simulate** (online sources while connected).
   - **Simulate new lead** in the header rotates through connected sources.
 - **Simulated arrival** ✅ (header button, a row's Simulate, or account menu → *Simulate incoming lead*, available to every role):
-  - The next buyer from a pool of 6 (Meera Iyer, Arvind Rao, Sunita Reddy, Karan Malhotra, Fatima Sheikh, Harish Gowda) arrives from that source with 1 unread message, the portal's "shared with ~N" figure, and an owner from the company routing rule (§3.10), recorded in ownership history and the timeline ("New enquiry via 99acres · routed to …").
+  - The next buyer from a pool of 6 (Meera Iyer, Arvind Rao, Sunita Reddy, Karan Malhotra, Fatima Sheikh, Harish Gowda) arrives from that source with 1 unread message, budget "to qualify", an automatic reply (if on), the portal's "shared with ~N" figure, and an owner from the company routing rule (§3.10), recorded in ownership history and the timeline ("New enquiry via 99acres · routed to …").
   - A **New lead banner** slides in (top right on desktop; under the top bar on phones) for 7 s: source, buyer, need, budget, owner or "Waiting in the unassigned queue", shared figure, **Dismiss** and **Reply now** (only if the viewer can see the lead; opens the chat).
   - With no connected source, a toast says to connect one.
 
@@ -200,6 +206,7 @@ Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with
 Monthly figures (leads handled, visits booked/verified, deals, commission, first reply, follow-ups on time, last month's figures for trends) are **generated per person** 🧱, because the prototype has no history. **Live** parts: today's verified check-ins (added to verified visits this month), pipeline value, open leads, attendance, overdue leads, requests and visits.
 - **Sales / Pre-sales — "My performance":** period (This month / Last month), "You're #4 of 15 salespeople by commission" (their rank only), and their **scorecard**.
 - **Manager — "<Team> team performance"; Owner — "Performance & insights" (with a team filter):**
+  - **AI weekly digest** 🎭: plain-language lines built from the numbers the viewer can see (pipeline, top performer, overdue and unassigned leads, stuck leads, people not checked in).
   - **Daily summary** ✅ (live, tappable): overdue leads → Escalations, not checked in → Attendance, visits today → Visits, requests waiting (leave + corrections) → Attendance.
   - **Leaderboard** (salespeople in scope): metric picker (Commission, Deals closed, Verified visits, First reply — lower is better, Follow-ups on time), ranked bar chart with value at the tip and hover/focus tooltip; tap a person for their scorecard.
   - **All numbers** table (the table view of the leaderboard): deals vs target, commission (green when target met), verified visits, first reply, on time.
@@ -228,7 +235,7 @@ Monthly figures (leads handled, visits booked/verified, deals, commission, first
   | Sanjay Mehta | Investment flat, Whitefield | ₹1–1.2 Cr | New | WhatsApp | New lead | — | unassigned, overdue |
   | Ishita Banerjee | 3 BHK in Indiranagar | ₹2.4–2.6 Cr | Hot | 99acres | Qualified | Priya Nair | |
 
-  Each lead also has a phone number, minutes since the last message, move-in timing, must-haves, opening enquiry and latest message. Portal leads carry a "shared with ~N brokers" figure 🎭: Ananya 6, Deepak 5, Farhan 4, Gaurav 3, Ishita 6. Vikram and Sanjay are marked Investment. The Owner's totals with this data: active value ₹27.4 Cr across 12 leads.
+  Each lead also has a phone number, minutes since the last message, move-in timing, must-haves, opening enquiry and latest message. Ishita Banerjee last wrote 1 day ago (outside the 24-hour window). Portal leads carry a "shared with ~N brokers" figure 🎭: Ananya 6, Deepak 5, Farhan 4, Gaurav 3, Ishita 6. Vikram and Sanjay are marked Investment. The Owner's totals with this data: active value ₹27.4 Cr across 12 leads.
 - **Properties (3):** The Courtyard House (Indiranagar, 3 BHK, ₹2.65 Cr) · Windermere Residences (Whitefield, 4 BHK, ₹3.40 Cr) · Lakeview Terraces (HSR Layout, 2 BHK, ₹1.48 Cr). Photos load from Unsplash, so the demo needs internet.
 - **Performance (`performance.ts`):** generated monthly figures and targets per person, response-time bands, lost reasons, per-source visits/deals, days-in-stage for stuck leads, property shares.
 - **Leave (`leave.ts`):** Kavya (Casual, 3 days ago → tomorrow, approved, cover Sameer); Aditya (Casual, in 2–3 days, pending, 1 lead); Rohit (Sick, tomorrow, pending; he has a visit tomorrow). Allowances 8 / 6 / 15 and generated days already used.
@@ -239,7 +246,7 @@ Monthly figures (leads handled, visits booked/verified, deals, commission, first
 - **Fixed demo numbers** (`DEMO_METRICS`): follow-up rate 82% (+12%), weekly chart values, 18 calls this week (2h 14m), 72% answer rate (+8%).
 
 ## 5. Saved in the browser (localStorage)
-All keys use the prefix `daira:v4:`: `viewer`, `settings`, `pretend-location`, `attendance-today`, `corrections`, `leave`, `added-members`, `member-status`, `added-leads`, `owners`, `assignments`, `lead-edits`, `notes`, `tags`, `activity`, `source-settings`, `arrivals`, `stages`, `visits` (visit records with steps and outcomes), `read-leads`, `sent-messages`, `tasks`, `completed-tasks`, `recordings`, `saved-properties`.
+All keys use the prefix `daira:v5:`: `viewer`, `settings`, `pretend-location`, `attendance-today`, `corrections`, `leave`, `added-members`, `member-status`, `added-leads`, `owners`, `assignments`, `lead-edits`, `notes`, `tags`, `activity`, `source-settings`, `arrivals`, `stages`, `visits` (visit records with steps and outcomes), `read-leads`, `chats`, `ai-suggestions`, `qualify-steps`, `tasks`, `completed-tasks`, `recordings`, `saved-properties`.
 **Reset demo data** (account menu → confirm) deletes these, plus any older `daira:*` / `daira-*` keys, and reloads the page. Run it before every client demo.
 
 ## 6. Code map
@@ -252,11 +259,12 @@ See `AGENTS.md` for conventions. Each component has a matching `.css` file next 
 - `src/data/attendance.ts`: attendance codes, seed history and today's records, corrections, working-hours options.
 - `src/data/leave.ts`: leave types, allowances, seed requests, holidays, date-range helpers.
 - `src/data/performance.ts`: generated monthly figures, targets and insight data.
+- `src/data/templates.ts`: WhatsApp templates, the 24-hour window, default auto-reply, qualification questions.
 - `src/state/useDemoStore.ts`: all saved state, the viewer, visibility filtering, routing, activity log and timeline, duplicate lookup, derived numbers and actions.
-- `src/lib/`: `location.ts` (one-off location readings: demo readings, the browser's real location, distance), `permissions.ts` (role → permissions, who sees which lead), `storage.ts` (localStorage), `format.ts` (dates, money, durations, phone masking), `useEscapeKey.ts`.
+- `src/lib/`: `ai.ts` (demo AI: reply drafts, lead score, call summary, weekly digest), `location.ts` (one-off location readings: demo readings, the browser's real location, distance), `permissions.ts` (role → permissions, who sees which lead), `storage.ts` (localStorage), `format.ts` (dates, money, durations, phone masking), `useEscapeKey.ts`.
 - `src/components/`: `AppNavigation` (sidebar with Work/Manage groups, phone top bar, tab bar with More sheet), `navigation.ts` (items with required permission), `Dialog` (the one modal / sheet / full-screen shell), `AccountMenu`, `Avatar`, `HeatBadge`, `LeadActions`, `LeadRow`, `LeadTimeline`, `LeadNotes`, `LeadTags`, `IncomingLeadBanner`, `LocationControl` (demo location picker), `BarList` (single-series bar chart), `PropertyCard`, `Toast`, `Icon`.
 - `src/views/`: `TodayView`, `ChatView` (chat + lead panel), `PipelineView`, `PropertiesView`, `FollowUpsView`, `CallsView`, `VisitsView` (with the visit outcome form), `AttendanceView` (My day, Leave, Register with team calendar, Requests), `ReportsView` (my performance, leaderboard, scorecard, owner insights), `EscalationsView`, `LeadSourcesView`, `TeamView` (with invite dialog), `SettingsView`.
-- `src/modals/`: `AddLeadModal` (with duplicate check), `EditLeadDialog` (structured buyer brief), `ScheduleVisitDialog`, `AssignDialog` (people picker for assign / reassign / hand-off / deactivate), `CallPicker`, `CallModal`.
+- `src/modals/`: `AddLeadModal` (with duplicate check), `EditLeadDialog` (structured buyer brief), `ScheduleVisitDialog`, `TemplateDialog`, `AssignDialog` (people picker for assign / reassign / hand-off / deactivate), `CallPicker`, `CallModal`.
 - `src/index.css`: the only place raw colours are defined. Design tokens (colour, 4px spacing scale, radius, shadow, `--fs-*` type sizes, `--tap`) and shared classes (`.btn`, `.card`, `.chip`, `.count-badge`, `.status-dot`, `.icon-badge`, `.is-done` and more).
 
 ---
@@ -270,6 +278,7 @@ See `AGENTS.md` for conventions. Each component has a matching `.css` file next 
 - On desktop, Add lead is only on Today.
 - Sent messages show "Now" forever; lead times ("2m", "18m") and message timestamps are fixed seed values, so "Overdue" never appears or clears on its own.
 - The permissions table can't be edited.
+- All AI output is fixed demo text built from the lead's data, not a model; templates aren't really Meta-approved; the 24-hour window uses the seeded "minutes ago".
 - Performance figures are generated, so they don't change when you close deals in the demo (deals can't be closed yet; M10). Only managers' and the owner's views show other people.
 - Leave counts calendar days (weekends and holidays included). Leave can't be cancelled by the person once requested.
 - Today's attendance doesn't roll over at midnight (the demo always shows one "today"); history before today is generated, not recorded.
@@ -319,7 +328,7 @@ Everything here is **UI only**: each item is a screen or flow driven by seed dat
 - **Incoming-lead banner** that drops a new lead into the inbox and assigns it according to routing (🎭).
 - **Source filter** in the inbox.
 
-### 8.4 M4 · Chat and auto-reply
+### 8.4 M4 · Chat and auto-reply — ✅ built (§3.2, §3.10, §3.11)
 - An **"Automatic"** tag on the auto-reply sent seconds after the enquiry.
 - **Template picker** sheet ("Welcome", "Share shortlist", "Visit reminder", "Follow-up") with fill-in fields.
 - **Qualification flow:** questions and answers in the thread; the buyer brief fills in beside it as answers arrive.
@@ -389,7 +398,7 @@ Everything here is **UI only**: each item is a screen or flow driven by seed dat
 - **Notifications centre:** lead assigned, overdue, check-in refused, leave request or decision, reassignment.
 - **Audit log** (Owner): exports, reassignments, full-number views, permission changes, deactivations.
 
-### 8.13 M13 · AI assist (targeted, every output reviewed by a human)
+### 8.13 M13 · AI assist (targeted, every output reviewed by a human) — ✅ built as demo text (§3.2, §3.6, §3.14)
 - **Qualification extraction:** fills the buyer brief from the WhatsApp conversation. Fields are marked "Suggested" until confirmed.
 - **Reply drafts** in English, Hindi or Kannada (including mixed); the agent edits and sends, and **nothing is sent automatically**.
 - **Call summary:** after a recorded call, shows a summary, next step and suggested brief updates.
@@ -428,6 +437,7 @@ Everything here is **UI only**: each item is a screen or flow driven by seed dat
 
 ## 9. Changelog
 Newest first. One line per change: date, what changed, which section was updated.
+- **2026-10-20:** Built M4 + M13: automatic replies (tagged) on arrival, animated auto-qualification whose answers become AI suggestions to accept, templates with fields and preview, 24-hour window lock, AI reply drafts (English/Hindi/Kannada), AI lead score, AI call summaries, AI weekly digest, auto-reply settings. Automatic actions are credited "Automatic". Fixed duplicate timeline ids. Storage bumped to v5. Updated §3.2, §3.6, §3.10, §3.11, §3.14, §4–§7, §8.4, §8.13.
 - **2026-10-20:** Built M9: Performance screen (my performance and rank; manager/owner daily summary, leaderboard, numbers table, scorecards; owner insights incl. cost per deal by source, pipeline forecast, stuck leads), BarList chart component. Sidebar nav now scrolls and hides the progress card on short windows. Updated §2, §3.14, §4, §6, §7, §8.9.
 - **2026-10-20:** Built M8: Leave tab (balances, validated apply form, my requests), manager approval with a cover agent (visits on leave days move now, leads when leave starts; demo Start cover now / Return leads), team calendar with holidays, on-leave status derived from approved leave. Updated §3.8, §3.13, §4–§7, §8.8.
 - **2026-10-20:** Built M7: Attendance screen (My day with office check-in refused beyond the radius, field day, check-out, late marks; register for managers/owner; correction requests and approvals), check-in reminder on Today, working-hours settings, shared LocationControl. Section order fixed (§3.11 before §3.12). Updated §2, §3.1, §3.10, §3.13, §4–§7, §8.7.

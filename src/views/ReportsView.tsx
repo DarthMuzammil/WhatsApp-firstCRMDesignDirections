@@ -9,6 +9,7 @@ import { BarList } from '../components/BarList'
 import { Dialog } from '../components/Dialog'
 import { Icon } from '../components/Icon'
 import type { View } from '../components/navigation'
+import { weeklyDigest } from '../lib/ai'
 import { formatCrore, formatLakhFromCrore } from '../lib/format'
 import type { DemoStore } from '../state/useDemoStore'
 import './ReportsView.css'
@@ -86,6 +87,21 @@ export function ReportsView({ store, onOpenLead, onNavigate }: ReportsProps) {
         <div><span className="eyebrow">Manage · {PERIOD_LABEL[period]}</span><h1>{isOwner ? 'Performance & insights' : `${TEAMS.find((team) => team.id === store.viewer.teamId)?.name ?? ''} team performance`}</h1><p>Who’s converting, who needs help, and where the business comes from.</p></div>
       </header>
       <DailySummary store={store} onNavigate={onNavigate} />
+      <section className="card digest">
+        <header className="card-head"><div><span className="ai-chip"><Icon name="spark" size={12} /> AI weekly digest</span><h2>What needs your attention</h2></div></header>
+        <ul>
+          {weeklyDigest({
+            team: isOwner ? 'The company' : `The ${TEAMS.find((team) => team.id === store.viewer.teamId)?.name ?? ''} team`,
+            pipelineCr: store.activeValueCr,
+            overdue: store.escalations.filter((lead) => lead.overdue).length,
+            unassigned: store.escalations.filter((lead) => lead.ownerId === null).length,
+            stuck: store.leads.filter((lead) => (DAYS_IN_STAGE[lead.id] ?? 0) > STUCK_AFTER_DAYS).length,
+            notCheckedIn: store.members.filter((person) => tracksAttendance(person) && (isOwner || person.teamId === store.viewer.teamId) && store.attendanceCode(person.id, 0) === 'pending').length,
+            topName: ranked[0]?.name,
+            topCommissionL: ranked[0] ? statsFor(ranked[0].id).commissionL : undefined,
+          }).map((line) => <li key={line}>{line}</li>)}
+        </ul>
+      </section>
       {filters}
 
       <div className="reports-grid">

@@ -4,6 +4,13 @@
 .setting-selects { display: flex; gap: var(--space-3); }
 .setting-selects label { display: flex; flex-direction: column; gap: var(--space-1); color: var(--muted); font-size: var(--fs-caption); font-weight: 700; }
 .setting-selects select { height: 40px; padding: 0 var(--space-3); border: 1px solid var(--border-strong); border-radius: var(--radius-md); background: var(--surface); font-size: var(--fs-body-sm); }
+.setting-row:disabled { opacity: .5; cursor: default; }
+.setting-message { padding: 0 var(--space-5) var(--space-3); display: flex; flex-direction: column; gap: var(--space-2); }
+.setting-message > span { color: var(--ink); font-size: var(--fs-body-sm); font-weight: 700; }
+.setting-message small { color: var(--muted); font-size: var(--fs-caption); font-weight: 500; }
+.setting-message textarea { width: 100%; padding: var(--space-3); border: 1px solid var(--border-strong); border-radius: var(--radius-md); resize: vertical; outline: 0; font: inherit; font-size: var(--fs-body-sm); line-height: 1.5; }
+.setting-message textarea:focus { border-color: var(--primary); box-shadow: var(--ring-focus); }
+.setting-message textarea:disabled { color: var(--muted); background: var(--surface-subtle); }
 .office-list { margin: 0; padding: 0 var(--space-5) var(--space-4); display: flex; flex-wrap: wrap; gap: var(--space-3); list-style: none; }
 .office-list li { flex: 1 1 220px; padding: var(--space-3); border: 1px solid var(--border-soft); border-radius: var(--radius-md); display: flex; gap: var(--space-2); color: var(--muted); }
 .office-list span { display: flex; flex-direction: column; gap: var(--space-half); }
@@ -47,5 +54,6 @@
   .setting-row.static .segmented { display: flex; }
   .setting-row.static .segmented button { flex: 1; }
   .office-list { padding: 0 var(--space-4) var(--space-4); }
+  .setting-message { padding: 0 var(--space-4) var(--space-3); }
   .permissions-row { padding: 0 var(--space-4); }
 }

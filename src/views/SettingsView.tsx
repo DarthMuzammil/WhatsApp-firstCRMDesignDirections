@@ -56,6 +56,22 @@ export function SettingsView({ store, notify }: { store: DemoStore; notify: (mes
       </div>
 
       <section className="card settings-section">
+        <header className="card-head"><div><h2>WhatsApp auto-reply</h2><p>Answers new enquiries within seconds, day or night, so no lead waits for a human.</p></div></header>
+        <button role="switch" aria-checked={settings.autoReply.enabled} className="setting-row" onClick={() => { store.updateSettings({ autoReply: { ...settings.autoReply, enabled: !settings.autoReply.enabled } }); notify(`Auto-reply turned ${settings.autoReply.enabled ? 'off' : 'on'}`) }}>
+          <span><strong>Auto-reply to new enquiries</strong><small>Sent from your WhatsApp business number and marked “Automatic” in the chat.</small></span>
+          <span className={`switch ${settings.autoReply.enabled ? 'on' : ''}`} aria-hidden="true"><i /></span>
+        </button>
+        <label className="setting-message">
+          <span>Message <small>{'{name}'} becomes the buyer’s first name</small></span>
+          <textarea rows={3} value={settings.autoReply.message} disabled={!settings.autoReply.enabled} onChange={(event) => store.updateSettings({ autoReply: { ...settings.autoReply, message: event.target.value } })} />
+        </label>
+        <button role="switch" aria-checked={settings.autoReply.qualify} disabled={!settings.autoReply.enabled} className="setting-row" onClick={() => { store.updateSettings({ autoReply: { ...settings.autoReply, qualify: !settings.autoReply.qualify } }); notify(`Qualifying questions turned ${settings.autoReply.qualify ? 'off' : 'on'}`) }}>
+          <span><strong>Ask qualifying questions</strong><small>Budget, area and bedrooms, move-in. AI suggests the answers for the buyer brief; a person confirms them.</small></span>
+          <span className={`switch ${settings.autoReply.qualify && settings.autoReply.enabled ? 'on' : ''}`} aria-hidden="true"><i /></span>
+        </button>
+      </section>
+
+      <section className="card settings-section">
         <header className="card-head"><div><h2>Field check-ins and attendance</h2><p>Location is read once, when someone taps a check-in button. There is no live tracking.</p></div></header>
         <div className="setting-row static">
           <span><strong>Check-in radius</strong><small>Check-ins further than this from the visit address or office are refused.</small></span>
