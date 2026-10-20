@@ -48,6 +48,8 @@ export type LeadSeed = {
   sharedWith?: number
   /** True for leads added during the demo; they start with an empty chat. */
   addedInDemo?: boolean
+  /** True for leads that arrived from a source during the demo; the chat shows only their enquiry. */
+  freshEnquiry?: boolean
 }
 
 /** A lead with its live demo state applied. This is what components receive. */

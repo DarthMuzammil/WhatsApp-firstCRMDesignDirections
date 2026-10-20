@@ -17,10 +17,11 @@ Daira is a clickable client-demo prototype of a WhatsApp-first CRM for independe
 - `src/App.tsx` - App shell. Owns the current view, the open lead, the screen a chat was opened from (`chatOrigin`, used by Back and the nav highlight), modals (add lead, call picker, call) and toasts. Renders one view at a time.
 - `src/data/demo.ts` - Seed data and types for leads, properties, tasks, recordings, pipeline stages and demo metrics. Change demo content here.
 - `src/data/team.ts` - The brokerage's people, teams, roles and the "View as" personas.
+- `src/data/sources.ts` - Lead sources (portals, ads, offline) and the buyer pool for simulated arrivals.
 - `src/state/useDemoStore.ts` - The single store hook. Persisted state, derived numbers (unread count, active value, commission) and every action (move stage, schedule visit, send message, reset demo). Views receive `store` as a prop and never touch localStorage directly.
 - `src/lib/` - Small helpers: `permissions.ts` (role → permissions, `canSeeLead`), `storage.ts` (localStorage hook, key prefix `daira:v3:`), `format.ts` (dates, money, durations, `maskPhone`), `useEscapeKey.ts`.
-- `src/components/` - Shared UI: `AppNavigation` (desktop sidebar, phone top bar and tab bar), `navigation.ts` (nav items and the `View` type), `Dialog` (the one modal/sheet/full-screen shell), `Avatar`, `HeatBadge`, `LeadActions`, `LeadRow`, `LeadTimeline`, `LeadNotes`, `LeadTags`, `PropertyCard`, `AccountMenu` (reset demo data, with confirmation), `Toast`, `Icon` (inline SVG icon set).
-- `src/views/` - One file per screen: `TodayView`, `ChatView` (chat + lead detail panel), `PipelineView`, `PropertiesView`, `FollowUpsView`, `CallsView`, `EscalationsView`, `TeamView`, `SettingsView`.
+- `src/components/` - Shared UI: `AppNavigation` (desktop sidebar, phone top bar and tab bar), `navigation.ts` (nav items and the `View` type), `Dialog` (the one modal/sheet/full-screen shell), `Avatar`, `HeatBadge`, `LeadActions`, `LeadRow`, `LeadTimeline`, `LeadNotes`, `LeadTags`, `IncomingLeadBanner`, `PropertyCard`, `AccountMenu` (reset demo data, with confirmation), `Toast`, `Icon` (inline SVG icon set).
+- `src/views/` - One file per screen: `TodayView`, `ChatView` (chat + lead detail panel), `PipelineView`, `PropertiesView`, `FollowUpsView`, `CallsView`, `EscalationsView`, `LeadSourcesView`, `TeamView`, `SettingsView`.
 - `src/modals/` - `AddLeadModal`, `EditLeadDialog`, `AssignDialog` (shared people picker), `CallPicker`, `CallModal`.
 
 ## Product spec (required)

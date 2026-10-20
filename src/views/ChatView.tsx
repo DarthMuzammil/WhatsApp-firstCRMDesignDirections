@@ -126,7 +126,7 @@ function ChatPanel({ lead, store, actions, onBack, onCall, onShowDetails }: Chat
     setShowAttachments(false)
   }
 
-  const quickReplies = lead.addedInDemo
+  const quickReplies = lead.addedInDemo || lead.freshEnquiry
     ? [{ label: 'Send a welcome message', text: `Hi ${firstName(lead.name)}, thanks for reaching out! I’m ${firstName(store.viewer.name)} from Daira. When is a good time to talk about your ${lead.need}?` }]
     : [
         { label: 'Suggest a time', text: 'Saturday works. Would 11:30 AM suit you?' },
@@ -157,6 +157,8 @@ function ChatPanel({ lead, store, actions, onBack, onCall, onShowDetails }: Chat
         <span className="day-label">Today</span>
         {lead.addedInDemo ? (
           <p className="chat-note">Lead captured just now. Say hello on WhatsApp to start the conversation.</p>
+        ) : lead.freshEnquiry ? (
+          <div className="message theirs">{lead.enquiry}<time>Just now</time></div>
         ) : <>
           <div className="message theirs">{lead.enquiry}<time>10:16</time></div>
           <div className="message mine">Hi {firstName(lead.name)}! Yes, I have a strong match within your {lead.budget} budget. Sharing it here.<time>10:18 <Icon name="check" size={12} /></time></div>

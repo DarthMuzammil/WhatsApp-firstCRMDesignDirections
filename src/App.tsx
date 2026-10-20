@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Lead } from './data/demo'
 import { MobileTabBar, MobileTopBar, Sidebar } from './components/AppNavigation'
 import { navItemsFor, type View } from './components/navigation'
+import { IncomingLeadBanner, type Arrival } from './components/IncomingLeadBanner'
 import { Toast, useToast } from './components/Toast'
 import { AddLeadModal } from './modals/AddLeadModal'
 import { CallModal } from './modals/CallModal'
@@ -9,6 +10,7 @@ import { CallPicker } from './modals/CallPicker'
 import { useDemoStore } from './state/useDemoStore'
 import { CallsView } from './views/CallsView'
 import { EscalationsView } from './views/EscalationsView'
+import { LeadSourcesView } from './views/LeadSourcesView'
 import { ChatView } from './views/ChatView'
 import { FollowUpsView } from './views/FollowUpsView'
 import { PipelineView } from './views/PipelineView'
@@ -32,6 +34,8 @@ export default function App() {
   const [addLeadOpen, setAddLeadOpen] = useState(false)
   const [callPickerOpen, setCallPickerOpen] = useState(false)
   const [callingLeadId, setCallingLeadId] = useState<number | null>(null)
+  const [arrival, setArrival] = useState<Arrival | null>(null)
+  const dismissArrival = useCallback(() => setArrival(null), [])
   const mainRef = useRef<HTMLElement>(null)
 
   const openLead = openLeadId === null ? undefined : store.findLead(openLeadId)
@@ -62,6 +66,13 @@ export default function App() {
     setView('chat')
   }
 
+  /** Demo: a new enquiry arrives from a source (or the next connected one) and is announced. */
+  function simulateLead(sourceName?: string) {
+    const result = store.receiveLead(sourceName)
+    if (result) setArrival(result)
+    else notify('Connect a lead source to simulate an enquiry')
+  }
+
   function startCall(lead: Lead) {
     setCallPickerOpen(false)
     setCallingLeadId(lead.id)
@@ -69,8 +80,8 @@ export default function App() {
 
   return (
     <div className="app">
-      <Sidebar store={store} view={navView} onNavigate={navigate} />
-      <MobileTopBar store={store} onNavigate={navigate} onAddLead={() => setAddLeadOpen(true)} />
+      <Sidebar store={store} view={navView} onNavigate={navigate} onSimulateLead={simulateLead} />
+      <MobileTopBar store={store} onNavigate={navigate} onAddLead={() => setAddLeadOpen(true)} onSimulateLead={simulateLead} />
 
       <main className="app-main" ref={mainRef}>
         {view === 'today' && <TodayView store={store} onOpenLead={showLead} onAddLead={() => setAddLeadOpen(true)} onNavigate={navigate} notify={notify} />}
@@ -80,12 +91,20 @@ export default function App() {
         {view === 'tasks' && <FollowUpsView store={store} onOpenLead={showLead} onCall={startCall} />}
         {view === 'calls' && <CallsView store={store} onOpenLead={showLead} onNewCall={() => setCallPickerOpen(true)} />}
         {view === 'escalations' && <EscalationsView store={store} onOpenLead={showLead} notify={notify} />}
+        {view === 'sources' && <LeadSourcesView store={store} onSimulate={simulateLead} />}
         {view === 'team' && <TeamView store={store} notify={notify} />}
         {view === 'settings' && <SettingsView store={store} notify={notify} />}
       </main>
 
       <MobileTabBar store={store} view={navView} onNavigate={navigate} />
       <Toast message={toast} />
+      {arrival && (
+        <IncomingLeadBanner
+          arrival={arrival}
+          onDismiss={dismissArrival}
+          onOpen={() => { const lead = store.findLead(arrival.lead.id); setArrival(null); if (lead) showLead(lead) }}
+        />
+      )}
 
       {addLeadOpen && <AddLeadModal store={store} onClose={() => setAddLeadOpen(false)} onOpenLead={showLead} />}
       {callPickerOpen && <CallPicker leads={store.leads} onClose={() => setCallPickerOpen(false)} onChoose={startCall} />}

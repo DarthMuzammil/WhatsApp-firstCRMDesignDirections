@@ -3,7 +3,8 @@ import {
   COMMISSION_RATE, EXTRA_REMINDER, RESPONSE_SLA_MINUTES, SEED_LEADS, SEED_RECORDINGS, SEED_TASKS, SEED_VISIT, STAGES, STAGE_CLOSE_PROBABILITY,
   phoneKey, relativeMinutes, type Lead, type LeadSeed, type Recording, type Task,
 } from '../data/demo'
-import { DEFAULT_VIEWER_ID, SEED_MEMBERS, TEAMS, type Member, type MemberStatus } from '../data/team'
+import { INCOMING_LEAD_TEMPLATES, LEAD_SOURCES, findSource } from '../data/sources'
+import { DEFAULT_VIEWER_ID, SEED_MEMBERS, TEAMS, type Member, type MemberStatus, type TeamId } from '../data/team'
 import { formatDuration, maskPhone, nextSaturdayLabel } from '../lib/format'
 import { can, canSeeLead, type Permission } from '../lib/permissions'
 import { clearDemoStorage, useLocalState } from '../lib/storage'
@@ -28,6 +29,11 @@ export type LeadProfileEdit = Pick<LeadSeed, 'need' | 'budget' | 'budgetCr' | 'l
 let activitySeq = 0
 
 const DEFAULT_SETTINGS: CompanySettings = { separatePresales: true, routing: 'round-robin' }
+/** Per-source settings the owner can change on the Lead sources screen (spec §8.3). */
+export type SourceSetting = { connected: boolean; costPerLead: number; teamId: TeamId }
+const DEFAULT_SOURCE_SETTINGS: Record<string, SourceSetting> = Object.fromEntries(
+  LEAD_SOURCES.map((source) => [source.name, { connected: true, costPerLead: source.defaultCostPerLead, teamId: source.defaultTeamId }]),
+)
 
 /**
  * Single source of truth for everything the demo remembers: team and settings,
@@ -39,6 +45,8 @@ const DEFAULT_SETTINGS: CompanySettings = { separatePresales: true, routing: 'ro
 export function useDemoStore() {
   const [viewerId, setViewerId] = useLocalState<string>('viewer', DEFAULT_VIEWER_ID)
   const [settings, setSettings] = useLocalState<CompanySettings>('settings', DEFAULT_SETTINGS)
+  const [sourceSettings, setSourceSettings] = useLocalState<Record<string, SourceSetting>>('source-settings', DEFAULT_SOURCE_SETTINGS)
+  const [arrivals, setArrivals] = useLocalState<number>('arrivals', 0)
   const [addedMembers, setAddedMembers] = useLocalState<Member[]>('added-members', [])
   const [memberStatus, setMemberStatus] = useLocalState<Record<string, MemberStatus>>('member-status', {})
   const [addedLeads, setAddedLeads] = useLocalState<LeadSeed[]>('added-leads', [])
@@ -95,17 +103,25 @@ export function useDemoStore() {
   )
   const salesMembers = members.filter((person) => person.status === 'active' && person.roles.includes('sales'))
 
-  /** Routing (spec §8.2): Pre-sales first if enabled, else Sales by locality or fewest open leads. */
-  function routeLead(lead: Pick<LeadSeed, 'locality'>): string | null {
+  /**
+   * Routing (spec §8.2): Pre-sales first if enabled; otherwise Sales, narrowed to the locality's team
+   * ("By locality") or the source's team ("By source"), then whoever has the fewest open leads.
+   */
+  function routeLead(lead: Pick<LeadSeed, 'locality' | 'source'>): string | null {
     const presales = members.filter((person) => person.status === 'active' && person.roles.includes('presales'))
     let pool = settings.separatePresales && presales.length > 0 ? presales : salesMembers
-    if (pool === salesMembers && settings.routing === 'locality') {
-      const team = TEAMS.find((item) => item.locality.toLowerCase() === lead.locality.toLowerCase())
-      const local = salesMembers.filter((person) => person.teamId === team?.id)
-      if (local.length > 0) pool = local
+    if (pool === salesMembers && settings.routing !== 'round-robin') {
+      const teamId = settings.routing === 'locality'
+        ? TEAMS.find((item) => item.locality.toLowerCase() === lead.locality.toLowerCase())?.id
+        : sourceSettings[lead.source]?.teamId
+      const teamPool = salesMembers.filter((person) => person.teamId === teamId)
+      if (teamPool.length > 0) pool = teamPool
     }
     return [...pool].sort((a, b) => openLeadCount(a.id) - openLeadCount(b.id))[0]?.id ?? null
   }
+
+  /** Sources the demo can simulate an arrival from right now (connected and not manual-entry). */
+  const simulatableSources = LEAD_SOURCES.filter((source) => source.canSimulate && sourceSettings[source.name]?.connected)
 
   /** Records a demo action on the lead's timeline. */
   function log(leadId: number, kind: ActivityKind, text: string) {
@@ -166,6 +182,8 @@ export function useDemoStore() {
     members,
     findMember,
     settings,
+    sourceSettings,
+    simulatableSources,
     assignableMembers,
     openLeadCount,
     // Leads & work
@@ -195,6 +213,32 @@ export function useDemoStore() {
     // ---------- Actions ----------
     setViewer: (memberId: string) => setViewerId(memberId),
     updateSettings: (patch: Partial<CompanySettings>) => setSettings((current) => ({ ...current, ...patch })),
+    updateSource: (name: string, patch: Partial<SourceSetting>) =>
+      setSourceSettings((current) => ({ ...current, [name]: { ...current[name], ...patch } })),
+    /**
+     * Simulates a new enquiry arriving from a source (spec §8.3): next buyer from the template pool,
+     * routed by the company rule. Without a source name, rotates through the connected sources.
+     */
+    receiveLead: (sourceName?: string) => {
+      const source = sourceName ? findSource(sourceName) : simulatableSources[arrivals % Math.max(1, simulatableSources.length)]
+      if (!source || !sourceSettings[source.name]?.connected) return undefined
+      const template = INCOMING_LEAD_TEMPLATES[arrivals % INCOMING_LEAD_TEMPLATES.length]
+      const id = Date.now()
+      const lead: LeadSeed = {
+        ...template, id, source: source.name, enquiry: template.message, minutesAgo: 0, unread: 1, online: true,
+        initialStage: 0, ownerId: null, sharedWith: source.sharedWith, freshEnquiry: true,
+      }
+      const ownerId = routeLead(lead)
+      setAddedLeads((current) => [{ ...lead, ownerId }, ...current])
+      setArrivals((current) => current + 1)
+      if (ownerId) {
+        const reason = settings.separatePresales ? 'Routing: Pre-sales first' : `Routing: ${settings.routing.replace('-', ' ')}`
+        setAssignments((current) => [{ leadId: id, fromId: null, toId: ownerId, byId: viewer.id, reason, at: 'Just now' }, ...current])
+      }
+      log(id, 'enquiry', `New enquiry via ${source.name}${ownerId ? ` · routed to ${findMember(ownerId)?.name}` : ''}`)
+      const arrived: Lead = { ...lead, ownerId, stage: 0, visitScheduled: false, overdue: false }
+      return { lead: arrived, owner: findMember(ownerId), visible: canSeeLead(viewer, ownerId, members) }
+    },
     /** Adds a lead. Sales/Pre-sales own what they add; otherwise `ownerChoice` ('auto' = routing) decides. */
     addLead: (lead: LeadSeed, ownerChoice: string | 'auto') => {
       const ownedByViewer = viewer.roles.includes('sales') || viewer.roles.includes('presales')

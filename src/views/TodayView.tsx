@@ -22,11 +22,13 @@ type TodayViewProps = {
 /** Home screen: next visit, headline numbers, lead inbox and today's follow-ups. */
 export function TodayView({ store, onOpenLead, onAddLead, onNavigate, notify }: TodayViewProps) {
   const [filter, setFilter] = useState<'All' | Temperature>('All')
+  const [sourceFilter, setSourceFilter] = useState('All')
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState('')
 
   const visibleLeads = store.leads.filter((lead) =>
     (filter === 'All' || lead.temp === filter) &&
+    (sourceFilter === 'All' || lead.source === sourceFilter) &&
     `${lead.name} ${lead.need} ${lead.locality}`.toLowerCase().includes(query.trim().toLowerCase()),
   )
   const [nextVisit, ...laterVisits] = store.upcomingVisits
@@ -99,8 +101,14 @@ export function TodayView({ store, onOpenLead, onAddLead, onNavigate, notify }: 
               <h2>Lead inbox</h2>
               <p>{store.leadsAwaitingReply > 0 ? `${store.leadsAwaitingReply} ${store.leadsAwaitingReply === 1 ? 'conversation needs' : 'conversations need'} a reply` : 'Every conversation is answered'}</p>
             </div>
-            <div className="segmented" role="group" aria-label="Filter leads">
-              {INBOX_FILTERS.map((option) => <button key={option} className={filter === option ? 'active' : ''} aria-pressed={filter === option} onClick={() => setFilter(option)}>{option}</button>)}
+            <div className="inbox-filters">
+              <div className="segmented" role="group" aria-label="Filter leads">
+                {INBOX_FILTERS.map((option) => <button key={option} className={filter === option ? 'active' : ''} aria-pressed={filter === option} onClick={() => setFilter(option)}>{option}</button>)}
+              </div>
+              <select className="source-filter" value={sourceFilter} onChange={(event) => setSourceFilter(event.target.value)} aria-label="Filter by source">
+                <option value="All">All sources</option>
+                {[...new Set(store.leads.map((lead) => lead.source))].sort().map((source) => <option key={source} value={source}>{source}</option>)}
+              </select>
             </div>
           </header>
           <div>
