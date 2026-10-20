@@ -2,7 +2,8 @@ import { useState } from 'react'
 import type { Lead } from '../data/demo'
 import { TEAMS, shortName } from '../data/team'
 import { QUALIFICATION_QUESTIONS } from '../data/templates'
-import { dayLabel } from '../lib/format'
+import { dayLabel, formatLakh } from '../lib/format'
+import { bookingStatus, developerOfProject, reminderText } from '../data/channelPartner'
 import { pretendReading } from '../lib/location'
 import type { DemoStore } from '../state/useDemoStore'
 import { Icon } from './Icon'
@@ -17,7 +18,7 @@ type GuideProps = {
   /** Simulates a portal enquiry and returns the new lead (no arrival banner: the guide opens the chat itself). */
   onSimulate: (sourceName: string) => Lead | undefined
   onOpenLead: (lead: Lead) => void
-  onNavigate: (view: View) => void
+  onNavigate: (view: View, param?: string) => void
   notify: Notify
   onClose: () => void
 }
@@ -44,6 +45,8 @@ export function DemoGuide({ store, onSimulate, onOpenLead, onNavigate, notify, o
   const [done, setDone] = useState(false)
   const [minimised, setMinimised] = useState(false)
   const [leadId, setLeadId] = useState<number | null>(null)
+  // After the 12 steps: the optional M14 bonus (money developers owe you).
+  const [bonus, setBonus] = useState<'off' | 'ready' | 'done'>('off')
   // The Pre-sales person routing gave the enquiry to (Lakshmi Narayan on fresh data).
   const [presalesId, setPresalesId] = useState<string | null>(null)
   const presales = presalesId ? store.findMember(presalesId) : undefined
@@ -203,6 +206,19 @@ export function DemoGuide({ store, onSimulate, onOpenLead, onNavigate, notify, o
   ]
 
   const finished = index >= steps.length
+  /** M14 bonus: as the Owner, open Brokerage on Overdue with the most overdue invoice and send the gentle reminder. */
+  function runBonus() {
+    // The most overdue invoice (Rajiv Menezes, 43 days past Halcyon's terms, on fresh data).
+    const days = (booking: (typeof store.cp.bookings)[number]) => { const status = bookingStatus(booking); return status.kind === 'overdue' ? status.days : 0 }
+    const oldest = store.cp.overdue(store.cp.bookings).sort((a, b) => days(b) - days(a))[0]
+    store.setViewer(OWNER_ID)
+    if (!oldest) { onNavigate('brokerage', 'overdue'); setBonus('done'); return }
+    store.cp.sendReminder(oldest.id, 'gentle', reminderText(oldest, 'gentle', store.findMember(OWNER_ID)?.name ?? 'Arjun Khanna', oldest.invoice ? dayLabel(oldest.invoice.day) : ''))
+    onNavigate('brokerage', `overdue#${oldest.id}`)
+    const developer = developerOfProject(oldest.projectId)
+    notify(`Reminder sent to ${developer?.cpManager.name} (${developer?.name})`)
+    setBonus('done')
+  }
   const step = steps[Math.min(index, steps.length - 1)]
   const ready = step.ready ?? true
   const next = () => { setIndex(index + 1); setDone(false) }
@@ -225,10 +241,21 @@ export function DemoGuide({ store, onSimulate, onOpenLead, onNavigate, notify, o
         </span>
       </header>
       <div className="demo-guide-progress" aria-hidden="true"><i style={{ width: `${(Math.min(index, steps.length) / steps.length) * 100}%` }} /></div>
-      {finished ? <>
+      {finished && bonus !== 'off' ? <>
+        <h2>Bonus: money developers owe you</h2>
+        <p>Developers pay brokerage late. Arjun sees {formatLakh(store.cp.pending(store.cp.bookings).lakh)} pending and {store.cp.overdue(store.cp.bookings).length} overdue, and chases the most overdue invoice in one tap: a gentle WhatsApp reminder to the developer’s CP manager, who replies a few seconds later.</p>
+        <footer>
+          {bonus === 'ready'
+            ? <button className="btn btn-primary" onClick={runBonus}>Chase the most overdue invoice</button>
+            : <button className="btn btn-primary" onClick={onClose}>Finish</button>}
+        </footer>
+      </> : finished ? <>
         <h2>That’s the full loop</h2>
         <p>From the Owner’s morning and a portal enquiry, through the telecaller’s queue and the field visit, to a won deal and a moving leaderboard, with every step on the lead’s timeline. Reset demo data before the next client.</p>
-        <footer><button className="btn btn-primary" onClick={onClose}>Finish</button></footer>
+        <footer>
+          <button className="btn btn-secondary demo-guide-bonus" onClick={() => setBonus('ready')}>Bonus: money developers owe you</button>
+          <button className="btn btn-primary" onClick={onClose}>Finish</button>
+        </footer>
       </> : <>
         <h2>{step.title}</h2>
         <p>{step.say}</p>

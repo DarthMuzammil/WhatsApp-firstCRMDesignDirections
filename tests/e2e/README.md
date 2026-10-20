@@ -28,7 +28,7 @@ First time on a new machine: `pnpm exec playwright-core install chromium`.
 | `offer-history` | Dated offers, stale flag, token/agreement dates (§3.2, §3.3) |
 | `inventory` | Listings, add/edit, owner masking, matches, share flow (§3.4) |
 | `notifications-and-audit` | Bell, notifications per person, audit log, CSV export (§3.15) |
-| `guided-demo` | The 10-step presenter flow at desktop and phone width (§3.16) |
+| `guided-demo` | The 12-step presenter flow and the M14 bonus (money developers owe you) at desktop and phone width (§3.16) |
 | `layout-audit`, `layout-audit-manage` | Every main screen at 1440/900/390 px: no text under 11 px, no sideways overflow, phone tap targets ≥ 36 px, no console errors |
 
 When you change a flow, update the suite that covers it in the same commit. Screenshots land in `tests/e2e/screenshots/` (git-ignored).

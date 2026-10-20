@@ -10,7 +10,7 @@
 .demo-guide-progress i { display: block; height: 100%; border-radius: var(--radius-pill); background: var(--mint); transition: width .3s ease; }
 .demo-guide h2 { color: var(--surface); font-size: var(--fs-title); letter-spacing: -.01em; }
 .demo-guide p { margin-top: var(--space-2); color: var(--on-navy-muted); font-size: var(--fs-body-sm); line-height: 1.5; }
-.demo-guide footer { margin-top: var(--space-4); display: flex; align-items: center; justify-content: flex-end; gap: var(--space-3); }
+.demo-guide footer { margin-top: var(--space-4); display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--space-2) var(--space-3); }
 .demo-guide footer .btn:disabled { opacity: .6; box-shadow: none; }
 .demo-guide-skip { min-height: 36px; padding: 0 var(--space-2); border: 0; color: var(--on-navy-muted); background: transparent; font-size: var(--fs-caption); font-weight: 700; }
 .demo-guide-skip:hover { color: var(--surface); }

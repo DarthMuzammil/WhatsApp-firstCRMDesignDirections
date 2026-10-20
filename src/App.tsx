@@ -117,7 +117,8 @@ export default function App() {
         {view === 'settings' && <SettingsView store={store} notify={notify} />}
         {view === 'audit' && <AuditView store={store} notify={notify} />}
         {view === 'launches' && <LaunchesView key={`${viewParam ?? 'default'}-${store.viewer.id}`} store={store} initialTab={viewParam as LaunchesTab | undefined} onOpenLead={showLead} notify={notify} />}
-        {view === 'brokerage' && <BrokerageView key={viewParam ?? 'all'} store={store} initialFilter={viewParam as BookingFilter | undefined} notify={notify} />}
+        {/* Brokerage params: a filter ("overdue"), optionally with a booking to open ("overdue#1"). */}
+        {view === 'brokerage' && <BrokerageView key={viewParam ?? 'all'} store={store} initialFilter={viewParam?.split('#')[0] as BookingFilter | undefined} initialOpenId={viewParam?.includes('#') ? Number(viewParam.split('#')[1]) : undefined} notify={notify} />}
       </main>
 
       <MobileTabBar store={store} view={navView} onNavigate={navigate} />

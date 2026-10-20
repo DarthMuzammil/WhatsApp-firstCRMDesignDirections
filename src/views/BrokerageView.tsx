@@ -21,7 +21,7 @@ const bookingsLabel = (count: number) => `${count} ${count === 1 ? 'booking' : '
  * Brokerage receivables (spec §8.17.1): what developers owe the firm for new-launch bookings, before GST and TDS.
  * Owner: every booking, can record invoices and payments. Manager: their team's bookings, can send reminders.
  */
-export function BrokerageView({ store, initialFilter = 'all', notify }: { store: DemoStore; initialFilter?: BookingFilter; notify: Notify }) {
+export function BrokerageView({ store, initialFilter = 'all', initialOpenId, notify }: { store: DemoStore; initialFilter?: BookingFilter; initialOpenId?: number; notify: Notify }) {
   const cp = store.cp
   const canManage = store.viewerCan('manageReceivables')
   const [filter, setFilter] = useState<BookingFilter>(initialFilter)
@@ -29,7 +29,7 @@ export function BrokerageView({ store, initialFilter = 'all', notify }: { store:
   const [age, setAge] = useState<AgeBand | null>(null)
   const [asTable, setAsTable] = useState(false)
   const [showPaid, setShowPaid] = useState(false)
-  const [openId, setOpenId] = useState<number | null>(null)
+  const [openId, setOpenId] = useState<number | null>(initialOpenId ?? null)
   const [action, setAction] = useState<{ kind: BookingAction; id: number } | null>(null)
 
   const all = cp.bookings
