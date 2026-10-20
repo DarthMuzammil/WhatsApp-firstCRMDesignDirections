@@ -1,4 +1,5 @@
 import { ROLE_LABELS, type Role } from '../data/team'
+import { GRACE_OPTIONS, WORK_START_OPTIONS } from '../data/attendance'
 import { CHECK_IN_RADIUS_OPTIONS, OFFICES } from '../data/visits'
 import { Icon } from '../components/Icon'
 import { PERMISSION_LABELS, ROLE_PERMISSIONS, type Permission } from '../lib/permissions'
@@ -55,7 +56,7 @@ export function SettingsView({ store, notify }: { store: DemoStore; notify: (mes
       </div>
 
       <section className="card settings-section">
-        <header className="card-head"><div><h2>Field check-ins</h2><p>Location is read once, when someone taps Left office, Check in or Check out. There is no live tracking.</p></div></header>
+        <header className="card-head"><div><h2>Field check-ins and attendance</h2><p>Location is read once, when someone taps a check-in button. There is no live tracking.</p></div></header>
         <div className="setting-row static">
           <span><strong>Check-in radius</strong><small>Check-ins further than this from the visit address or office are refused.</small></span>
           <div className="segmented" role="radiogroup" aria-label="Check-in radius">
@@ -63,6 +64,13 @@ export function SettingsView({ store, notify }: { store: DemoStore; notify: (mes
               <button key={metres} role="radio" aria-checked={settings.checkInRadiusM === metres} className={settings.checkInRadiusM === metres ? 'active' : ''} onClick={() => { store.updateSettings({ checkInRadiusM: metres }); notify(`Check-in radius set to ${metres} m`) }}>{metres} m</button>
             ))}
           </div>
+        </div>
+        <div className="setting-row static">
+          <span><strong>Working hours</strong><small>Office check-ins after the start time plus grace are marked late.</small></span>
+          <span className="setting-selects">
+            <label>Starts<select value={settings.workStart} onChange={(event) => { store.updateSettings({ workStart: event.target.value }); notify(`Work start set to ${event.target.value}`) }}>{WORK_START_OPTIONS.map((option) => <option key={option}>{option}</option>)}</select></label>
+            <label>Grace<select value={settings.graceMin} onChange={(event) => { store.updateSettings({ graceMin: Number(event.target.value) }); notify(`Grace period set to ${event.target.value} min`) }}>{GRACE_OPTIONS.map((option) => <option key={option} value={option}>{option} min</option>)}</select></label>
+          </span>
         </div>
         <ul className="office-list">
           {OFFICES.map((office) => <li key={office.name}><Icon name="pin" size={16} /><span><strong>{office.name}</strong><small>{office.address}</small></span></li>)}

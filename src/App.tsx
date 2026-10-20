@@ -8,6 +8,7 @@ import { AddLeadModal } from './modals/AddLeadModal'
 import { CallModal } from './modals/CallModal'
 import { CallPicker } from './modals/CallPicker'
 import { useDemoStore } from './state/useDemoStore'
+import { AttendanceView } from './views/AttendanceView'
 import { CallsView } from './views/CallsView'
 import { EscalationsView } from './views/EscalationsView'
 import { LeadSourcesView } from './views/LeadSourcesView'
@@ -92,6 +93,7 @@ export default function App() {
         {view === 'properties' && <PropertiesView store={store} notify={notify} />}
         {view === 'tasks' && <FollowUpsView store={store} onOpenLead={showLead} onCall={startCall} />}
         {view === 'calls' && <CallsView store={store} onOpenLead={showLead} onNewCall={() => setCallPickerOpen(true)} />}
+        {view === 'attendance' && <AttendanceView store={store} notify={notify} />}
         {view === 'escalations' && <EscalationsView store={store} onOpenLead={showLead} notify={notify} />}
         {view === 'sources' && <LeadSourcesView store={store} onSimulate={simulateLead} />}
         {view === 'team' && <TeamView store={store} notify={notify} />}

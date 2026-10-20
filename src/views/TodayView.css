@@ -3,6 +3,11 @@
 .today-add { min-height: 44px; }
 .today-search { margin: calc(var(--space-2) * -1) 0 var(--space-5); }
 
+.checkin-reminder { margin-bottom: var(--space-4); padding: var(--space-3) var(--space-4); border: 1px solid var(--primary-line); border-radius: var(--radius-md); display: flex; align-items: center; gap: var(--space-3); color: var(--primary); background: var(--primary-soft); }
+.checkin-reminder > span { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: var(--space-half); }
+.checkin-reminder strong { color: var(--ink); font-size: var(--fs-body-sm); }
+.checkin-reminder small { color: var(--ink-soft); font-size: var(--fs-caption); }
+
 /* Headline cards */
 .day-cards { display: grid; grid-template-columns: 1.6fr .7fr .7fr; gap: var(--space-4); }
 .day-cards article { position: relative; min-height: 170px; padding: var(--space-5); overflow: hidden; border-radius: var(--radius-lg); }

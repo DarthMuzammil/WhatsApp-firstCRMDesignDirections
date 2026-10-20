@@ -3,6 +3,7 @@ import {
   COMMISSION_RATE, EXTRA_REMINDER, PROPERTIES, RESPONSE_SLA_MINUTES, SEED_LEADS, SEED_RECORDINGS, SEED_TASKS, STAGES, STAGE_CLOSE_PROBABILITY,
   phoneKey, relativeMinutes, type Lead, type LeadSeed, type Recording, type Task,
 } from '../data/demo'
+import { SEED_CORRECTIONS, SEED_TODAY, seedAttendance, type AttendanceCode, type CorrectionRequest, type TodayAttendance } from '../data/attendance'
 import { INCOMING_LEAD_TEMPLATES, LEAD_SOURCES, findSource } from '../data/sources'
 import { DEFAULT_VIEWER_ID, SEED_MEMBERS, TEAMS, type Member, type MemberStatus, type TeamId } from '../data/team'
 import { MAX_ACCURACY_M, OFFICES, SEED_VISITS, formatDistance, slotMinutes, type Office, type Visit, type VisitOutcome } from '../data/visits'
@@ -18,6 +19,9 @@ export type CompanySettings = {
   routing: RoutingMode
   /** Check-ins further than this from the address are refused (spec §8.0). */
   checkInRadiusM: number
+  /** Office check-in after workStart + graceMin is marked late (spec §8.7). */
+  workStart: string
+  graceMin: number
 }
 /** One change of lead owner, shown on the lead's history (spec §8.2). */
 export type Assignment = { leadId: number; fromId: string | null; toId: string; byId: string; reason: string; at: string }
@@ -49,7 +53,7 @@ function seedVisitEvents(visit: Visit): TimelineEvent[] {
   return events
 }
 
-const DEFAULT_SETTINGS: CompanySettings = { separatePresales: true, routing: 'round-robin', checkInRadiusM: 200 }
+const DEFAULT_SETTINGS: CompanySettings = { separatePresales: true, routing: 'round-robin', checkInRadiusM: 200, workStart: '9:30 AM', graceMin: 15 }
 /** A visit with its lead and property resolved, for screens. */
 export type VisitView = Visit & { lead: Lead; propertyName: string; when: string }
 export type VisitStepResult = { ok: boolean; message: string }
@@ -72,6 +76,8 @@ export function useDemoStore() {
   const settings: CompanySettings = { ...DEFAULT_SETTINGS, ...storedSettings }
   const [visits, setVisits] = useLocalState<Visit[]>('visits', SEED_VISITS)
   const [pretendLocation, setPretendLocation] = useLocalState<PretendLocation>('pretend-location', 'client')
+  const [todayAttendance, setTodayAttendance] = useLocalState<Record<string, TodayAttendance>>('attendance-today', SEED_TODAY)
+  const [corrections, setCorrections] = useLocalState<CorrectionRequest[]>('corrections', SEED_CORRECTIONS)
   const [sourceSettings, setSourceSettings] = useLocalState<Record<string, SourceSetting>>('source-settings', DEFAULT_SOURCE_SETTINGS)
   const [arrivals, setArrivals] = useLocalState<number>('arrivals', 0)
   const [addedMembers, setAddedMembers] = useLocalState<Member[]>('added-members', [])
@@ -203,6 +209,23 @@ export function useDemoStore() {
   /** The office a person checks in at: their team's, or HQ. */
   const officeFor = (person: Member | undefined): Office => OFFICES.find((office) => office.teamId === person?.teamId) ?? OFFICES[0]
 
+  // ---------- Attendance (spec §8.7) ----------
+  const todayFor = (memberId: string): TodayAttendance => todayAttendance[memberId] ?? { status: 'not-in' }
+  /** Register code for one person on one day (0 = today, from the live record). */
+  function attendanceCode(memberId: string, day: number): AttendanceCode {
+    if (day === 0) {
+      const today = todayFor(memberId)
+      if (today.status === 'leave') return 'leave'
+      if (today.status === 'not-in') return 'pending'
+      if (today.mode === 'field') return 'field'
+      return today.late ? 'late' : 'present'
+    }
+    if (corrections.some((request) => request.memberId === memberId && request.day === day && request.status === 'approved')) return 'present'
+    return seedAttendance(memberId, day)
+  }
+  const setToday = (patch: Partial<TodayAttendance>) =>
+    setTodayAttendance((current) => ({ ...current, [viewer.id]: { ...(current[viewer.id] ?? { status: 'not-in' }), ...patch } }))
+
   function updateVisit(visitId: number, change: (visit: Visit) => Visit) {
     setVisits((current) => current.map((visit) => (visit.id === visitId ? change(visit) : visit)))
   }
@@ -243,6 +266,9 @@ export function useDemoStore() {
     weightedCommissionCr,
     upcomingVisits,
     visits: visibleVisits,
+    todayFor,
+    attendanceCode,
+    corrections,
     pretendLocation,
     officeFor,
     extraReminderAdded: tasks.some((task) => task.id === EXTRA_REMINDER.id),
@@ -335,6 +361,38 @@ export function useDemoStore() {
       return `Visit confirmed: ${property?.name}, ${property?.locality}, ${dayLabel(plan.day)} at ${plan.time}. I’ll share the location pin before we meet.`
     },
     setPretendLocation,
+    /** Office check-in: refused beyond the radius of the viewer's office; late after start + grace. */
+    officeCheckIn: (reading: Reading): VisitStepResult => {
+      const office = officeFor(viewer)
+      const away = Math.round(distanceM(reading, office))
+      if (away > settings.checkInRadiusM || reading.accuracyM > MAX_ACCURACY_M) {
+        setToday({ refused: (todayFor(viewer.id).refused ?? 0) + 1 })
+        return { ok: false, message: reading.accuracyM > MAX_ACCURACY_M
+          ? `Your location is only accurate to ${formatDistance(reading.accuracyM)}. Try again near a window.`
+          : `You’re ${formatDistance(away)} from ${office.name}. Check in when you reach the office, or start a field day.` }
+      }
+      const now = new Date()
+      const late = now.getHours() * 60 + now.getMinutes() > slotMinutes(settings.workStart) + settings.graceMin
+      setToday({ status: 'office', mode: 'office', inAt: clockLabel(now), late })
+      return { ok: true, message: `Checked in at ${office.name}${late ? ' (late)' : ''}.` }
+    },
+    /** Field day: present once the first client check-in of the day is verified. */
+    startFieldDay: () => setToday({ status: 'field', mode: 'field', inAt: clockLabel() }),
+    /** End of day. Office days must check out at the office; field days can check out anywhere. */
+    checkOutForDay: (reading: Reading): VisitStepResult => {
+      const today = todayFor(viewer.id)
+      if (today.mode === 'office') {
+        const office = officeFor(viewer)
+        const away = Math.round(distanceM(reading, office))
+        if (away > settings.checkInRadiusM) return { ok: false, message: `You’re ${formatDistance(away)} from ${office.name}. Check out at the office.` }
+      }
+      setToday({ status: 'out', outAt: clockLabel() })
+      return { ok: true, message: 'Checked out for the day.' }
+    },
+    requestCorrection: (day: number, reason: string) =>
+      setCorrections((current) => [...current, { id: Date.now(), memberId: viewer.id, day, reason, status: 'pending' }]),
+    decideCorrection: (id: number, approve: boolean) =>
+      setCorrections((current) => current.map((request) => (request.id === id ? { ...request, status: approve ? 'approved' : 'rejected' } : request))),
     /**
      * One step of the agent's visit flow, from a single location reading (spec §8.6):
      * "Left office" is recorded wherever it happens; "Check in" is refused beyond the radius or

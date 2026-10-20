@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { DEMO_METRICS, firstName, type Lead, type Temperature } from '../data/demo'
+import { tracksAttendance } from '../data/attendance'
 import { shortName } from '../data/team'
 import { Avatar, LeadAvatar } from '../components/Avatar'
 import { Icon } from '../components/Icon'
@@ -53,6 +54,14 @@ export function TodayView({ store, onOpenLead, onAddLead, onNavigate, notify }: 
           <Icon name="search" />
           <input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search buyers, areas or requirements…" aria-label="Search leads" />
         </label>
+      )}
+
+      {tracksAttendance(store.viewer) && store.todayFor(store.viewer.id).status === 'not-in' && (
+        <div className="checkin-reminder" role="note">
+          <Icon name="clock" />
+          <span><strong>You haven’t checked in today</strong><small>Work starts {store.settings.workStart}. Check in at the office or start a field day.</small></span>
+          <button className="btn btn-primary" onClick={() => onNavigate('attendance')}>Check in</button>
+        </div>
       )}
 
       <div className="day-cards">

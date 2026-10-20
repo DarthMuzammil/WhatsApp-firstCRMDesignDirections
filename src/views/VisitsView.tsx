@@ -5,18 +5,13 @@ import { VISIT_RESULTS, formatDistance, type VisitResult, type VisitStep } from 
 import { LeadAvatar } from '../components/Avatar'
 import { Dialog } from '../components/Dialog'
 import { Icon } from '../components/Icon'
+import { LocationControl } from '../components/LocationControl'
 import { todayLabel } from '../lib/format'
-import { deviceReading, pretendReading, type PretendLocation } from '../lib/location'
+import { deviceReading, pretendReading } from '../lib/location'
 import type { DemoStore, VisitView } from '../state/useDemoStore'
 import './VisitsView.css'
 
 const STATUS_LABEL = { planned: 'Planned', 'on-the-way': 'On the way', 'checked-in': 'Checked in', completed: 'Completed', 'no-show': 'No-show' } as const
-const LOCATION_OPTIONS: { value: PretendLocation; label: string }[] = [
-  { value: 'office', label: 'At office' },
-  { value: 'client', label: 'Near client' },
-  { value: 'far', label: 'Far away' },
-  { value: 'device', label: 'This device' },
-]
 
 type Feedback = { visitId: number; ok: boolean; message: string }
 
@@ -70,7 +65,7 @@ export function VisitsView({ store, onOpenLead, notify }: { store: DemoStore; on
           {(seesOthers || !mine) && agent && <span className="visit-agent"><Icon name="user" size={14} /> {mine ? 'You' : shortName(agent.name)}</span>}
           {visit.steps.length > 0 && <ol className="visit-steps">{visit.steps.map((step, index) => <StepRow key={index} step={step} />)}</ol>}
           {visit.outcome && <p className="visit-outcome"><strong>{visit.outcome.result}</strong>{visit.outcome.feedback ? ` · ${visit.outcome.feedback}` : ''}{visit.outcome.nextStep ? ` · Next: ${visit.outcome.nextStep}` : ''}</p>}
-          {message && <p className={`visit-feedback ${message.ok ? 'ok' : 'error'}`} role={message.ok ? 'status' : 'alert'}><Icon name={message.ok ? 'check' : 'alert'} size={16} />{message.message}</p>}
+          {message && <p className={`inline-feedback ${message.ok ? 'ok' : 'error'}`} role={message.ok ? 'status' : 'alert'}><Icon name={message.ok ? 'check' : 'alert'} size={16} />{message.message}</p>}
         </div>
         <div className="visit-side">
           <span className={`visit-status status-${visit.status}`}>{STATUS_LABEL[visit.status]}</span>
@@ -106,17 +101,7 @@ export function VisitsView({ store, onOpenLead, notify }: { store: DemoStore; on
         <div><span>Refused attempts</span><strong>{todaySteps.filter((step) => step.kind === 'check-in-refused').length}</strong><small>{earlier.filter((visit) => visit.status === 'no-show').length} no-show yesterday</small></div>
       </div>
 
-      <section className="card location-panel">
-        <div>
-          <strong><Icon name="pin" size={16} /> Where is this phone? <em>Demo</em></strong>
-          <small>Location is read once, only when you tap a visit button. No live tracking. Check-ins are refused beyond {store.settings.checkInRadiusM} m.</small>
-        </div>
-        <div className="segmented" role="radiogroup" aria-label="Demo location">
-          {LOCATION_OPTIONS.map((option) => (
-            <button key={option.value} role="radio" aria-checked={store.pretendLocation === option.value} className={store.pretendLocation === option.value ? 'active' : ''} onClick={() => store.setPretendLocation(option.value)}>{option.label}</button>
-          ))}
-        </div>
-      </section>
+      <LocationControl value={store.pretendLocation} onChange={store.setPretendLocation} options={['office', 'client', 'far', 'device']} radiusM={store.settings.checkInRadiusM} />
 
       <div className="visit-sections">
         {section('Today', today, 'No visits today')}
