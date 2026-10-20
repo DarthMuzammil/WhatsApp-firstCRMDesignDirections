@@ -365,6 +365,7 @@ See `AGENTS.md` for conventions. Each component has a matching `.css` file next 
 ---
 
 ## 7. Known issues
+- **TODO: bundle size.** `vite build` warns that the main JavaScript chunk is over 500 kB. Harmless for the demo, but it slows the first load on slow mobile connections. Fix: lazy-load the heavier screens (Brokerage, New launches, Performance, Calls) with `React.lazy` so they download when opened.
 - Reminders keep the day they were set for: the demo has one "today", so tomorrow's reminders never move into today's list.
 - Seeded lead times ("2m", "18m") are fixed values, so "Overdue" never appears or clears on its own. Seeded message times are worked out from them when the chat opens.
 - The permissions table can't be edited.
