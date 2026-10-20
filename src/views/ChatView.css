@@ -168,3 +168,10 @@
   .deal-panel footer .btn { min-height: var(--tap); flex: 1; }
   .deal-docs button { min-height: 40px; }
 }
+
+/* M14 launch messages: WhatsApp ticks with a text label */
+.delivery { margin-left: var(--space-1); display: inline-flex; align-items: center; gap: var(--space-1); color: var(--tick-sent); font-weight: 700; }
+.delivery .ticks { display: inline-flex; }
+.delivery .ticks svg + svg { margin-left: -7px; }
+.delivery.read { color: var(--tick-read); }
+.delivery.failed { color: var(--danger-text); }

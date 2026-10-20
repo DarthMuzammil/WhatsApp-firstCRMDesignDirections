@@ -2,8 +2,8 @@
 // Kept in its own file so the main store stays readable; it shares the store's viewer, log, notifications and audit.
 
 import {
-  SEED_BOOKINGS, SEED_REGISTRATIONS, bookingStatus, brokerageL, developerOfProject, findProject, isActiveRegistration, nextInvoiceNumber, registrationValidUntil, taxLines,
-  REMINDER_REPLY, type Booking, type Registration, type RegistrationMethod,
+  LAUNCH_SCRIPT, META_MARKETING_RATE, SEED_BOOKINGS, SEED_LAUNCHES, SEED_REGISTRATIONS, launchName, launchProject, bookingStatus, brokerageL, developerOfProject, findProject, isActiveRegistration, nextInvoiceNumber, registrationValidUntil, taxLines,
+  REMINDER_REPLY, type Booking, type Launch, type LaunchRecipient, type Registration, type RegistrationMethod,
 } from '../data/channelPartner'
 import { phoneKey, type Lead } from '../data/demo'
 import type { AuditKind, NotificationKind, NotificationView } from '../data/notifications'
@@ -11,7 +11,7 @@ import type { Member } from '../data/team'
 import { clockLabel, dayLabel, shortDateLabel } from '../lib/format'
 import type { Permission } from '../lib/permissions'
 import { useLocalState } from '../lib/storage'
-import type { ActivityKind } from './useDemoStore'
+import type { ActivityKind, ChatEntry } from './useDemoStore'
 
 export type ChannelPartnerDeps = {
   viewer: Member
@@ -26,13 +26,18 @@ export type ChannelPartnerDeps = {
   /** Every lead in the firm (registrations are checked across all of them) and the ones the viewer may see. */
   allLeads: Lead[]
   leads: Lead[]
+  /** Chat helpers for launch broadcasts (see useDemoStore). */
+  postChat: (leadId: number, entry: ChatEntry) => void
+  setLaunchDelivery: (leadId: number, launchId: number, delivery: NonNullable<ChatEntry['delivery']>) => void
+  receiveReply: (leadId: number, text: string) => void
 }
 
 const rupeeText = (amount: number) => `₹${amount.toLocaleString('en-IN')}`
 
-export function useChannelPartner({ viewer, viewerCan, findMember, nameOf, log, pushNotification, recordAudit, approversFor, allLeads, leads }: ChannelPartnerDeps) {
+export function useChannelPartner({ viewer, viewerCan, findMember, nameOf, log, pushNotification, recordAudit, approversFor, allLeads, leads, postChat, setLaunchDelivery, receiveReply }: ChannelPartnerDeps) {
   const [bookings, setBookings] = useLocalState<Booking[]>('cp-bookings', SEED_BOOKINGS)
   const [registrations, setRegistrations] = useLocalState<Registration[]>('cp-registrations', SEED_REGISTRATIONS)
+  const [launches, setLaunches] = useLocalState<Launch[]>('launches', SEED_LAUNCHES)
 
   /** Owner: every booking. Manager: their team's agents. Sales and Pre-sales: their own (status words only). */
   const visibleBookings = bookings.filter((booking) => {
@@ -60,7 +65,52 @@ export function useChannelPartner({ viewer, viewerCan, findMember, nameOf, log, 
       && phoneKey(leadOf(registration)?.phone ?? '-') === phone)
   }
 
+  const updateRecipient = (launchId: number, leadId: number, change: Partial<LaunchRecipient>) =>
+    setLaunches((current) => current.map((launch) => (launch.id === launchId ? { ...launch, recipients: launch.recipients?.map((item) => (item.leadId === leadId ? { ...item, ...change } : item)) } : launch)))
+
   return {
+    launches,
+    /** Saves a draft (new or edited) and returns its id. */
+    saveLaunch: (launch: Omit<Launch, 'id' | 'status'> & { id?: number }) => {
+      const id = launch.id ?? Date.now()
+      setLaunches((current) => (current.some((item) => item.id === id)
+        ? current.map((item) => (item.id === id ? { ...item, ...launch, id } : item))
+        : [{ ...launch, id, status: 'draft' }, ...current]))
+      return id
+    },
+    /**
+     * Sends a launch to buyers on WhatsApp (🎭): each chat gets the marketing template with ticks that move from sent
+     * (grey ✓) to delivered (~1.5 s) to read (3–6 s); scripted buyers don't get it, don't open it, or reply (6–8 s).
+     */
+    sendLaunch: (launch: Launch, leadIds: number[], messageFor: (leadId: number) => string) => {
+      const name = launchName(launch)
+      const scripted = launch.id === SEED_LAUNCHES[0].id
+      const plan = leadIds.map((leadId, index) => {
+        const script = scripted ? LAUNCH_SCRIPT[leadId] ?? {} : { unread: index % 5 === 4, reply: index < Math.ceil(leadIds.length / 4) ? 'Yes, send details' : undefined }
+        return { leadId, index, ...script }
+      })
+      setLaunches((current) => current.map((item) => (item.id === launch.id ? { ...item, ...launch, status: 'sent', sentDay: 0, recipients: leadIds.map((leadId) => ({ leadId, state: 'sent' })) } : item)))
+      for (const { leadId } of plan) {
+        postChat(leadId, { from: 'agent', text: messageFor(leadId), at: clockLabel(), template: 'New launch', delivery: 'sent', launchId: launch.id })
+        log(leadId, 'launch', `Sent the ${name} launch on WhatsApp`)
+      }
+      recordAudit('channel-partner', `Sent ${name} to ${leadIds.length} buyers · ₹${(leadIds.length * META_MARKETING_RATE).toFixed(2)}`)
+      window.setTimeout(() => plan.forEach(({ leadId, failed }) => {
+        setLaunchDelivery(leadId, launch.id, failed ? 'failed' : 'delivered')
+        updateRecipient(launch.id, leadId, { state: failed ? 'failed' : 'delivered' })
+      }), 1500)
+      plan.filter((item) => !item.failed && !item.unread).forEach(({ leadId, index }) => window.setTimeout(() => {
+        setLaunchDelivery(leadId, launch.id, 'read')
+        updateRecipient(launch.id, leadId, { state: 'read' })
+      }, 3000 + (index % 4) * 1000))
+      plan.filter((item) => item.reply && !item.failed && !item.unread).forEach(({ leadId, reply }, order) => window.setTimeout(() => {
+        const lead = allLeads.find((item) => item.id === leadId)
+        receiveReply(leadId, reply!)
+        updateRecipient(launch.id, leadId, { state: 'read', reply })
+        log(leadId, 'launch', `Replied to the ${name} launch: “${reply}”`, 'buyer')
+        pushNotification([lead?.ownerId], 'launch-reply', `${lead?.name} replied to the ${launchProject(launch)?.name.split(' ').slice(0, 2).join(' ')} ${launch.phase} launch: “${reply}”`, { leadId })
+      }, 6000 + order * 800))
+    },
     registrations: visibleRegistrations,
     registrationsFor: (leadId: number) => registrations.filter((registration) => registration.leadId === leadId),
     findRegistration,

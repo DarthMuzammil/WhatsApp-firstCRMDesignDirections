@@ -16,9 +16,9 @@ const rm = neg.locator('.deal-card:has-text("Rohan & Meera")')
 ok((await rm.locator('.deal-budget').innerText()).includes('3.2'), 'seeded offer ₹3.2 Cr shown on card')
 ok(await p.locator('.deal-advance:visible, .deal-won:visible, .deal-lost:visible, .deal-back:visible').count() === 0, 'desktop: no move buttons on cards (drag and drop only)')
 const closedCol = () => p.locator('.pipeline-stage[aria-label="Closed"]')
-// While a card is dragged, Closed shows a Won zone and, below it, a Lost zone.
+// Closed always shows a Won drop target and, below it, a Lost one (lit up while a card is dragged).
 const dropWon = (card) => card.dragTo(closedCol(), { targetPosition: { x: 80, y: 90 } })
-const dropLost = (card) => card.dragTo(closedCol(), { targetPosition: { x: 80, y: 196 } })
+const dropLost = (card) => card.dragTo(closedCol(), { targetPosition: { x: 80, y: 170 } })
 await dropWon(rm)
 ok((await p.locator('.deal-dialog input').nth(2).inputValue()) === '3.2', 'win dialog pre-fills agreed with offer')
 await p.click('.deal-dialog .btn:has-text("Add person")')
@@ -33,10 +33,10 @@ ok(Math.abs(after - before - 5.1) < 0.15, `Vivek commission +₹5.1 L (3.2 Cr ×
 await nav('Pipeline')
 await dropLost(neg.locator('.deal-card:has-text("Lavanya")'))
 await p.selectOption('.confirm-dialog .lost-reason select', 'Stopped responding')
-await p.click('.confirm-dialog .btn-danger'); await p.waitForTimeout(200)
+await p.click('.confirm-dialog .btn-danger'); await p.waitForTimeout(700) // let the card finish its entrance animation in Closed before dragging it
 ok((await closed.locator('.deal-card:has-text("Lavanya")').innerText()).includes('Stopped responding'), 'lost with reason in Closed')
 // Columns are long now: drop near the top of the target column (its header), which is always on screen.
-await closed.locator('.deal-card:has-text("Lavanya")').dragTo(neg, { targetPosition: { x: 80, y: 24 } })
+await closed.locator('.deal-card:has-text("Lavanya")').dragTo(neg, { targetPosition: { x: 80, y: 24 } }); await p.waitForTimeout(300)
 ok(await neg.locator('.deal-card:has-text("Lavanya")').count() === 1 && (await p.locator('.toast').innerText()).includes('reopened'), 'drag a closed card back to a stage reopens it there')
 const ananya = p.locator('.deal-card:has-text("Ananya Rao")')
 const fromStage = await ananya.evaluate(e => e.closest('.pipeline-stage').getAttribute('aria-label'))

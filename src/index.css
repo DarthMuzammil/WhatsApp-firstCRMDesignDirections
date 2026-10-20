@@ -68,6 +68,9 @@
   --bubble-mine: #dcf1d8;
   --bubble-mine-line: #cfe3cb;
   --chat-time: #5b6658;
+  /* WhatsApp ticks on launch messages (≥ 4:1 on the green bubble) */
+  --tick-sent: #5f6b62;
+  --tick-read: #1a66c4;
   --brief-bg: #eef3ec;
   --brief-line: #dfe5dc;
   --brief-ink: #55665b;

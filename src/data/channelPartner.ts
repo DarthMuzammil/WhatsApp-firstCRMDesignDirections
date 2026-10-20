@@ -271,3 +271,97 @@ export function maskPan(pan: string): string {
   return `XXXXXX${pan.slice(-4)}`
 }
 export const PAN_PATTERN = /^[A-Z]{5}[0-9]{4}[A-Z]$/
+
+// ---------- Launch broadcasts (spec §8.17.3) ----------
+export type LaunchRecipient = { leadId: number; state: 'sent' | 'delivered' | 'read' | 'failed'; reply?: string }
+export type Launch = {
+  id: number
+  projectId: string
+  /** "Phase 2", "Tower D". */
+  phase: string
+  configs: ProjectConfig[]
+  launchDay: number
+  eoiL: number
+  possession: string
+  rera: string
+  status: 'draft' | 'sent'
+  sentDay?: number
+  recipients?: LaunchRecipient[]
+  /** A project typed in for this launch (not one of PROJECTS). */
+  project?: Project
+  /** Seeded history for launches sent before the demo (🧱): sent / delivered / read / replied. */
+  history?: { sent: number; delivered: number; read: number; replied: number }
+}
+
+export const SEED_LAUNCHES: Launch[] = [
+  { id: 1, projectId: 'banyan-bay', phase: 'Phase 2', configs: [{ bhk: '2 BHK', fromCr: 1.35, toCr: 1.55 }, { bhk: '3 BHK', fromCr: 1.85, toCr: 2.1 }], launchDay: 4, eoiL: 2, possession: 'Dec 2029', rera: 'PRM/KA/RERA/DEMO/0142', status: 'draft' },
+  { id: 2, projectId: 'halcyon-grove', phase: 'Tower D', configs: [{ bhk: '2 BHK', fromCr: 1.1, toCr: 1.35 }, { bhk: '3 BHK', fromCr: 1.6, toCr: 1.9 }], launchDay: -2, eoiL: 1, possession: 'Jun 2028', rera: 'PRM/KA/RERA/DEMO/0118', status: 'sent', sentDay: -6, history: { sent: 8, delivered: 8, read: 6, replied: 2 } },
+]
+
+/** The launch's project: a typed-in one, or one of PROJECTS. */
+export const launchProject = (launch: Pick<Launch, 'projectId' | 'project'>) => launch.project ?? findProject(launch.projectId)
+export const launchDeveloper = (launch: Pick<Launch, 'projectId' | 'project'>) => findDeveloper(launchProject(launch)?.developerId ?? '')
+export const launchName = (launch: Pick<Launch, 'projectId' | 'phase' | 'project'>) => `${launchProject(launch)?.name ?? 'New project'}${launch.phase ? ` · ${launch.phase}` : ''}`
+const crText = (value: number) => String(Number(value.toFixed(2)))
+export const configLabel = (config: ProjectConfig) => `${config.bhk} · ₹${crText(config.fromCr)}–${crText(config.toCr)} Cr`
+
+export type LaunchFilters = { locality: boolean; bhk: boolean; budget: boolean }
+export type LaunchMatch = { leadId: number; reason: string; registered?: string }
+
+type MatchableLead = { id: number; need: string; budget: string; locality: string; localities?: string[]; purpose?: string; closed?: unknown }
+const budgetOf = (budget: string) => {
+  const numbers = (budget.match(/\d+(\.\d+)?/g) ?? []).map(Number)
+  return numbers.length ? { min: numbers[0], max: numbers[numbers.length - 1] } : null
+}
+
+/**
+ * Buyers to send a launch to (spec §8.17.3): open leads matched on locality (one of the buyer's localities is the
+ * project's), BHK (a configured BHK; investment flats match any, villas never) and budget (overlaps that
+ * configuration's price band). Any filter can be switched off. Each match carries the reason shown in the list.
+ */
+export function buyersForLaunch(leads: MatchableLead[], launch: Pick<Launch, 'projectId' | 'configs' | 'project'>, filters: LaunchFilters, registeredWith?: (leadId: number) => string | undefined): LaunchMatch[] {
+  const project = launchProject(launch)
+  if (!project) return []
+  const matches: LaunchMatch[] = []
+  for (const lead of leads) {
+    if (lead.closed) continue
+    const localities = lead.localities ?? [lead.locality]
+    if (filters.locality && !localities.includes(project.locality)) continue
+    const villa = /villa/i.test(lead.need)
+    const investment = lead.purpose === 'Investment' || /^investment/i.test(lead.need)
+    const configs = filters.bhk
+      ? launch.configs.filter((config) => !villa && (investment || lead.need.toLowerCase().includes(config.bhk.toLowerCase())))
+      : launch.configs
+    if (configs.length === 0) continue
+    const budget = budgetOf(lead.budget)
+    const fitting = filters.budget ? configs.filter((config) => budget && budget.min <= config.toCr && budget.max >= config.fromCr) : configs
+    if (fitting.length === 0) continue
+    const config = fitting[0]
+    const where = localities.includes(project.locality) ? project.locality : localities[0]
+    const what = investment ? 'Investment' : (lead.need.match(/\d BHK/i)?.[0] ?? lead.need)
+    const fit = budget && filters.budget ? ` · ${lead.budget} fits ₹${crText(config.fromCr)}–${crText(config.toCr)} Cr` : ` · ${lead.budget}`
+    matches.push({ leadId: lead.id, reason: `${where} · ${what}${fit}`, registered: registeredWith?.(lead.id) })
+  }
+  return matches
+}
+
+/** The marketing template each buyer gets (personalised with their first name). */
+/** `when` reads "on Sat, 24 Oct", "tomorrow" or "today" (see onDayLabel). */
+export function launchMessage(launch: Launch, firstName: string, senderFirstName: string, when: string): string {
+  const project = launchProject(launch)
+  const developer = launchDeveloper(launch)
+  const configs = launch.configs.map((config) => `• ${configLabel(config)}`).join(' ')
+  return `Hi ${firstName}, ${launchName(launch)} by ${developer?.name} launches ${when} ${project?.area === project?.locality ? `in ${project?.area}` : project?.area}. ${configs}. Possession ${launch.possession} · RERA ${launch.rera}. Early-access EOI ₹${launch.eoiL} L (refundable). Want floor plans and a site visit? — ${senderFirstName}, ${BROKERAGE.name}`
+}
+
+/**
+ * Scripted delivery for the seed draft (🎭): who isn't on WhatsApp, who doesn't open it, and who replies.
+ * Other launches: about 80% read and the first quarter reply.
+ */
+export const LAUNCH_SCRIPT: Record<number, { failed?: boolean; unread?: boolean; reply?: string }> = {
+  132: { failed: true }, // Omkar Jadhav: not on WhatsApp
+  126: { unread: true }, 130: { unread: true }, 131: { unread: true }, // Vinay Prabhu, Tejas Patil, Bhavana Shenoy
+  6: { reply: 'Yes, send details' }, // Nisha Kulkarni
+  124: { reply: 'Any 3 BHK on a high floor, east facing? Is the EOI fully refundable?' }, // Aman Khurana
+  133: { reply: 'Yes, send details' }, // Asha Thomas
+}

@@ -36,7 +36,16 @@ export type CompanySettings = {
 export type Assignment = { leadId: number; fromId: string | null; toId: string; byId: string; reason: string; at: string }
 export type Note = { id: number; text: string; byId: string; at: string }
 /** A WhatsApp message added during the demo: by the team, by the auto-reply, or by the buyer (scripted). */
-export type ChatEntry = { from: 'agent' | 'auto' | 'buyer'; text: string; at: string; template?: string; /** Listings sent with the message (spec §8.11). */ propertyIds?: number[] }
+export type ChatEntry = {
+  from: 'agent' | 'auto' | 'buyer'; text: string; at: string; template?: string
+  /** Listings sent with the message (spec §8.11). */
+  propertyIds?: number[]
+  /** M14 launch broadcasts: WhatsApp ticks (🎭) and the launch it belongs to. */
+  delivery?: 'sent' | 'delivered' | 'read' | 'failed'
+  launchId?: number
+}
+/** A buyer's reply that arrived during the demo (M14 launches): unread count and the inbox preview. */
+export type InboxReply = { unread: number; text: string; at: number }
 /** A listing sent to a lead on WhatsApp. `seen` flips a few seconds after sending (🎭). */
 export type PropertyShare = { propertyId: number; at: string; seen: boolean }
 export type ActivityKind = 'enquiry' | 'message' | 'assign' | 'stage' | 'visit' | 'call' | 'note' | 'profile' | 'tag' | 'merge' | 'task' | 'registration' | 'launch'
@@ -135,6 +144,7 @@ export function useDemoStore() {
   const [stageOverrides, setStageOverrides] = useLocalState<Record<number, number>>('stages', {})
   const [readLeadIds, setReadLeadIds] = useLocalState<number[]>('read-leads', [])
   const [chats, setChats] = useLocalState<Record<number, ChatEntry[]>>('chats', {})
+  const [replies, setReplies] = useLocalState<Record<number, InboxReply>>('inbox-replies', {})
   const [aiSuggestions, setAiSuggestions] = useLocalState<Record<number, Partial<LeadProfileEdit>>>('ai-suggestions', {})
   const [qualifySteps, setQualifySteps] = useLocalState<Record<number, number>>('qualify-steps', {})
   const [tasks, setTasks] = useLocalState<Task[]>('tasks', SEED_TASKS)
@@ -162,19 +172,24 @@ export function useDemoStore() {
   // ---------- Leads ----------
   const allLeads: Lead[] = useMemo(
     () => [...addedLeads, ...SEED_LEADS].map((lead) => {
-      const unread = readLeadIds.includes(lead.id) ? 0 : lead.unread
+      // A reply during the demo (M14 launches) brings the lead back to the top of the inbox as unread.
+      const reply = replies[lead.id]
+      const unread = reply ? reply.unread : readLeadIds.includes(lead.id) ? 0 : lead.unread
       return {
         ...lead,
         ...leadEdits[lead.id],
         unread,
+        inboxPreview: reply?.text,
+        inboxMinutesAgo: reply ? 0 : undefined,
+        repliedAt: reply?.at,
         ownerId: lead.id in ownerOverrides ? ownerOverrides[lead.id] : lead.ownerId,
         stage: stageOverrides[lead.id] ?? lead.initialStage,
         visitScheduled: visits.some((visit) => visit.leadId === lead.id && isOpenVisit(visit)),
-        overdue: unread > 0 && lead.minutesAgo > RESPONSE_SLA_MINUTES,
+        overdue: unread > 0 && (reply ? 0 : lead.minutesAgo) > RESPONSE_SLA_MINUTES,
         closed: closures[lead.id],
       }
-    }),
-    [addedLeads, closures, leadEdits, ownerOverrides, readLeadIds, stageOverrides, visits],
+    }).sort((a, b) => (b.repliedAt ?? 0) - (a.repliedAt ?? 0)),
+    [addedLeads, closures, leadEdits, ownerOverrides, readLeadIds, replies, stageOverrides, visits],
   )
   const leads = allLeads.filter((lead) => canSeeLead(viewer, lead.ownerId, members))
   const visibleIds = new Set(leads.map((lead) => lead.id))
@@ -332,8 +347,23 @@ export function useDemoStore() {
   }
 
 
+  // ---------- Chat helpers for M14 launch broadcasts ----------
+  /** Adds a message to a lead's chat (used for launch messages, which carry WhatsApp ticks). */
+  function postChat(leadId: number, entry: ChatEntry) {
+    setChats((current) => ({ ...current, [leadId]: [...(current[leadId] ?? []), entry] }))
+  }
+  /** Updates the delivery ticks of a launch message in a lead's chat. */
+  function setLaunchDelivery(leadId: number, launchId: number, delivery: NonNullable<ChatEntry['delivery']>) {
+    setChats((current) => ({ ...current, [leadId]: (current[leadId] ?? []).map((entry) => (entry.launchId === launchId ? { ...entry, delivery } : entry)) }))
+  }
+  /** A buyer replies: the message lands in their chat and the lead goes to the top of the inbox, unread. */
+  function receiveReply(leadId: number, text: string) {
+    setChats((current) => ({ ...current, [leadId]: [...(current[leadId] ?? []), { from: 'buyer', text, at: clockLabel() }] }))
+    setReplies((current) => ({ ...current, [leadId]: { unread: (current[leadId]?.unread ?? 0) + 1, text, at: Date.now() } }))
+  }
+
   // ---------- M14 · Channel partner (spec §8.17): bookings, receivables, registrations, launches ----------
-  const cp = useChannelPartner({ viewer, viewerCan, members, findMember, nameOf, log, pushNotification, recordAudit, approversFor, allLeads, leads })
+  const cp = useChannelPartner({ viewer, viewerCan, members, findMember, nameOf, log, pushNotification, recordAudit, approversFor, allLeads, leads, postChat, setLaunchDelivery, receiveReply })
   return {
     /** M14 · Channel partner (see state/channelPartner.ts). */
     cp,
@@ -555,7 +585,10 @@ export function useDemoStore() {
       setMemberStatus((current) => ({ ...current, [memberId]: 'active' }))
       recordAudit('team', `Reactivated ${findMember(memberId)?.name}`)
     },
-    markRead: (leadId: number) => setReadLeadIds((current) => (current.includes(leadId) ? current : [...current, leadId])),
+    markRead: (leadId: number) => {
+      setReadLeadIds((current) => (current.includes(leadId) ? current : [...current, leadId]))
+      setReplies((current) => (current[leadId]?.unread ? { ...current, [leadId]: { ...current[leadId], unread: 0 } } : current))
+    },
     moveToNextStage: (leadId: number) => {
       const lead = findLead(leadId)
       if (!lead) return

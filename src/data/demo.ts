@@ -52,6 +52,10 @@ export type LeadSeed = {
   addedInDemo?: boolean
   /** True for leads that arrived from a source during the demo; the chat shows only their enquiry. */
   freshEnquiry?: boolean
+  /** M14: set while a reply that arrived in the demo is unread (inbox preview text, shown as just now). */
+  inboxPreview?: string
+  inboxMinutesAgo?: number
+  repliedAt?: number
   /** Demo arrivals: what the buyer will answer to the auto-qualification questions. */
   answers?: { budget: string; budgetCr: number; moveIn: string }
 }

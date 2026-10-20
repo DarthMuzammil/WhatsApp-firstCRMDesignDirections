@@ -26,7 +26,7 @@ import { ScheduleVisitDialog } from '../modals/ScheduleVisitDialog'
 import { TemplateDialog } from '../modals/TemplateDialog'
 import { QUALIFICATION_QUESTIONS } from '../data/templates'
 import { draftReplies, leadScore } from '../lib/ai'
-import { SYSTEM_ID, type DemoStore } from '../state/useDemoStore'
+import { SYSTEM_ID, type ChatEntry, type DemoStore } from '../state/useDemoStore'
 import './ChatView.css'
 
 type ChatViewProps = {
@@ -249,7 +249,7 @@ function ChatPanel({ lead, store, actions, onBack, onCall, onShowDetails }: Chat
             {entry.template && <span className="message-tag">Template · {entry.template}</span>}
             {entry.text}
             {entry.propertyIds && <span className="message-cards">{entry.propertyIds.map(store.findProperty).filter((item) => !!item).map((item) => <PropertyCard key={item.id} property={item} />)}</span>}
-            <time>{entry.at}{entry.from !== 'buyer' && <> <Icon name="check" size={12} /></>}{entry.propertyIds?.every((id) => shares.find((share) => share.propertyId === id)?.seen) && <span className="message-seen">Seen</span>}</time>
+            <time>{entry.at}{entry.delivery ? <DeliveryTicks state={entry.delivery} /> : entry.from !== 'buyer' && <> <Icon name="check" size={12} /></>}{entry.propertyIds?.every((id) => shares.find((share) => share.propertyId === id)?.seen) && <span className="message-seen">Seen</span>}</time>
           </div>
         ))}
         {qualifying && !qualifyDone && <p className="chat-typing" aria-live="polite">Auto-qualifying… {Math.floor(step / 2) + 1} of {QUALIFICATION_QUESTIONS.length}</p>}
@@ -416,6 +416,17 @@ function LeadOverview({ lead, store, actions, onAssign, onEdit, onDeal, onRegist
     <span className="eyebrow lead-detail-label">Tags</span>
     <div className="lead-detail-tags"><LeadTags tags={store.tagsFor(lead.id)} onToggle={(tag) => store.toggleTag(lead.id, tag)} /></div>
   </>
+}
+
+/** WhatsApp ticks for launch messages (🎭), with a text label: ✓ sent, ✓✓ delivered, blue ✓✓ read, or not delivered. */
+function DeliveryTicks({ state }: { state: NonNullable<ChatEntry['delivery']> }) {
+  if (state === 'failed') return <span className="delivery failed">Not delivered · not on WhatsApp</span>
+  return (
+    <span className={`delivery ${state}`}>
+      <span className="ticks" aria-hidden="true"><Icon name="check" size={12} />{state !== 'sent' && <Icon name="check" size={12} />}</span>
+      {state === 'sent' ? 'Sent' : state === 'delivered' ? 'Delivered' : 'Read'}
+    </span>
+  )
 }
 
 /** AI lead score with plain-language reasons (spec §8.13, demo heuristic). */

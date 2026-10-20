@@ -15,7 +15,7 @@ const CLOSED = STAGES.length // index of the extra "Closed" column
 /**
  * Deal pipeline (spec §8.10).
  * - Desktop: five columns (four open stages + Closed) of compact cards, moved by drag and drop only.
- *   Dropping on Closed offers Won / Lost; dragging a closed card back to a stage reopens it there.
+ *   Closed always shows a Won and a Lost drop target (lit up while a card is dragged); dragging a closed card back to a stage reopens it there.
  *   The move buttons are hidden, but appear when a card is reached with the keyboard.
  * - Tablet (touch): the same columns in a two-column grid, with move buttons on every card.
  * - Phone: stage tabs, one stage's cards at a time; opens on the first stage that has deals.
@@ -114,7 +114,8 @@ export function PipelineView({ store, onOpenLead, notify }: { store: DemoStore; 
               onDrop={(event) => drop(event, index)}
             >
               <header><div><i className={`stage-dot stage-${index}`} /><strong>{stage}</strong></div><b className="count-badge neutral">{columnLeads.length}</b></header>
-              {index === CLOSED && closing && (
+              {/* Desktop: Won and Lost drop targets, always shown (so it's clear where to close a deal), lit up while dragging. */}
+              {index === CLOSED && (
                 <div className="close-zones">
                   {(['won', 'lost'] as const).map((result) => (
                     <div
@@ -126,7 +127,7 @@ export function PipelineView({ store, onOpenLead, notify }: { store: DemoStore; 
                     >
                       <Icon name={result === 'won' ? 'check' : 'close'} size={18} />
                       <strong>{result === 'won' ? 'Won' : 'Lost'}</strong>
-                      <small>{result === 'won' ? 'Record the agreed price' : 'Pick a reason'}</small>
+                      <small>{closing ? (result === 'won' ? 'Record the agreed price' : 'Pick a reason') : 'Drop a deal here'}</small>
                     </div>
                   ))}
                 </div>

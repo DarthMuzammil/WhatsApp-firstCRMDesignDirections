@@ -46,12 +46,16 @@
 /* Desktop: compact cards, moved by drag and drop. Move buttons only show when a card is reached by keyboard. */
 .pipeline-hint-touch { display: none; }
 .close-zones { margin-bottom: var(--space-2); display: flex; flex-direction: column; gap: var(--space-2); }
-.close-zone { height: 96px; border: 2px dashed var(--success); border-radius: var(--radius-md); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-half); color: var(--success-ink); background: var(--success-soft); font-size: var(--fs-caption); transition: transform .12s ease, border-color .12s ease; }
+.close-zone { height: 72px; border: 2px dashed var(--border-strong); border-radius: var(--radius-md); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-half); color: var(--muted); background: var(--surface); font-size: var(--fs-caption); transition: transform .12s ease, border-color .12s ease, background .12s ease; }
+/* While a card is dragged: green Won, red Lost. */
+.is-closing .close-zone.won { border-color: var(--success); color: var(--success-ink); background: var(--success-soft); }
 .close-zone strong { font-size: var(--fs-body); }
-.close-zone small { color: inherit; opacity: .85; }
-.close-zone.lost { border-color: var(--danger); color: var(--danger-text); background: var(--danger-soft); }
+.close-zone small { color: inherit; opacity: .85; font-size: var(--fs-meta); }
+.is-closing .close-zone.lost { border-color: var(--danger); color: var(--danger-text); background: var(--danger-soft); }
 .close-zone.drag-over { border-style: solid; border-color: currentColor; transform: scale(1.02); }
-.pipeline-stage.is-closing .pipeline-empty { display: none; }
+@media (min-width: 1101px) {
+  .pipeline-stage.is-closed .pipeline-empty { display: none; }
+}
 
 @media (min-width: 1101px) {
   .pipeline-board { grid-template-columns: repeat(4, minmax(0, 1fr)) minmax(0, .85fr); align-items: stretch; }
