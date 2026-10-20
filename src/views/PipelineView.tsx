@@ -14,10 +14,11 @@ const CLOSED = STAGES.length // index of the extra "Closed" column
 
 /**
  * Deal pipeline (spec §8.10).
- * - Desktop: five columns (four open stages + Closed); cards can be dragged between open stages.
- * - Tablet: the same columns in a two-column grid.
+ * - Desktop: five columns (four open stages + Closed) of compact cards, moved by drag and drop only.
+ *   Dropping on Closed offers Won / Lost; dragging a closed card back to a stage reopens it there.
+ *   The move buttons are hidden, but appear when a card is reached with the keyboard.
+ * - Tablet (touch): the same columns in a two-column grid, with move buttons on every card.
  * - Phone: stage tabs, one stage's cards at a time; opens on the first stage that has deals.
- * Every move also has a button (forward, back, won, lost), so nothing depends on dragging.
  */
 export function PipelineView({ store, onOpenLead, notify }: { store: DemoStore; onOpenLead: (lead: Lead) => void; notify: (message: string) => void }) {
   const [hotOnly, setHotOnly] = useState(false)
@@ -26,7 +27,8 @@ export function PipelineView({ store, onOpenLead, notify }: { store: DemoStore; 
   const [phoneStage, setPhoneStage] = useState(() => Math.max(0, [0, 1, 2, 3].findIndex((column) => leadsInColumn(column).length > 0)))
   const [winning, setWinning] = useState<Lead | null>(null)
   const [losing, setLosing] = useState<Lead | null>(null)
-  const [dragOver, setDragOver] = useState<number | null>(null)
+  const [dragOver, setDragOver] = useState<number | 'won' | 'lost' | null>(null)
+  const [dragging, setDragging] = useState<Lead | null>(null)
   const seesOthers = store.viewerCan('seeTeamLeads')
   const columns = [...STAGES, 'Closed']
 
@@ -38,14 +40,38 @@ export function PipelineView({ store, onOpenLead, notify }: { store: DemoStore; 
     store.moveToPreviousStage(lead.id)
     notify(`${lead.name} moved back to ${STAGES[lead.stage - 1]}`)
   }
+  function draggedLead(event: DragEvent) {
+    return store.findLead(Number(event.dataTransfer.getData('text/plain'))) ?? dragging
+  }
+  function endDrag() {
+    setDragOver(null)
+    setDragging(null)
+  }
   function drop(event: DragEvent, column: number) {
     event.preventDefault()
-    setDragOver(null)
-    const lead = store.findLead(Number(event.dataTransfer.getData('text/plain')))
-    if (!lead || lead.closed || column === CLOSED || lead.stage === column) return
+    const lead = draggedLead(event)
+    endDrag()
+    if (!lead || column === CLOSED) return
+    if (lead.closed) {
+      store.reopenLead(lead.id)
+      store.setStage(lead.id, column)
+      notify(`${lead.name} reopened in ${STAGES[column]}`)
+      return
+    }
+    if (lead.stage === column) return
     store.setStage(lead.id, column)
     notify(`${lead.name} moved to ${STAGES[column]}`)
   }
+  function dropToClose(event: DragEvent, result: 'won' | 'lost') {
+    event.preventDefault()
+    event.stopPropagation()
+    const lead = draggedLead(event)
+    endDrag()
+    if (!lead || lead.closed) return
+    if (result === 'won') setWinning(lead)
+    else setLosing(lead)
+  }
+  const closing = !!dragging && !dragging.closed
 
   return (
     <section className="pipeline-view">
@@ -53,7 +79,8 @@ export function PipelineView({ store, onOpenLead, notify }: { store: DemoStore; 
         <div>
           <span className="eyebrow">{formatCrore(store.activeValueCr)} active value</span>
           <h1>Your deal pipeline</h1>
-          <p>Move every buyer towards the right home, one clear step at a time. On desktop you can drag cards between stages.</p>
+          <p className="pipeline-hint-drag">Drag a card to move it to another stage. Drop it on Closed to mark the deal won or lost.</p>
+          <p className="pipeline-hint-touch">Move every buyer towards the right home, one clear step at a time.</p>
         </div>
         <button className={`btn btn-secondary ${hotOnly ? 'active' : ''}`} aria-pressed={hotOnly} onClick={() => setHotOnly(!hotOnly)}>
           <Icon name="filter" /> {hotOnly ? 'Showing hot leads' : 'Hot leads only'}
@@ -80,13 +107,30 @@ export function PipelineView({ store, onOpenLead, notify }: { store: DemoStore; 
           return (
             <section
               key={stage}
-              className={`pipeline-stage ${phoneStage === index ? 'phone-visible' : ''} ${dragOver === index ? 'drag-over' : ''} ${index === CLOSED ? 'is-closed' : ''}`}
+              className={`pipeline-stage ${phoneStage === index ? 'phone-visible' : ''} ${dragOver === index ? 'drag-over' : ''} ${index === CLOSED ? 'is-closed' : ''} ${index === CLOSED && closing ? 'is-closing' : ''}`}
               aria-label={stage}
               onDragOver={(event) => { if (index !== CLOSED) { event.preventDefault(); setDragOver(index) } }}
               onDragLeave={() => setDragOver(null)}
               onDrop={(event) => drop(event, index)}
             >
               <header><div><i className={`stage-dot stage-${index}`} /><strong>{stage}</strong></div><b className="count-badge neutral">{columnLeads.length}</b></header>
+              {index === CLOSED && closing && (
+                <div className="close-zones">
+                  {(['won', 'lost'] as const).map((result) => (
+                    <div
+                      key={result}
+                      className={`close-zone ${result} ${dragOver === result ? 'drag-over' : ''}`}
+                      onDragOver={(event) => { event.preventDefault(); event.stopPropagation(); setDragOver(result) }}
+                      onDragLeave={() => setDragOver(null)}
+                      onDrop={(event) => dropToClose(event, result)}
+                    >
+                      <Icon name={result === 'won' ? 'check' : 'close'} size={18} />
+                      <strong>{result === 'won' ? 'Won' : 'Lost'}</strong>
+                      <small>{result === 'won' ? 'Record the agreed price' : 'Pick a reason'}</small>
+                    </div>
+                  ))}
+                </div>
+              )}
               <div className="pipeline-cards">
                 {columnLeads.map((lead) => {
                   const deal = store.dealFor(lead.id)
@@ -95,13 +139,16 @@ export function PipelineView({ store, onOpenLead, notify }: { store: DemoStore; 
                   return (
                     <article
                       key={lead.id}
-                      className={`deal-card ${lead.closed ? `closed-${lead.closed.result}` : ''}`}
-                      draggable={!lead.closed}
-                      onDragStart={(event) => event.dataTransfer.setData('text/plain', String(lead.id))}
+                      className={`deal-card ${lead.closed ? `closed-${lead.closed.result}` : ''} ${dragging?.id === lead.id ? 'is-dragging' : ''}`}
+                      draggable
+                      title={lead.closed ? 'Drag to a stage to reopen' : 'Drag to move · click to open the chat'}
+                      onDragStart={(event) => { event.dataTransfer.setData('text/plain', String(lead.id)); event.dataTransfer.effectAllowed = 'move'; setDragging(lead) }}
+                      onDragEnd={endDrag}
+                      onClick={(event) => { if (!(event.target as HTMLElement).closest('button')) onOpenLead(lead) }}
                     >
                       <button className="deal-person" onClick={() => onOpenLead(lead)}>
                         <LeadAvatar lead={lead} size="sm" />
-                        <span><strong>{lead.name}</strong><small>{lead.need}{seesOthers ? ` · ${lead.ownerId ? shortName(store.findMember(lead.ownerId)?.name ?? '') : 'Unassigned'}` : ''}</small></span>
+                        <span><strong>{lead.name}</strong><small>{seesOthers ? `${lead.ownerId ? shortName(store.findMember(lead.ownerId)?.name ?? '') : 'Unassigned'} · ` : ''}{lead.need}</small></span>
                         <Icon name="chevron" size={16} />
                       </button>
                       {lead.closed ? (
@@ -110,12 +157,14 @@ export function PipelineView({ store, onOpenLead, notify }: { store: DemoStore; 
                           {lead.closed.result === 'won' ? `Won${deal?.agreedCr ? ` at ₹${deal.agreedCr} Cr` : ''}` : `Lost · ${lead.closed.reason}`}
                         </p>
                       ) : <>
-                        <div className="deal-budget"><span>{offer ? `Offer · ${dayLabel(offer.day)}` : 'Budget'}</span><strong>{offer ? `₹${offer.amountCr} Cr` : lead.budget}</strong></div>
+                        <div className="deal-budget">
+                          <span><strong>{offer ? `₹${offer.amountCr} Cr` : lead.budget}</strong>{offer ? <small>Offer · {dayLabel(offer.day)}</small> : <small className="deal-budget-label">Budget</small>}</span>
+                          <HeatBadge temp={lead.temp} />
+                        </div>
                         {staleDays !== null && <span className="lead-flag warning deal-stale-flag">No new offer in {staleDays} days</span>}
                         <p className="deal-message"><Icon name="whatsapp" size={14} />{lead.message}</p>
                       </>}
                       <footer>
-                        <HeatBadge temp={lead.temp} />
                         <span className="deal-buttons">
                           {lead.closed
                             ? <button className="deal-advance" onClick={() => { store.reopenLead(lead.id); notify(`${lead.name} reopened`) }}>Reopen</button>
