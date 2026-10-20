@@ -32,6 +32,10 @@ Daira is a clickable client-demo prototype of a WhatsApp-first CRM for independe
 - `src/views/` - One file per screen: `TodayView`, `ChatView` (chat + lead detail panel), `PipelineView`, `PropertiesView`, `FollowUpsView`, `CallsView`, `VisitsView`, `AttendanceView`, `ReportsView`, `EscalationsView`, `LeadSourcesView`, `TeamView`, `SettingsView`, `AuditView`.
 - `src/modals/` - `AddLeadModal`, `EditLeadDialog`, `ScheduleVisitDialog`, `TemplateDialog`, `AssignDialog` (shared people picker), `DealDialog` (offer + split, `LostDialog`), `PropertyDialog`, `ShareDialog` (share listings on WhatsApp), `CallPicker`, `CallModal`.
 
+## Deployment
+
+Every push to `main` publishes the demo to GitHub Pages (https://darthmuzammil.github.io/WhatsApp-firstCRMDesignDirections/) via `.github/workflows/deploy-pages.yml`. The site sits under `/<repo>/`, so never hard-code root-relative asset paths (`/foo.png`); import assets or use `import.meta.env.BASE_URL`. Saved demo data is per browser (localStorage), so each person who opens the link gets their own copy.
+
 ## Product spec (required)
 
 `PRODUCT_SPEC.md` describes what the prototype does right now. **Any change to features, workflows, screens, seed data, saved state or UI copy must update `PRODUCT_SPEC.md` in the same commit**, including a dated line in its Changelog (§9). If the code and the spec disagree, fix whichever is wrong before finishing. Read the spec before changing behaviour so you don't break a documented workflow.
