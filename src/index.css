@@ -177,6 +177,8 @@ h1, h2, h3 { font-weight: 700; }
 .lead-flag.danger { color: var(--danger-text); background: var(--danger-soft); }
 .lead-flag.warning { color: var(--warning-ink); background: var(--warning-soft); }
 .lead-flag.shared { padding: 1px var(--space-2); border: 1px solid var(--danger-soft); color: var(--danger-text); background: transparent; }
+.lead-flag.won { color: var(--success-ink); background: var(--success-soft); }
+.lead-flag.closed { color: var(--ink-soft); background: var(--surface-sunken); }
 
 /* Round icon-only button */
 .icon-button { width: 40px; height: 40px; flex: 0 0 auto; padding: 0; border: 0; border-radius: 50%; display: grid; place-items: center; color: var(--muted); background: transparent; }

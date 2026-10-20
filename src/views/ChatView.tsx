@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { STAGES, STAGE_SHORT_LABELS, firstName, matchPropertyForLead, relativeMinutes, type Lead } from '../data/demo'
-import { roleSummary } from '../data/team'
+import { DOC_LABELS, type DealDocs } from '../data/deals'
+import { roleSummary, shortName } from '../data/team'
 import { Avatar, LeadAvatar } from '../components/Avatar'
 import { Dialog } from '../components/Dialog'
 import { HeatBadge } from '../components/HeatBadge'
@@ -13,6 +14,7 @@ import { PropertyCard } from '../components/PropertyCard'
 import type { View } from '../components/navigation'
 import { AssignDialog } from '../modals/AssignDialog'
 import { EditLeadDialog } from '../modals/EditLeadDialog'
+import { DealDialog, LostDialog } from '../modals/DealDialog'
 import { ScheduleVisitDialog } from '../modals/ScheduleVisitDialog'
 import { TemplateDialog } from '../modals/TemplateDialog'
 import { QUALIFICATION_QUESTIONS, SERVICE_WINDOW_MINUTES } from '../data/templates'
@@ -39,6 +41,7 @@ export function ChatView({ lead, store, onBack, onCall, onNavigate, notify }: Ch
   const [assignMode, setAssignMode] = useState<'reassign' | 'handoff' | null>(null)
   const [editing, setEditing] = useState(false)
   const [scheduling, setScheduling] = useState(false)
+  const [dealMode, setDealMode] = useState<'edit' | 'win' | 'lost' | null>(null)
   const actions: LeadActionHandlers = {
     shareShortlist: () => {
       store.sendMessage(lead.id, `Sharing 3 homes that match your brief for a ${lead.need}. Let me know which ones you’d like to see.`)
@@ -51,15 +54,21 @@ export function ChatView({ lead, store, onBack, onCall, onNavigate, notify }: Ch
   return (
     <div className="chat-layout">
       <ChatPanel lead={lead} store={store} actions={actions} onBack={onBack} onCall={() => onCall(lead)} onShowDetails={() => setDetailsOpen(true)} />
-      <aside className="lead-detail"><LeadDetails lead={lead} store={store} actions={actions} onAssign={setAssignMode} onEdit={() => setEditing(true)} /></aside>
+      <aside className="lead-detail"><LeadDetails lead={lead} store={store} actions={actions} onAssign={setAssignMode} onEdit={() => setEditing(true)} onDeal={setDealMode} /></aside>
       {detailsOpen && (
         <Dialog label={`${lead.name} details`} variant="sheet" onClose={() => setDetailsOpen(false)}>
           <header className="lead-detail-sheet-head">
             <strong>Lead details</strong>
             <button className="icon-button bordered" onClick={() => setDetailsOpen(false)} aria-label="Close"><Icon name="close" /></button>
           </header>
-          <div className="lead-detail-sheet-body dialog-scroll"><LeadDetails lead={lead} store={store} actions={actions} onAssign={(mode) => { setDetailsOpen(false); setAssignMode(mode) }} onEdit={() => { setDetailsOpen(false); setEditing(true) }} /></div>
+          <div className="lead-detail-sheet-body dialog-scroll"><LeadDetails lead={lead} store={store} actions={actions} onAssign={(mode) => { setDetailsOpen(false); setAssignMode(mode) }} onEdit={() => { setDetailsOpen(false); setEditing(true) }} onDeal={(mode) => { setDetailsOpen(false); setDealMode(mode) }} /></div>
         </Dialog>
+      )}
+      {(dealMode === 'edit' || dealMode === 'win') && (
+        <DealDialog lead={lead} store={store} mode={dealMode} onClose={() => setDealMode(null)} onSaved={(message) => { setDealMode(null); notify(message) }} />
+      )}
+      {dealMode === 'lost' && (
+        <LostDialog lead={lead} onClose={() => setDealMode(null)} onConfirm={(reason) => { store.closeLead(lead.id, { result: 'lost', reason }); setDealMode(null); notify(`${lead.name} marked lost`) }} />
       )}
       {scheduling && (
         <ScheduleVisitDialog
@@ -277,11 +286,12 @@ type LeadDetailsProps = {
   actions: LeadActionHandlers
   onAssign: (mode: 'reassign' | 'handoff') => void
   onEdit: () => void
+  onDeal: (mode: 'edit' | 'win' | 'lost') => void
 }
 type DetailsTab = 'overview' | 'timeline' | 'notes'
 
 /** Everything about a lead, in three tabs. Rendered in the desktop side panel and in the phone details sheet. */
-function LeadDetails({ lead, store, actions, onAssign, onEdit }: LeadDetailsProps) {
+function LeadDetails({ lead, store, actions, onAssign, onEdit, onDeal }: LeadDetailsProps) {
   const [tab, setTab] = useState<DetailsTab>('overview')
   const notes = store.notesFor(lead.id)
   const timeline = store.timelineFor(lead.id)
@@ -294,13 +304,13 @@ function LeadDetails({ lead, store, actions, onAssign, onEdit }: LeadDetailsProp
     <div className="segmented lead-detail-tabs" role="tablist" aria-label="Lead details">
       {tabs.map((item) => <button key={item.id} role="tab" aria-selected={tab === item.id} className={tab === item.id ? 'active' : ''} onClick={() => setTab(item.id)}>{item.label}</button>)}
     </div>
-    {tab === 'overview' && <LeadOverview lead={lead} store={store} actions={actions} onAssign={onAssign} onEdit={onEdit} />}
+    {tab === 'overview' && <LeadOverview lead={lead} store={store} actions={actions} onAssign={onAssign} onEdit={onEdit} onDeal={onDeal} />}
     {tab === 'timeline' && <LeadTimeline events={timeline} findMember={store.findMember} />}
     {tab === 'notes' && <LeadNotes notes={notes} onAdd={(text) => store.addNote(lead.id, text)} findMember={store.findMember} />}
   </>
 }
 
-function LeadOverview({ lead, store, actions, onAssign, onEdit }: LeadDetailsProps) {
+function LeadOverview({ lead, store, actions, onAssign, onEdit, onDeal }: LeadDetailsProps) {
   const property = matchPropertyForLead(lead)
   const owner = store.findMember(lead.ownerId)
   const canReassign = store.viewerCan('reassignLeads')
@@ -331,7 +341,7 @@ function LeadOverview({ lead, store, actions, onAssign, onEdit }: LeadDetailsPro
     )}
 
     <div className="lead-detail-heading">
-      <div><span className="eyebrow">{STAGES[lead.stage]}</span><h2>{lead.budget}</h2><p>{lead.need}</p></div>
+      <div><span className="eyebrow">{lead.closed ? (lead.closed.result === 'won' ? 'Won' : 'Lost') : STAGES[lead.stage]}</span><h2>{lead.budget}</h2><p>{lead.need}</p></div>
       <HeatBadge temp={lead.temp} />
     </div>
 
@@ -347,8 +357,10 @@ function LeadOverview({ lead, store, actions, onAssign, onEdit }: LeadDetailsPro
       ))}
     </ol>
 
+    {(lead.stage >= 3 || lead.closed || store.dealFor(lead.id)) && <DealPanel lead={lead} store={store} onDeal={onDeal} />}
+
     <div className="buyer-brief">
-      <header><strong>Buyer brief</strong><button className="brief-edit" onClick={onEdit}><Icon name="spark" size={14} /> Edit</button></header>
+      <header><strong>Buyer brief</strong><button className="brief-edit" onClick={onEdit}><Icon name="edit" size={14} /> Edit</button></header>
       <AiSuggestions lead={lead} store={store} />
       <div><span>Purpose</span><strong>{lead.purpose ?? (lead.moveIn === 'Investment' ? 'Investment' : 'Live-in')}</strong></div>
       <div><span>Localities</span><strong>{(lead.localities ?? [lead.locality]).join(', ')}</strong></div>
@@ -398,6 +410,45 @@ function AiSuggestions({ lead, store }: { lead: Lead; store: DemoStore }) {
       <footer>
         <button className="btn btn-secondary" onClick={() => store.dismissSuggestions(lead.id)}>Dismiss</button>
         <button className="btn btn-primary" onClick={() => store.acceptSuggestions(lead.id)}><Icon name="check" size={16} /> Accept</button>
+      </footer>
+    </div>
+  )
+}
+
+/** Offer tracker, documents and commission split for a lead in negotiation or closed (spec §8.10). */
+function DealPanel({ lead, store, onDeal }: { lead: Lead; store: DemoStore; onDeal: (mode: 'edit' | 'win' | 'lost') => void }) {
+  const deal = store.dealFor(lead.id)
+  const crore = (value?: number) => (value ? `₹${value} Cr` : '—')
+  return (
+    <div className="deal-panel">
+      <header>
+        <strong>Deal</strong>
+        {lead.closed && <span className={`deal-status ${lead.closed.result}`}>{lead.closed.result === 'won' ? 'Won' : `Lost · ${lead.closed.reason}`}</span>}
+        {!lead.closed && <button className="brief-edit" onClick={() => onDeal('edit')}><Icon name="edit" size={14} /> {deal ? 'Edit' : 'Add offer'}</button>}
+      </header>
+      {deal ? <>
+        <div><span>Asking</span><strong>{crore(deal.askedCr)}</strong></div>
+        <div><span>Buyer’s offer</span><strong>{crore(deal.offeredCr)}</strong></div>
+        <div><span>Agreed</span><strong>{crore(deal.agreedCr)}</strong></div>
+        <div><span>Token</span><strong>{deal.tokenL ? `₹${deal.tokenL} L` : '—'}</strong></div>
+        <div><span>Commission split</span><strong>{deal.split.map((share) => `${shortName(store.findMember(share.memberId)?.name ?? '')} ${share.pct}%`).join(' · ')}</strong></div>
+        <ul className="deal-docs" aria-label="Documents">
+          {(Object.keys(DOC_LABELS) as (keyof DealDocs)[]).map((doc) => (
+            <li key={doc}>
+              <button className={deal.docs[doc] ? 'done' : ''} aria-pressed={deal.docs[doc]} onClick={() => store.toggleDealDoc(lead.id, doc)} disabled={!!lead.closed}>
+                <span className="deal-doc-box">{deal.docs[doc] && <Icon name="check" size={12} />}</span>{DOC_LABELS[doc]}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </> : <p className="deal-empty">No offer recorded yet.</p>}
+      <footer>
+        {lead.closed
+          ? <button className="btn btn-secondary" onClick={() => store.reopenLead(lead.id)}>Reopen deal</button>
+          : lead.stage >= 3 && <>
+              <button className="btn btn-secondary" onClick={() => onDeal('lost')}>Mark lost</button>
+              <button className="btn btn-primary" onClick={() => onDeal('win')}><Icon name="check" size={16} /> Mark won</button>
+            </>}
       </footer>
     </div>
   )

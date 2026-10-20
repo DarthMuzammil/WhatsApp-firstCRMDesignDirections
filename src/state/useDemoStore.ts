@@ -8,6 +8,7 @@ import { LEAVE_ALLOWANCE, SEED_LEAVE, coversDay, leaveDays, seedLeaveUsed, type 
 import { INCOMING_LEAD_TEMPLATES, LEAD_SOURCES, findSource } from '../data/sources'
 import { DEFAULT_VIEWER_ID, SEED_MEMBERS, TEAMS, type Member, type MemberStatus, type TeamId } from '../data/team'
 import { MAX_ACCURACY_M, OFFICES, SEED_VISITS, formatDistance, slotMinutes, type Office, type Visit, type VisitOutcome } from '../data/visits'
+import { DOC_LABELS, SEED_DEALS, type Closure, type Deal } from '../data/deals'
 import { DEFAULT_AUTO_REPLY } from '../data/templates'
 import { callSummary } from '../lib/ai'
 import { clockLabel, dayLabel, formatDuration, maskPhone } from '../lib/format'
@@ -101,6 +102,8 @@ export function useDemoStore() {
   const [addedLeads, setAddedLeads] = useLocalState<LeadSeed[]>('added-leads', [])
   const [ownerOverrides, setOwnerOverrides] = useLocalState<Record<number, string | null>>('owners', {})
   const [assignments, setAssignments] = useLocalState<Assignment[]>('assignments', [])
+  const [deals, setDeals] = useLocalState<Record<number, Deal>>('deals', SEED_DEALS)
+  const [closures, setClosures] = useLocalState<Record<number, Closure>>('closures', {})
   const [leadEdits, setLeadEdits] = useLocalState<Record<number, LeadProfileEdit>>('lead-edits', {})
   const [notes, setNotes] = useLocalState<Record<number, Note[]>>('notes', {})
   const [tags, setTags] = useLocalState<Record<number, string[]>>('tags', {})
@@ -141,9 +144,10 @@ export function useDemoStore() {
         stage: stageOverrides[lead.id] ?? lead.initialStage,
         visitScheduled: visits.some((visit) => visit.leadId === lead.id && isOpenVisit(visit)),
         overdue: unread > 0 && lead.minutesAgo > RESPONSE_SLA_MINUTES,
+        closed: closures[lead.id],
       }
     }),
-    [addedLeads, leadEdits, ownerOverrides, readLeadIds, stageOverrides, visits],
+    [addedLeads, closures, leadEdits, ownerOverrides, readLeadIds, stageOverrides, visits],
   )
   const leads = allLeads.filter((lead) => canSeeLead(viewer, lead.ownerId, members))
   const visibleIds = new Set(leads.map((lead) => lead.id))
@@ -216,8 +220,9 @@ export function useDemoStore() {
   const unreadTotal = leads.reduce((sum, lead) => sum + lead.unread, 0)
   const leadsAwaitingReply = leads.filter((lead) => lead.unread > 0).length
   const escalations = leads.filter((lead) => lead.overdue || lead.ownerId === null)
-  const activeValueCr = leads.reduce((sum, lead) => sum + lead.budgetCr, 0)
-  const weightedCommissionCr = leads.reduce((sum, lead) => sum + lead.budgetCr * COMMISSION_RATE * STAGE_CLOSE_PROBABILITY[lead.stage], 0)
+  const openLeads = leads.filter((lead) => !lead.closed)
+  const activeValueCr = openLeads.reduce((sum, lead) => sum + lead.budgetCr, 0)
+  const weightedCommissionCr = openLeads.reduce((sum, lead) => sum + lead.budgetCr * COMMISSION_RATE * STAGE_CLOSE_PROBABILITY[lead.stage], 0)
   // ---------- Visits (spec §8.6) ----------
   /** Visits the viewer may see (on visible leads, or their own), soonest first. */
   const visibleVisits: VisitView[] = visits
@@ -285,6 +290,18 @@ export function useDemoStore() {
     allLeads,
     findLead,
     assignments,
+    openLeads,
+    dealFor: (leadId: number) => deals[leadId],
+    /** Won deals with an agreed price: live commission per person from their split (spec §8.10). */
+    wonCommissionL: (memberId: string) => Object.entries(closures)
+      .filter(([, closure]) => closure.result === 'won')
+      .reduce((sum, [id]) => {
+        const deal = deals[Number(id)]
+        const share = deal?.split.find((item) => item.memberId === memberId)?.pct ?? 0
+        return sum + (deal?.agreedCr ?? 0) * 100 * COMMISSION_RATE * (share / 100)
+      }, 0),
+    wonDeals: (memberId: string) => Object.entries(closures)
+      .filter(([id, closure]) => closure.result === 'won' && deals[Number(id)]?.split.some((item) => item.memberId === memberId && item.pct >= 50)).length,
     notesFor: (leadId: number) => notes[leadId] ?? [],
     tagsFor: (leadId: number) => tags[leadId] ?? [],
     timelineFor,
@@ -369,6 +386,39 @@ export function useDemoStore() {
       return findMember(ownerId)
     },
     reassignLead: (leadId: number, toId: string, reason: string) => assign(leadId, toId, reason),
+    updateDeal: (leadId: number, deal: Deal) => {
+      setDeals((current) => ({ ...current, [leadId]: deal }))
+      log(leadId, 'stage', `Deal updated${deal.agreedCr ? `: agreed ₹${deal.agreedCr} Cr` : deal.offeredCr ? `: offer ₹${deal.offeredCr} Cr` : ''}`)
+    },
+    toggleDealDoc: (leadId: number, doc: keyof Deal['docs']) => {
+      const deal = deals[leadId]
+      if (!deal) return
+      const done = !deal.docs[doc]
+      setDeals((current) => ({ ...current, [leadId]: { ...deal, docs: { ...deal.docs, [doc]: done } } }))
+      log(leadId, 'stage', `${DOC_LABELS[doc]} ${done ? 'received' : 'marked missing'}`)
+    },
+    /** Won or lost (lost needs a reason). Won deals count towards commission and the leaderboard. */
+    closeLead: (leadId: number, closure: Closure) => {
+      setClosures((current) => ({ ...current, [leadId]: closure }))
+      log(leadId, 'stage', closure.result === 'won' ? 'Deal won' : `Deal lost: ${closure.reason}`)
+    },
+    reopenLead: (leadId: number) => {
+      setClosures((current) => { const next = { ...current }; delete next[leadId]; return next })
+      log(leadId, 'stage', 'Deal reopened')
+    },
+    moveToPreviousStage: (leadId: number) => {
+      const lead = findLead(leadId)
+      if (!lead || lead.stage === 0) return
+      setStageOverrides((current) => ({ ...current, [leadId]: lead.stage - 1 }))
+      log(leadId, 'stage', `Moved back to ${STAGES[lead.stage - 1]}`)
+    },
+    /** Drag and drop on the desktop board. */
+    setStage: (leadId: number, stage: number) => {
+      const lead = findLead(leadId)
+      if (!lead || lead.stage === stage) return
+      setStageOverrides((current) => ({ ...current, [leadId]: stage }))
+      log(leadId, 'stage', `Moved to ${STAGES[stage]}`)
+    },
     updateLeadProfile: (leadId: number, edit: LeadProfileEdit) => {
       setLeadEdits((current) => ({ ...current, [leadId]: edit }))
       log(leadId, 'profile', `Buyer brief updated: ${edit.need} · ${edit.budget}`)

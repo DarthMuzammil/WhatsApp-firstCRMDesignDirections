@@ -52,8 +52,8 @@ Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with
 - Every number and list on this screen covers only the leads the viewer may see (§3.8).
 - **Check-in reminder** ✅ for anyone who tracks attendance and hasn't checked in today: "You haven't checked in today · Work starts 9:30 AM" with **Check in** (opens Attendance).
 - **Up next card** ✅: the soonest open visit (planned, on the way or checked in) among the viewer's visits (§3.12), with "+N more visits booked". With none it says "No visits booked". **Directions** shows a toast ("Directions to … sent to your phone") 🎭. **Message** opens that lead's chat ✅.
-- **Follow-up rate 82%** 🧱 (with three lead avatars). **Active value** ✅ = sum of budget midpoints of the leads the viewer sees (Owner with seed data: ₹27.4 Cr), with the open-lead count.
-- **Lead inbox** ✅: filter *All / Hot / Warm / New*, a **source** dropdown (All sources + every source in the viewer's leads), plus search by name, requirement or locality. Subtitle counts conversations awaiting a reply. Each row: avatar (green dot if online), name, time since the last message, requirement · budget, last message, unread count, intent tag, red **Overdue** flag (unread for more than 15 min), red-outlined **Shared ×N** flag (portal lead also sent to ~N other brokers), and "via <source>". Managers and the Owner also see the **owner** ("Priya N.") or a yellow **Unassigned** flag. Tapping a row opens the chat and **marks it read** ✅. Empty state when nothing matches.
+- **Follow-up rate 82%** 🧱 (with three lead avatars). **Active value** ✅ = sum of budget midpoints of the leads the viewer sees (Owner with seed data: ₹27.4 Cr), with the open-lead count (closed leads excluded).
+- **Lead inbox** ✅: filter *All / Hot / Warm / New*, a **source** dropdown (All sources + every source in the viewer's leads), plus search by name, requirement or locality. Subtitle counts conversations awaiting a reply. Each row: avatar (green dot if online), name, time since the last message, requirement · budget, last message, unread count, intent tag, green **Won** or grey **Lost** flag on closed leads, red **Overdue** flag (unread for more than 15 min), red-outlined **Shared ×N** flag (portal lead also sent to ~N other brokers), and "via <source>". Managers and the Owner also see the **owner** ("Priya N.") or a yellow **Unassigned** flag. Tapping a row opens the chat and **marks it read** ✅. Empty state when nothing matches.
 - **Due today** ✅: up to 4 remaining follow-ups (time, title, lead). Tapping one, or **Open follow-ups**, goes to Follow-ups.
 - Desktop: inbox and Due today side by side. Tablet/phone: stacked.
 
@@ -87,6 +87,7 @@ Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with
 - **Shared-lead warning** 🎭 (portal leads only): "Also sent to ~6 brokers by 99acres. Call now to be first."
 - **Stage track** ✅ shows the lead's real stage: New / Qualified / Visit / Offer.
 - **Buyer brief** (per lead): when AI has suggestions from the chat, a "Suggested from the chat" box lists them (budget, looking for, move-in) with **Accept** (applies them and logs it) or **Dismiss**. Then purpose (Live-in / Investment), localities, move-in, must-have, phone, source. **Edit** ✅ opens a form with structured fields: Looking for (2/3/4 BHK, Villa, Plot), Purpose, budget from/up to in ₹ Cr (must be max ≥ min, otherwise Save is disabled with an error), localities (comma separated; the first is the main one), Move-in, Must-haves. Saving rebuilds the requirement and budget text everywhere (inbox, pipeline, totals) and adds a timeline entry. On phones, Edit closes the sheet and opens the form. **Phone numbers are masked** (`+91 98XXX XX018`) for Sales and Pre-sales; Managers and the Owner see full numbers.
+- **Deal** panel ✅ (leads in Negotiation, closed leads, or any lead with a recorded offer), above the buyer brief: asking, buyer's offer, agreed, token, commission split, and a **document checklist** (Buyer KYC, Token receipt, Sale agreement; tap to tick, logged on the timeline). **Edit** / **Add offer** opens the deal dialog; **Mark lost** / **Mark won** as on the pipeline. Closed leads show "Won" or "Lost · reason", the stage label reads Won/Lost, and **Reopen deal** is offered.
 - **Tags** ✅: applied tags as removable chips; **+ Tag** shows suggestions (First-time buyer, Loan needed, NRI, Investor, Urgent, Price sensitive, Repeat client) and a custom-tag field (Enter to add).
 - **Top property match** ✅: the first listing in the lead's locality, otherwise the first with the same BHK, otherwise the first listing. Budget is not used yet.
 - **Share shortlist** ✅ posts the shortlist message into the chat and shows a toast.
@@ -98,12 +99,15 @@ Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with
 *Notes tab* ✅: private team notes (not sent to the buyer). Add with the text box; each note shows author and time.
 
 ### 3.3 Pipeline
-- Stages: **New lead → Qualified → Visit planned → Negotiation**.
-- Summary: Open deals ✅, Visits planned ✅ (leads in *Visit planned*; the "Next 7 days" caption is 🧱), Likely commission ✅ = sum of budget × 2% fee × stage close probability (10% / 30% / 60% / 80%), over the leads the viewer sees.
+- Stages: **New lead → Qualified → Visit planned → Negotiation**, plus a **Closed** column for won and lost deals.
+- Summary: Open deals ✅ (with "N won · N lost"), Visits planned ✅ (open leads in *Visit planned*), Likely commission ✅ = sum of budget × 2% fee × stage close probability (10% / 30% / 60% / 80%), over the open leads the viewer sees. Closed leads are left out of active value and likely commission everywhere.
 - **Hot leads only** filter toggle ✅.
-- Deal card: person (tap → chat), requirement (Managers/Owner also see the owner or "Unassigned"), budget, last WhatsApp message, intent tag, and **Move to <next stage>** ✅ (advances one stage, toast confirms). Stages are saved locally.
-- Desktop: 4 columns. Tablet: 2 × 2 grid. Phone: **stage tabs** with counts, one stage's cards at a time.
-- Not available yet: moving back, Won/Lost stages, drag-and-drop.
+- Deal card: person (tap → chat), requirement (Managers/Owner also see the owner or "Unassigned"), budget (or the buyer's **Offer** when one is recorded), last WhatsApp message, intent tag, a **back** arrow (moves one stage back) and **Move to <next stage>** ✅. Cards in Negotiation show **Lost** and **Won** instead of Move.
+  - **Won** opens the deal dialog: asking price, buyer's offer, **agreed price (required)**, token amount (₹ L) and the **commission split** (people + %, must add up to 100%; defaults to the owner 100%, or 90/10 with the Pre-sales person who handed the lead over). Saving moves the card to Closed ("Won at ₹3.2 Cr") and the commission counts on the leaderboard (§3.14).
+  - **Lost** asks for a reason (Bought through another broker, Budget too low, Stopped responding, Loan not approved, Changed plans, Other); the card moves to Closed with the reason.
+  - Closed cards have **Reopen**, which returns the lead to its stage.
+  - Every move, offer, document and closure is written to the lead's timeline. Stages and deals are saved locally.
+- Desktop: 5 columns; open cards can be **dragged** between the four stages (every move also has a button). Tablet: 2-column grid, Closed full width. Phone: **stage tabs** with counts (incl. Closed), opening on the first stage that has deals.
 
 ### 3.4 Properties ("Homes")
 - 3 Bengaluru listings with photo, "For sale" tag, locality, name, BHK, sq ft and price.
@@ -203,7 +207,7 @@ Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with
 - **On leave** status: a person shows "On leave" (Team screen, pickers) and LV in attendance on any day an approved leave covers.
 
 ### 3.14 Performance & insights (M9)
-Monthly figures (leads handled, visits booked/verified, deals, commission, first reply, follow-ups on time, last month's figures for trends) are **generated per person** 🧱, because the prototype has no history. **Live** parts: today's verified check-ins (added to verified visits this month), pipeline value, open leads, attendance, overdue leads, requests and visits.
+Monthly figures (leads handled, visits booked/verified, deals, commission, first reply, follow-ups on time, last month's figures for trends) are **generated per person** 🧱, because the prototype has no history. **Live** parts: today's verified check-ins (added to verified visits this month), deals won in the demo (this month's commission gets agreed price × 2% × the person's split share; deals closed counts a won deal for anyone with ≥ 50% of the split), pipeline value, open leads, attendance, overdue leads, requests and visits.
 - **Sales / Pre-sales — "My performance":** period (This month / Last month), "You're #4 of 15 salespeople by commission" (their rank only), and their **scorecard**.
 - **Manager — "<Team> team performance"; Owner — "Performance & insights" (with a team filter):**
   - **AI weekly digest** 🎭: plain-language lines built from the numbers the viewer can see (pipeline, top performer, overdue and unassigned leads, stuck leads, people not checked in).
@@ -237,6 +241,7 @@ Monthly figures (leads handled, visits booked/verified, deals, commission, first
 
   Each lead also has a phone number, minutes since the last message, move-in timing, must-haves, opening enquiry and latest message. Ishita Banerjee last wrote 1 day ago (outside the 24-hour window). Portal leads carry a "shared with ~N brokers" figure 🎭: Ananya 6, Deepak 5, Farhan 4, Gaurav 3, Ishita 6. Vikram and Sanjay are marked Investment. The Owner's totals with this data: active value ₹27.4 Cr across 12 leads.
 - **Properties (3):** The Courtyard House (Indiranagar, 3 BHK, ₹2.65 Cr) · Windermere Residences (Whitefield, 4 BHK, ₹3.40 Cr) · Lakeview Terraces (HSR Layout, 2 BHK, ₹1.48 Cr). Photos load from Unsplash, so the demo needs internet.
+- **Deals (`deals.ts`):** Rohan & Meera (asking ₹3.4 Cr, offer ₹3.2 Cr, split Vivek 100%) and Lavanya Subramaniam (asking ₹4.2 Cr, offer ₹4.0 Cr, split Manoj 100%), both with Buyer KYC received. No deals are closed at the start.
 - **Performance (`performance.ts`):** generated monthly figures and targets per person, response-time bands, lost reasons, per-source visits/deals, days-in-stage for stuck leads, property shares.
 - **Leave (`leave.ts`):** Kavya (Casual, 3 days ago → tomorrow, approved, cover Sameer); Aditya (Casual, in 2–3 days, pending, 1 lead); Rohit (Sick, tomorrow, pending; he has a visit tomorrow). Allowances 8 / 6 / 15 and generated days already used.
 - **Attendance (`attendance.ts`):** generated history for the last 10 working days; today's records (most people checked in, some late or in the field; Priya, Neha, Kiran and Sameer not yet, so the demo can do it); Kavya on leave; one pending correction from Sameer for 3 working days ago.
@@ -246,7 +251,7 @@ Monthly figures (leads handled, visits booked/verified, deals, commission, first
 - **Fixed demo numbers** (`DEMO_METRICS`): follow-up rate 82% (+12%), weekly chart values, 18 calls this week (2h 14m), 72% answer rate (+8%).
 
 ## 5. Saved in the browser (localStorage)
-All keys use the prefix `daira:v5:`: `viewer`, `settings`, `pretend-location`, `attendance-today`, `corrections`, `leave`, `added-members`, `member-status`, `added-leads`, `owners`, `assignments`, `lead-edits`, `notes`, `tags`, `activity`, `source-settings`, `arrivals`, `stages`, `visits` (visit records with steps and outcomes), `read-leads`, `chats`, `ai-suggestions`, `qualify-steps`, `tasks`, `completed-tasks`, `recordings`, `saved-properties`.
+All keys use the prefix `daira:v5:`: `viewer`, `settings`, `pretend-location`, `attendance-today`, `corrections`, `leave`, `added-members`, `member-status`, `added-leads`, `owners`, `assignments`, `lead-edits`, `notes`, `tags`, `activity`, `source-settings`, `arrivals`, `stages`, `deals` (offers, documents, splits), `closures` (won/lost), `visits` (visit records with steps and outcomes), `read-leads`, `chats`, `ai-suggestions`, `qualify-steps`, `tasks`, `completed-tasks`, `recordings`, `saved-properties`.
 **Reset demo data** (account menu → confirm) deletes these, plus any older `daira:*` / `daira-*` keys, and reloads the page. Run it before every client demo.
 
 ## 6. Code map
@@ -258,13 +263,14 @@ See `AGENTS.md` for conventions. Each component has a matching `.css` file next 
 - `src/data/visits.ts`: visit model, seed visits, offices, time slots, check-in limits.
 - `src/data/attendance.ts`: attendance codes, seed history and today's records, corrections, working-hours options.
 - `src/data/leave.ts`: leave types, allowances, seed requests, holidays, date-range helpers.
+- `src/data/deals.ts`: deal model (offer, token, documents, commission split), lost reasons, seed deals.
 - `src/data/performance.ts`: generated monthly figures, targets and insight data.
 - `src/data/templates.ts`: WhatsApp templates, the 24-hour window, default auto-reply, qualification questions.
 - `src/state/useDemoStore.ts`: all saved state, the viewer, visibility filtering, routing, activity log and timeline, duplicate lookup, derived numbers and actions.
 - `src/lib/`: `ai.ts` (demo AI: reply drafts, lead score, call summary, weekly digest), `location.ts` (one-off location readings: demo readings, the browser's real location, distance), `permissions.ts` (role → permissions, who sees which lead), `storage.ts` (localStorage), `format.ts` (dates, money, durations, phone masking), `useEscapeKey.ts`.
 - `src/components/`: `AppNavigation` (sidebar with Work/Manage groups, phone top bar, tab bar with More sheet), `navigation.ts` (items with required permission), `Dialog` (the one modal / sheet / full-screen shell), `AccountMenu`, `Avatar`, `HeatBadge`, `LeadActions`, `LeadRow`, `LeadTimeline`, `LeadNotes`, `LeadTags`, `IncomingLeadBanner`, `LocationControl` (demo location picker), `BarList` (single-series bar chart), `PropertyCard`, `Toast`, `Icon`.
 - `src/views/`: `TodayView`, `ChatView` (chat + lead panel), `PipelineView`, `PropertiesView`, `FollowUpsView`, `CallsView`, `VisitsView` (with the visit outcome form), `AttendanceView` (My day, Leave, Register with team calendar, Requests), `ReportsView` (my performance, leaderboard, scorecard, owner insights), `EscalationsView`, `LeadSourcesView`, `TeamView` (with invite dialog), `SettingsView`.
-- `src/modals/`: `AddLeadModal` (with duplicate check), `EditLeadDialog` (structured buyer brief), `ScheduleVisitDialog`, `TemplateDialog`, `AssignDialog` (people picker for assign / reassign / hand-off / deactivate), `CallPicker`, `CallModal`.
+- `src/modals/`: `AddLeadModal` (with duplicate check), `EditLeadDialog` (structured buyer brief), `ScheduleVisitDialog`, `TemplateDialog`, `AssignDialog` (people picker for assign / reassign / hand-off / deactivate), `DealDialog` (offer tracker + commission split; also `LostDialog`), `CallPicker`, `CallModal`.
 - `src/index.css`: the only place raw colours are defined. Design tokens (colour, 4px spacing scale, radius, shadow, `--fs-*` type sizes, `--tap`) and shared classes (`.btn`, `.card`, `.chip`, `.count-badge`, `.status-dot`, `.icon-badge`, `.is-done` and more).
 
 ---
@@ -384,9 +390,9 @@ Everything here is **UI only**: each item is a screen or flow driven by seed dat
   - weighted pipeline forecast
 - **Manager daily summary** card: "3 overdue leads · 2 not checked in · 5 visits today · 1 leave request".
 
-### 8.10 M10 · Deal closing
+### 8.10 M10 · Deal closing — ✅ built (§3.2 Deal panel, §3.3, §3.14); offer dates are not tracked
 - **Won/Lost** stages (lost needs a reason); **move back** a stage; desktop drag-and-drop.
-- **Offer tracker:** asked / offered / agreed price, token amount, date.
+- **Offer tracker:** asked / offered / agreed price, token amount.
 - **Document checklist:** KYC, token receipt, agreement.
 - **Commission split** between people (e.g. Pre-sales 10% / Sales 90%), feeding the leaderboard.
 
@@ -437,6 +443,7 @@ Everything here is **UI only**: each item is a screen or flow driven by seed dat
 
 ## 9. Changelog
 Newest first. One line per change: date, what changed, which section was updated.
+- **2026-10-20:** Built M10: Closed pipeline column with Won (agreed price + commission split adding to 100%) and Lost (reason), Reopen, move back, desktop drag-and-drop, phone tabs open on the first non-empty stage; Deal panel on the lead (offer tracker, document checklist, split); won deals feed this month's leaderboard; Won/Lost inbox flags; closed leads leave active value. Updated §3.1–§3.3, §3.14, §5, §6, §8.10.
 - **2026-10-20:** Built M4 + M13: automatic replies (tagged) on arrival, animated auto-qualification whose answers become AI suggestions to accept, templates with fields and preview, 24-hour window lock, AI reply drafts (English/Hindi/Kannada), AI lead score, AI call summaries, AI weekly digest, auto-reply settings. Automatic actions are credited "Automatic". Fixed duplicate timeline ids. Storage bumped to v5. Updated §3.2, §3.6, §3.10, §3.11, §3.14, §4–§7, §8.4, §8.13.
 - **2026-10-20:** Built M9: Performance screen (my performance and rank; manager/owner daily summary, leaderboard, numbers table, scorecards; owner insights incl. cost per deal by source, pipeline forecast, stuck leads), BarList chart component. Sidebar nav now scrolls and hides the progress card on short windows. Updated §2, §3.14, §4, §6, §7, §8.9.
 - **2026-10-20:** Built M8: Leave tab (balances, validated apply form, my requests), manager approval with a cover agent (visits on leave days move now, leads when leave starts; demo Start cover now / Return leads), team calendar with holidays, on-leave status derived from approved leave. Updated §3.8, §3.13, §4–§7, §8.8.

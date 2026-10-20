@@ -21,13 +21,14 @@ Daira is a clickable client-demo prototype of a WhatsApp-first CRM for independe
 - `src/data/visits.ts` - Visits, offices and check-in limits.
 - `src/data/attendance.ts` - Attendance codes, seed history, today's records and corrections.
 - `src/data/leave.ts` - Leave types, allowances, seed requests and holidays.
+- `src/data/deals.ts` - Deals: offer tracker, documents, commission split, lost reasons.
 - `src/data/performance.ts` - Generated monthly performance, targets and insight data.
 - `src/data/templates.ts` - WhatsApp templates, 24-hour window, auto-reply and qualification questions.
 - `src/state/useDemoStore.ts` - The single store hook. Persisted state, derived numbers (unread count, active value, commission) and every action (move stage, schedule visit, send message, reset demo). Views receive `store` as a prop and never touch localStorage directly.
 - `src/lib/` - Small helpers: `ai.ts` (demo AI text; outputs are suggestions people confirm, never auto-sent), `location.ts` (one-off location readings and distance; never add background tracking), `permissions.ts` (role → permissions, `canSeeLead`), `storage.ts` (localStorage hook, key prefix `daira:v5:`), `format.ts` (dates, money, durations, `maskPhone`), `useEscapeKey.ts`.
 - `src/components/` - Shared UI: `AppNavigation` (desktop sidebar, phone top bar and tab bar), `navigation.ts` (nav items and the `View` type), `Dialog` (the one modal/sheet/full-screen shell), `Avatar`, `HeatBadge`, `LeadActions`, `LeadRow`, `LeadTimeline`, `LeadNotes`, `LeadTags`, `IncomingLeadBanner`, `LocationControl`, `BarList`, `PropertyCard`, `AccountMenu` (reset demo data, with confirmation), `Toast`, `Icon` (inline SVG icon set).
 - `src/views/` - One file per screen: `TodayView`, `ChatView` (chat + lead detail panel), `PipelineView`, `PropertiesView`, `FollowUpsView`, `CallsView`, `VisitsView`, `AttendanceView`, `ReportsView`, `EscalationsView`, `LeadSourcesView`, `TeamView`, `SettingsView`.
-- `src/modals/` - `AddLeadModal`, `EditLeadDialog`, `ScheduleVisitDialog`, `TemplateDialog`, `AssignDialog` (shared people picker), `CallPicker`, `CallModal`.
+- `src/modals/` - `AddLeadModal`, `EditLeadDialog`, `ScheduleVisitDialog`, `TemplateDialog`, `AssignDialog` (shared people picker), `DealDialog` (offer + split, `LostDialog`), `CallPicker`, `CallModal`.
 
 ## Product spec (required)
 

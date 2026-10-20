@@ -97,7 +97,7 @@ export function TodayView({ store, onOpenLead, onAddLead, onNavigate, notify }: 
         <article className="day-stat cool">
           <span className="day-card-label">Active value</span>
           <strong>{formatCrore(store.activeValueCr)}</strong>
-          <p>Across {store.leads.length} open leads</p>
+          <p>Across {store.openLeads.length} open leads</p>
           <div className="day-stat-bars" aria-hidden="true"><i /><i /><i /><i /></div>
         </article>
       </div>

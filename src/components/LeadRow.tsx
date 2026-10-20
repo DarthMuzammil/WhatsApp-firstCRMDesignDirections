@@ -21,6 +21,7 @@ export function LeadRow({ lead, onOpen, ownerLabel }: { lead: Lead; onOpen: () =
         </div>
         <footer>
           <HeatBadge temp={lead.temp} />
+          {lead.closed && <span className={`lead-flag ${lead.closed.result === 'won' ? 'won' : 'closed'}`}>{lead.closed.result === 'won' ? 'Won' : 'Lost'}</span>}
           {lead.overdue && <span className="lead-flag danger">Overdue</span>}
           {lead.sharedWith ? <span className="lead-flag shared" title={`Also sent to about ${lead.sharedWith} other brokers`}>Shared ×{lead.sharedWith}</span> : null}
           {ownerLabel === null && <span className="lead-flag warning">Unassigned</span>}

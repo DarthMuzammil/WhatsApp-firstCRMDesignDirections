@@ -44,7 +44,10 @@ export function ReportsView({ store, onOpenLead, onNavigate }: ReportsProps) {
   const verifiedToday = (memberId: string) => store.visits.filter((visit) => visit.day === 0 && visit.agentId === memberId && visit.steps.some((step) => step.kind === 'check-in')).length
   const statsFor = (memberId: string, which: Period = period): MonthStats => {
     const stats = monthStats(memberId, which)
-    return which === 'this-month' ? { ...stats, visitsVerified: stats.visitsVerified + verifiedToday(memberId) } : stats
+    // This month also counts what happened in the demo: verified check-ins today and deals won (spec §8.10).
+    return which === 'this-month'
+      ? { ...stats, visitsVerified: stats.visitsVerified + verifiedToday(memberId), dealsClosed: stats.dealsClosed + store.wonDeals(memberId), commissionL: Math.round((stats.commissionL + store.wonCommissionL(memberId)) * 10) / 10 }
+      : stats
   }
   const teamId = isOwner ? teamFilter : store.viewer.teamId ?? 'all'
   const sales = store.members.filter((person) => person.status !== 'deactivated' && person.roles.includes('sales') && (teamId === 'all' || person.teamId === teamId))

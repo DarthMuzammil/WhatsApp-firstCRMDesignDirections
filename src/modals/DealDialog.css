@@ -1,0 +1,15 @@
+/* Shares form styles with the Add lead dialog (.add-lead in AddLeadModal.css). */
+.deal-dialog { width: min(560px, 100%); }
+.deal-input { height: 46px; border: 1px solid var(--border-strong); border-radius: var(--radius-md); display: flex; align-items: center; overflow: hidden; background: var(--surface); }
+.deal-input:focus-within { border-color: var(--primary); box-shadow: var(--ring-focus); }
+.deal-input > span { padding: 0 var(--space-3); color: var(--muted); font-size: var(--fs-body-sm); font-weight: 600; }
+.add-lead .deal-input input { min-width: 0; flex: 1; height: 44px; padding: 0; border: 0; box-shadow: none; }
+.split { margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+.split legend { margin-bottom: var(--space-2); padding: 0; color: var(--ink-soft); font-size: var(--fs-body-sm); font-weight: 700; }
+.split-row { display: flex; align-items: center; gap: var(--space-2); }
+.split-row select { flex: 1; }
+.deal-input.pct { width: 96px; flex: 0 0 auto; }
+.deal-input.pct input { padding-left: var(--space-3); }
+.split .btn-soft { align-self: flex-start; }
+.lost-reason { margin-bottom: var(--space-6); display: flex; flex-direction: column; gap: var(--space-2); color: var(--ink-soft); font-size: var(--fs-body-sm); font-weight: 700; }
+.lost-reason select { height: 44px; padding: 0 var(--space-3); border: 1px solid var(--border-strong); border-radius: var(--radius-md); background: var(--surface); font-size: var(--fs-body); }

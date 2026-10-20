@@ -60,6 +60,8 @@ export type Lead = LeadSeed & {
   visitScheduled: boolean
   /** Unread for longer than RESPONSE_SLA_MINUTES: shown as "Overdue" and listed in Escalations. */
   overdue: boolean
+  /** Set once the deal is won or lost (spec §8.10). */
+  closed?: { result: 'won' | 'lost'; reason?: string }
 }
 
 /** A buyer message unanswered for longer than this is overdue (spec §8.2). */

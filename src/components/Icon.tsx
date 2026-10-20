@@ -37,6 +37,7 @@ const PATHS = {
   chart: <><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></>,
   info: <><circle cx="12" cy="12" r="9" /><path d="M12 11v6M12 7.5v.5" /></>,
   refresh: <><path d="M20 11a8 8 0 1 0-2.3 5.7" /><path d="M20 4v7h-7" /></>,
+  edit: <><path d="M4 20h4L19 9l-4-4L4 16v4Z" /><path d="m13.5 6.5 4 4" /></>,
 } satisfies Record<string, ReactNode>
 
 export type IconName = keyof typeof PATHS

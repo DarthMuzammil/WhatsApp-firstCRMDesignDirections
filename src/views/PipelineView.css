@@ -2,11 +2,14 @@
 .stage-dot.stage-1 { background: var(--stage-qualified); }
 .stage-dot.stage-2 { background: var(--stage-visit); }
 .stage-dot.stage-3 { background: var(--stage-negotiation); }
+.stage-dot.stage-4 { background: var(--ink-soft); }
 
 .stage-tabs { display: none; }
 
-.pipeline-board { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-3); }
-.pipeline-stage { min-width: 0; padding: var(--space-3); border-radius: var(--radius-lg); background: var(--surface-sunken); }
+.pipeline-board { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--space-3); }
+.pipeline-stage { min-width: 0; padding: var(--space-3); border: 2px dashed transparent; border-radius: var(--radius-lg); background: var(--surface-sunken); transition: border-color .15s ease, background .15s ease; }
+.pipeline-stage.drag-over { border-color: var(--primary-line); background: var(--primary-soft); }
+.deal-card[draggable="true"] { cursor: grab; }
 .pipeline-stage > header { height: 36px; padding: var(--space-half) var(--space-1); display: flex; align-items: center; justify-content: space-between; }
 .pipeline-stage > header div { display: flex; align-items: center; gap: var(--space-2); }
 .pipeline-stage > header strong { font-size: var(--fs-body-sm); }
@@ -27,11 +30,21 @@
 .deal-card footer { margin-top: var(--space-3); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); }
 .deal-advance { min-height: 32px; padding: 0 var(--space-3); border: 0; border-radius: var(--radius-sm); display: flex; align-items: center; gap: var(--space-1); color: var(--primary); background: var(--primary-soft); font-size: var(--fs-caption); font-weight: 700; }
 .deal-advance:hover { background: var(--primary-soft-hover); }
+.deal-buttons { display: flex; align-items: center; gap: var(--space-1); }
+.deal-back, .deal-lost, .deal-won { min-height: 32px; padding: 0 var(--space-2); border: 0; border-radius: var(--radius-sm); display: flex; align-items: center; gap: var(--space-1); font-size: var(--fs-caption); font-weight: 700; }
+.deal-back { width: 32px; justify-content: center; color: var(--muted); background: var(--surface-sunken); }
+.deal-lost { color: var(--danger-text); background: var(--danger-soft); }
+.deal-won { color: var(--success-ink); background: var(--success-soft); }
+.deal-outcome { margin-top: var(--space-3); padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); display: flex; align-items: center; gap: var(--space-2); font-size: var(--fs-caption); font-weight: 700; }
+.deal-outcome.won { color: var(--success-ink); background: var(--success-soft); }
+.deal-outcome.lost { color: var(--ink-soft); background: var(--surface-sunken); }
+.deal-card.closed-lost { opacity: .75; }
 .pipeline-empty { height: 96px; border: 1px dashed var(--border-strong); border-radius: var(--radius-md); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-2); color: var(--faint); font-size: var(--fs-caption); }
 
 /* Tablet: two columns of stages */
 @media (max-width: 1100px) {
   .pipeline-board { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pipeline-stage.is-closed { grid-column: 1 / -1; }
 }
 
 /* Phone: tabs pick one stage; cards are full width with big tap targets */
@@ -42,6 +55,8 @@
   .pipeline-stage.phone-visible { display: block; }
   .pipeline-stage > header { display: none; }
   .deal-person { min-height: var(--tap); }
-  .deal-advance { min-height: var(--tap); padding: 0 var(--space-4); font-size: var(--fs-body-sm); }
+  .deal-advance, .deal-lost, .deal-won { min-height: var(--tap); padding: 0 var(--space-4); font-size: var(--fs-body-sm); }
+  .deal-back { width: var(--tap); min-height: var(--tap); }
+  .pipeline-stage.drag-over { border-color: transparent; background: transparent; }
   .pipeline-empty { height: 140px; background: var(--surface); }
 }
