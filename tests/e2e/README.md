@@ -22,6 +22,7 @@ First time on a new machine: `pnpm exec playwright-core install chromium`.
 | `attendance` | Office/field check-in, register, corrections (§3.13) |
 | `leave` | Balances, apply, approve with cover, team calendar (§3.13) |
 | `performance` | My performance, leaderboard, scorecard, insights (§3.14) |
+| `owner-analytics` | 24-hour window countdown in the inbox, chat and digest; Speed to lead table; Leads at risk; Listings that earn their visits; manager and sales scope; phone layout (§3.1, §3.2, §3.14) |
 | `follow-ups` | Follow-ups in time order, Remind me from a chat, Add reminder with a buyer picker, Coming up, phone chat bar (§3.5) |
 | `channel-partner` | M14 brokerage receivables (Today card, strip and charts, booking detail with tax lines, reminders, record payment + undo, invoice numbering, manager and sales views) developer registrations (counts, banner, PAN, conflict, renew, won as a booking), launch broadcasts (audience, RERA, preview and cost, scripted send, replies, manager and sales views) and group capture (paste, broker numbers, listings, duplicates, share sheet), phone layouts (§3.17–§3.19, §8.17) |
 | `deal-closing` | Won/Lost, split, reopen, move back, drag and drop (§3.3) |

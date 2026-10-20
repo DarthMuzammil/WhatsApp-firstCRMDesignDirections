@@ -1,14 +1,17 @@
 import { useState } from 'react'
 import { STAGES, STAGE_CLOSE_PROBABILITY, COMMISSION_RATE, type Lead } from '../data/demo'
 import { pastWorkingDays, type AttendanceCode } from '../data/attendance'
-import { DAYS_IN_STAGE, LOST_REASONS, PROPERTY_SHARES, RESPONSE_BANDS, SOURCE_FUNNEL, STUCK_AFTER_DAYS, monthStats, targetFor, type MonthStats, type Period } from '../data/performance'
+import { LOST_REASONS, PROPERTY_FUNNEL, PROPERTY_SHARES, QUIET_AFTER_DAYS, RESPONSE_BANDS, RETIRE_AFTER_VISITS, SOURCE_FUNNEL, SPEED_SOURCES, SPEED_TARGET_MIN, STUCK_AFTER_DAYS, WINDOW_TEMPLATES_THIS_MONTH, monthStats, targetFor, type MonthStats, type Period } from '../data/performance'
+import { PROPERTY_STATUS_LABELS } from '../data/inventory'
+import { RESPONSE_SLA_MINUTES } from '../data/demo'
+import { leadsAtRisk, speedTable } from '../lib/analytics'
 import { LEAD_SOURCES } from '../data/sources'
 import { TEAMS, roleSummary, shortName, type Member, type TeamId } from '../data/team'
 import { Avatar } from '../components/Avatar'
 import { BarList } from '../components/BarList'
 import { Dialog } from '../components/Dialog'
 import { Icon } from '../components/Icon'
-import { formatCrore, formatLakhFromCrore } from '../lib/format'
+import { formatCrore, formatLakhFromCrore, formatRupees } from '../lib/format'
 import type { DemoStore } from '../state/useDemoStore'
 import './ReportsView.css'
 
@@ -131,6 +134,9 @@ export function ReportsView({ store, onOpenLead }: ReportsProps) {
         </section>
       </div>
 
+      <SpeedCard store={store} people={isOwner ? [...sales, ...presales] : sales} period={period} onSelect={setScorecardFor} />
+      <RiskCard store={store} people={sales} onOpenLead={onOpenLead} />
+
       {isOwner && <Insights store={store} period={period} statsFor={statsFor} onOpenLead={onOpenLead} presales={presales} />}
 
       {scorecardFor && (
@@ -235,8 +241,6 @@ function Insights({ store, statsFor, onOpenLead, presales }: InsightsProps) {
     const funnel = SOURCE_FUNNEL[source.name] ?? { visits: 0, deals: 0 }
     return { source, leads, spend, ...funnel, costPerDeal: funnel.deals > 0 ? spend / funnel.deals : 0 }
   })
-  const stuck = store.leads.filter((lead) => (DAYS_IN_STAGE[lead.id] ?? 0) > STUCK_AFTER_DAYS).sort((a, b) => (DAYS_IN_STAGE[b.id] ?? 0) - (DAYS_IN_STAGE[a.id] ?? 0))
-  const visitsPerProperty = (id: number) => store.visits.filter((visit) => visit.propertyId === id).length
 
   return <>
     <h2 className="insights-title">Business insights</h2>
@@ -272,26 +276,142 @@ function Insights({ store, statsFor, onOpenLead, presales }: InsightsProps) {
         <header className="card-head"><div><h2>Why deals were lost</h2><p>This month</p></div></header>
         <BarList label="Lost reasons" rows={LOST_REASONS.map((reason) => ({ key: reason.label, label: reason.label, value: reason.deals, display: String(reason.deals) }))} />
       </section>
-      <section className="card">
-        <header className="card-head"><div><h2>Stuck leads</h2><p>More than {STUCK_AFTER_DAYS} days in the same stage</p></div></header>
-        <ul className="stuck-list">
-          {stuck.map((lead) => (
-            <li key={lead.id}><button onClick={() => onOpenLead(lead)}>
-              <span><strong>{lead.name}</strong><small>{STAGES[lead.stage]} · {lead.ownerId ? shortName(store.findMember(lead.ownerId)?.name ?? '') : 'Unassigned'}</small></span>
-              <em>{DAYS_IN_STAGE[lead.id]} days</em>
-            </button></li>
-          ))}
-          {stuck.length === 0 && <li className="stuck-empty">Nothing stuck. Every lead moved this week.</li>}
-        </ul>
-      </section>
-      <section className="card">
-        <header className="card-head"><div><h2>Property interest</h2><p>Visits booked (live) and WhatsApp shares this month</p></div></header>
-        <BarList label="Visits by property" rows={store.properties.map((property) => ({ key: String(property.id), label: property.name, sublabel: `${(PROPERTY_SHARES[property.id] ?? 0) + store.shareCount(property.id)} shares`, value: visitsPerProperty(property.id), display: `${visitsPerProperty(property.id)} visits` }))} />
-      </section>
+      <ListingsTable store={store} />
       <section className="card">
         <header className="card-head"><div><h2>Pre-sales</h2><p>Leads qualified and first reply</p></div></header>
         <BarList label="Pre-sales leads handled" rows={presales.map((person) => { const s = statsFor(person.id); return { key: person.id, label: person.name, sublabel: `first reply ${s.medianResponseMin} min`, value: s.leadsHandled, display: `${s.leadsHandled} leads` } })} />
       </section>
     </div>
   </>
+}
+
+/** Colour band for a first-reply time: fast (≤ 5 min), amber (within the 15-minute target), red (over it). */
+function band(minutes: number | null): string {
+  if (minutes === null) return ''
+  return minutes <= SPEED_TARGET_MIN ? 'band-good' : minutes <= RESPONSE_SLA_MINUTES ? 'band-warn' : 'band-bad'
+}
+
+/**
+ * Speed to lead (spec §3.14, from §8.19.1): median minutes to the first human reply, per person and source.
+ * A table because it compares people. Generated monthly samples (🧱) plus live replies to demo arrivals ✅.
+ */
+function SpeedCard({ store, people, period, onSelect }: { store: DemoStore; people: Member[]; period: Period; onSelect: (person: Member) => void }) {
+  const table = speedTable(store, people, period)
+  const headline = [
+    table.portalWithinTarget !== null ? `Within ${SPEED_TARGET_MIN} minutes: ${table.portalWithinTarget}% of portal leads` : null,
+    table.slowestSource ? `slowest source: ${table.slowestSource.source} (median ${table.slowestSource.minutes} min)` : null,
+  ].filter(Boolean).join(' · ')
+  // Live replies to demo arrivals: the Owner sees them all; a Manager those by their own people.
+  const live = period === 'this-month' ? store.firstReplies.filter((reply) => store.viewerCan('seeAllLeads') || people.some((person) => person.id === reply.memberId)) : []
+  return (
+    <section className="card speed-card">
+      <header className="card-head"><div><h2>Speed to lead</h2><p>Median minutes to the first human reply · {headline}</p></div></header>
+      <div className="report-table-scroll">
+        <table className="report-table speed-table">
+          <thead><tr><th scope="col">Person</th>{SPEED_SOURCES.map((source) => <th key={source} scope="col">{source}</th>)}<th scope="col">All</th></tr></thead>
+          <tbody>
+            {table.rows.map((row) => (
+              <tr key={row.person.id} onClick={() => onSelect(row.person)}>
+                <th scope="row"><button onClick={() => onSelect(row.person)}>{shortName(row.person.name)}</button></th>
+                {row.cells.map((minutes, index) => <td key={SPEED_SOURCES[index]} className={band(minutes)}>{minutes === null ? '—' : minutes}</td>)}
+                <td className={`speed-all ${band(row.all)}`}>{row.all === null ? '—' : row.all}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <footer className="speed-foot">
+        <span><i className="band-good" /> ≤ {SPEED_TARGET_MIN} min</span>
+        <span><i className="band-warn" /> ≤ {RESPONSE_SLA_MINUTES} min</span>
+        <span><i className="band-bad" /> over {RESPONSE_SLA_MINUTES} min</span>
+        <span>— no leads from that source</span>
+        {live.map((reply) => <span key={reply.leadId} className="speed-live"><Icon name="spark" size={12} /> This demo: {shortName(store.findMember(reply.memberId)?.name ?? '')} replied to a {reply.source} lead in {reply.minutes} min</span>)}
+        <span className="speed-windows">WhatsApp windows: {WINDOW_TEMPLATES_THIS_MONTH.chats} chats slipped past 24 h this month and needed a template (about {formatRupees(WINDOW_TEMPLATES_THIS_MONTH.rupees)})</span>
+      </footer>
+    </section>
+  )
+}
+
+/**
+ * Leads at risk (spec §3.14, from §8.19.3): open leads nobody touched for QUIET_AFTER_DAYS or stuck in a stage,
+ * with the reasons and the money, plus the same by agent. Any demo action on a lead takes it off the list.
+ */
+function RiskCard({ store, people, onOpenLead }: { store: DemoStore; people: Member[]; onOpenLead: (lead: Lead) => void }) {
+  const report = leadsAtRisk(store, people)
+  return (
+    <section className="card risk-card">
+      <header className="card-head"><div><h2>Leads at risk</h2><p>{report.rows.length === 0 ? 'Nothing at risk right now' : `${formatCrore(report.atRiskCr)} across ${report.rows.length} ${report.rows.length === 1 ? 'lead' : 'leads'}`} · quiet for {QUIET_AFTER_DAYS}+ days or stuck in a stage over {STUCK_AFTER_DAYS} days</p></div></header>
+      <div className="risk-grid">
+        <ul className="stuck-list risk-list">
+          {report.rows.map(({ lead, reasons }) => (
+            <li key={lead.id}><button onClick={() => onOpenLead(lead)}>
+              <span>
+                <strong>{lead.name}</strong>
+                <small>{STAGES[lead.stage]} · {lead.ownerId ? shortName(store.findMember(lead.ownerId)?.name ?? '') : 'Unassigned'}</small>
+                <span className="risk-reasons">{reasons.map((reason) => <em key={reason.text} className={reason.tone}>{reason.text}</em>)}</span>
+              </span>
+              <b>{lead.budgetCr > 0 ? formatCrore(lead.budgetCr) : 'Budget to qualify'}</b>
+            </button></li>
+          ))}
+          {report.rows.length === 0 && <li className="stuck-empty">Nothing at risk. Every open lead was touched this week.</li>}
+        </ul>
+        {report.byAgent.length > 0 && (
+          <div className="report-table-scroll">
+            <table className="report-table risk-agents">
+              <thead><tr><th scope="col">Person</th><th scope="col">Open</th><th scope="col">At risk</th><th scope="col">Share</th><th scope="col">₹ at risk</th></tr></thead>
+              <tbody>
+                {report.byAgent.map((row) => (
+                  <tr key={row.person.id}>
+                    <th scope="row">{shortName(row.person.name)}</th>
+                    <td>{row.open}</td><td>{row.atRisk}</td><td>{row.open ? Math.round((row.atRisk / row.open) * 100) : 0}%</td><td>{formatCrore(row.atRiskCr)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </section>
+  )
+}
+
+/**
+ * Listings that earn their visits (spec §3.14, from §8.19.4): shares, visits, verified check-ins and the deals they led to,
+ * per listing. Monthly figures (🧱) plus live visits and deals won in the demo whose lead had a verified visit there ✅.
+ */
+function ListingsTable({ store }: { store: DemoStore }) {
+  const rows = store.properties.map((property) => {
+    const seed = PROPERTY_FUNNEL[property.id] ?? { booked: 0, verified: 0, deals: 0 }
+    const visits = store.visits.filter((visit) => visit.propertyId === property.id)
+    const verifiedLeadIds = new Set(visits.filter((visit) => visit.steps.some((step) => step.kind === 'check-in')).map((visit) => visit.leadId))
+    const liveDeals = store.leads.filter((lead) => lead.closed?.result === 'won' && verifiedLeadIds.has(lead.id)).length
+    const booked = seed.booked + visits.length
+    const verified = seed.verified + verifiedLeadIds.size
+    const deals = seed.deals + liveDeals
+    return { property, shares: (PROPERTY_SHARES[property.id] ?? 0) + store.shareCount(property.id), booked, verified, deals, rate: verified ? Math.round((deals / verified) * 100) : null }
+  }).sort((a, b) => b.verified - a.verified || b.deals - a.deals)
+  return (
+    <section className="card insights-wide listings-card">
+      <header className="card-head"><div><h2>Listings that earn their visits</h2><p>Shares and visits this month, verified check-ins and the deals they led to · live visits and won deals included</p></div></header>
+      <div className="report-table-scroll">
+        <table className="report-table listing-table">
+          <thead><tr><th scope="col">Listing</th><th scope="col">Shares</th><th scope="col">Booked</th><th scope="col">Verified</th><th scope="col">Deals</th><th scope="col">Visit → deal</th><th scope="col">Notes</th></tr></thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr key={row.property.id}>
+                <th scope="row">{row.property.name}<small> · {row.property.locality}</small></th>
+                <td>{row.shares}</td><td>{row.booked}</td><td>{row.verified}</td><td>{row.deals}</td>
+                <td className={row.rate !== null && row.rate >= 25 ? 'met' : ''}>{row.rate === null ? '—' : `${row.rate}%`}</td>
+                <td className="listing-flags">
+                  {row.property.status === 'sold' ? <span className="lead-flag closed">{PROPERTY_STATUS_LABELS.sold}</span>
+                    : row.verified >= RETIRE_AFTER_VISITS && row.deals === 0 ? <span className="lead-flag warning" title={`${row.verified} verified visits and no deal`}>Retire?</span> : null}
+                  {!row.property.pin && <span className="lead-flag danger">Location not set</span>}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  )
 }

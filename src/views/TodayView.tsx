@@ -4,6 +4,7 @@ import { tracksAttendance } from '../data/attendance'
 import { shortName } from '../data/team'
 import { Avatar, LeadAvatar } from '../components/Avatar'
 import { Icon } from '../components/Icon'
+import { windowClosingSoon } from '../data/templates'
 import { LeadRow } from '../components/LeadRow'
 import type { View } from '../components/navigation'
 import { BrokeragePulse, DailySummary, WeeklyDigest } from '../components/TeamPulse'
@@ -13,7 +14,8 @@ import { formatCrore, todayLabel } from '../lib/format'
 import type { DemoStore } from '../state/useDemoStore'
 import './TodayView.css'
 
-const INBOX_FILTERS: ('All' | Temperature)[] = ['All', 'Hot', 'Warm', 'New']
+type InboxFilter = 'All' | Temperature | 'Closing'
+const INBOX_FILTERS: InboxFilter[] = ['All', 'Hot', 'Warm', 'New']
 /** Rows shown before "Show all" when no filter or search is on, so the screen doesn't turn into a 46-row scroll. */
 const INBOX_PREVIEW = 12
 
@@ -32,15 +34,18 @@ type TodayViewProps = {
  * - Pre-sales: the next buyer to call (longest waiting first), waiting buyers and their queue, then the inbox.
  */
 export function TodayView({ store, onOpenLead, onNavigate, onCall, notify }: TodayViewProps) {
-  const [filter, setFilter] = useState<'All' | Temperature>('All')
+  const [filter, setFilter] = useState<InboxFilter>('All')
   const [sourceFilter, setSourceFilter] = useState('All')
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [showAll, setShowAll] = useState(false)
   const [renewing, setRenewing] = useState<Registration | null>(null)
 
+  // Chats whose free 24-hour WhatsApp window closes within 3 hours (spec §3.1): a countdown on the row and a filter.
+  const closingSoon = new Set(store.leads.filter((lead) => !lead.closed && windowClosingSoon(store.serviceWindowLeft(lead))).map((lead) => lead.id))
+  const inboxFilters: InboxFilter[] = closingSoon.size > 0 || filter === 'Closing' ? [...INBOX_FILTERS, 'Closing'] : INBOX_FILTERS
   const visibleLeads = store.leads.filter((lead) =>
-    (filter === 'All' || lead.temp === filter) &&
+    (filter === 'All' || (filter === 'Closing' ? closingSoon.has(lead.id) : lead.temp === filter)) &&
     (sourceFilter === 'All' || lead.source === sourceFilter) &&
     `${lead.name} ${lead.need} ${lead.locality}`.toLowerCase().includes(query.trim().toLowerCase()),
   )
@@ -146,6 +151,7 @@ export function TodayView({ store, onOpenLead, onNavigate, onCall, notify }: Tod
             <span className="day-card-label">Waiting for a reply</span>
             <strong>{waiting.length}</strong>
             <p>{waiting.length === 0 ? 'Every buyer has heard back' : overdueCount > 0 ? `${overdueCount} over ${RESPONSE_SLA_MINUTES} min · reply first` : `All within ${RESPONSE_SLA_MINUTES} min`}</p>
+            {closingSoon.size > 0 && <p className="day-stat-note"><Icon name="clock" size={12} /> {closingSoon.size} {closingSoon.size === 1 ? 'chat closes' : 'chats close'} within 3 h</p>}
             <div className="day-stat-avatars">
               {waiting.slice(0, 3).map((lead) => <Avatar key={lead.id} initials={lead.initials} color={lead.color} size="sm" />)}
             </div>
@@ -180,7 +186,7 @@ export function TodayView({ store, onOpenLead, onNavigate, onCall, notify }: Tod
             </div>
             <div className="inbox-filters">
               <div className="segmented" role="group" aria-label="Filter leads">
-                {INBOX_FILTERS.map((option) => <button key={option} className={filter === option ? 'active' : ''} aria-pressed={filter === option} onClick={() => setFilter(option)}>{option}</button>)}
+                {inboxFilters.map((option) => <button key={option} className={filter === option ? 'active' : ''} aria-pressed={filter === option} onClick={() => setFilter(option)}>{option === 'Closing' ? <>Closing<span className="seg-count"> · {closingSoon.size}</span></> : option}</button>)}
               </div>
               <select className="source-filter" value={sourceFilter} onChange={(event) => setSourceFilter(event.target.value)} aria-label="Filter by source">
                 <option value="All">All sources</option>
@@ -189,7 +195,7 @@ export function TodayView({ store, onOpenLead, onNavigate, onCall, notify }: Tod
             </div>
           </header>
           <div>
-            {shownLeads.map((lead) => <LeadRow key={lead.id} lead={lead} onOpen={() => onOpenLead(lead)} ownerLabel={seesOthers ? ownerLabel(lead) : undefined} />)}
+            {shownLeads.map((lead) => <LeadRow key={lead.id} lead={lead} onOpen={() => onOpenLead(lead)} ownerLabel={seesOthers ? ownerLabel(lead) : undefined} closesIn={store.serviceWindowLeft(lead)} />)}
             {shownLeads.length < visibleLeads.length && (
               <button className="inbox-more" onClick={() => setShowAll(true)}>Show all {visibleLeads.length} conversations <Icon name="chevron" size={16} /></button>
             )}

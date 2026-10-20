@@ -25,6 +25,8 @@
 .message-auto { background: var(--surface-subtle); border: 1px dashed var(--bubble-mine-line); }
 .chat-typing { align-self: flex-start; color: var(--muted); font-size: var(--fs-caption); font-style: italic; }
 .chat-note-ai { display: flex; align-items: center; gap: var(--space-2); border: 0; color: var(--primary); background: var(--primary-soft); cursor: pointer; }
+.window-warning { flex: 0 0 auto; margin: var(--space-2) var(--space-4) 0; display: flex; align-items: center; gap: var(--space-2); color: var(--warning-ink); font-size: var(--fs-caption); font-weight: 700; line-height: 1.4; }
+.window-warning svg { flex: 0 0 auto; }
 .window-closed { flex: 0 0 auto; margin: var(--space-3) var(--space-4) var(--space-4); padding: var(--space-3) var(--space-4); border: 1px solid var(--warning-soft); border-radius: var(--radius-md); display: flex; align-items: center; gap: var(--space-3); color: var(--warning-ink); background: var(--warning-soft); }
 .window-closed > span { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: var(--space-half); }
 .window-closed strong { color: var(--ink); font-size: var(--fs-body-sm); }

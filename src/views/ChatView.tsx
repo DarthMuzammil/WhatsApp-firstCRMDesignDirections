@@ -11,7 +11,7 @@ import { LeadNotes } from '../components/LeadNotes'
 import { LeadTags } from '../components/LeadTags'
 import { LeadTimeline } from '../components/LeadTimeline'
 import { PropertyCard } from '../components/PropertyCard'
-import { clockMinutesAgo, dayLabel, dayOfMinutesAgo, onDayLabel } from '../lib/format'
+import { clockMinutesAgo, dayLabel, dayOfMinutesAgo, onDayLabel, formatMinutesLeft } from '../lib/format'
 import { BROKERAGE } from '../data/brand'
 import { areaLabel, bedroomsLabel, priceLabel } from '../data/inventory'
 import type { View } from '../components/navigation'
@@ -25,7 +25,7 @@ import { RegisterDialog, RegistrationDisputeDialog, RenewDialog } from '../modal
 import { LeadRegistrations, type RegistrationAction } from '../components/LeadRegistrations'
 import { ScheduleVisitDialog } from '../modals/ScheduleVisitDialog'
 import { TemplateDialog } from '../modals/TemplateDialog'
-import { QUALIFICATION_QUESTIONS } from '../data/templates'
+import { QUALIFICATION_QUESTIONS, windowClosingSoon } from '../data/templates'
 import { draftReplies, leadScore } from '../lib/ai'
 import { SYSTEM_ID, type ChatEntry, type DemoStore } from '../state/useDemoStore'
 import './ChatView.css'
@@ -152,8 +152,10 @@ function ChatPanel({ lead, store, actions, onBack, onCall, onShowDetails }: Chat
   const shares = store.sharesFor(lead.id)
   const introProperty = store.introProperty(lead)
   const bestMatch = store.bestMatch(lead)
-  // WhatsApp allows free text only within 24 h of the buyer's last message (spec §8.4).
+  // WhatsApp allows free text only within 24 h of the buyer's last message (spec §8.4); a countdown shows when it's about to close.
   const windowClosed = store.serviceWindowClosed(lead)
+  const windowLeft = store.serviceWindowLeft(lead)
+  const closingSoon = windowClosingSoon(windowLeft)
 
   // Auto-qualification for leads that arrived in the demo: question, answer, question… one every ~1.4 s.
   // The step is stored, so leaving and coming back continues where it stopped.
@@ -215,7 +217,7 @@ function ChatPanel({ lead, store, actions, onBack, onCall, onShowDetails }: Chat
         <LeadAvatar lead={lead} size="sm" />
         <div className="chat-person">
           <strong>{lead.name}</strong>
-          <span>{lead.addedInDemo ? `New lead · ${store.displayPhone(lead.phone)}` : `Last message ${relativeMinutes(lead.minutesAgo)} ago`}</span>
+          <span>{lead.addedInDemo ? `New lead · ${store.displayPhone(lead.phone)}` : `Last message ${relativeMinutes(lead.minutesAgo)} ago${closingSoon ? ` · window closes in ${formatMinutesLeft(windowLeft)}` : ''}`}</span>
         </div>
         <button className="icon-button chat-details-button" aria-label={`${lead.name} details`} onClick={onShowDetails}><Icon name="info" /></button>
         <button className="icon-button" aria-label={`Call ${lead.name}`} onClick={onCall}><Icon name="phone" /></button>
@@ -266,6 +268,7 @@ function ChatPanel({ lead, store, actions, onBack, onCall, onShowDetails }: Chat
           <button className="btn btn-primary" onClick={() => setTemplatesOpen(true)}>Use a template</button>
         </div>
       ) : <>
+        {closingSoon && <p className="window-warning" role="note"><Icon name="clock" size={14} /> Reply within {formatMinutesLeft(windowLeft)} to keep this chat free-form. After that only paid templates can be sent.</p>}
         <div className="chip-row quick-replies">
           {quickReplies.map((reply) => <button key={reply.label} className="chip chip-success" onClick={() => fillDraft(reply.text)}>{reply.label}</button>)}
           <button className="chip" onClick={() => setTemplatesOpen(true)}><Icon name="whatsapp" size={14} /> Templates</button>

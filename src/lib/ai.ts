@@ -35,6 +35,10 @@ export function weeklyDigest(input: {
   owedBy?: { developer: string; amount: string; count: number; overdueBuyer?: string; overdueDays?: number }
   /** M14: developer registrations expiring within 7 days. */
   registrationsExpiring?: number
+  /** Chats whose free 24-hour WhatsApp window closes within 3 hours (spec §3.1). */
+  closingSoon?: number
+  /** Speed to lead (spec §3.14): median minutes portal leads waited for a human, and the slowest person × source. */
+  speed?: { portalMedian: number; slowest?: string }
 }): string[] {
   const lines = [
     `${input.team} has ₹${input.pipelineCr.toFixed(1)} Cr in open pipeline.`,
@@ -45,6 +49,8 @@ export function weeklyDigest(input: {
     input.notCheckedIn > 0 ? `${input.notCheckedIn} ${input.notCheckedIn === 1 ? 'person hasn’t' : 'people haven’t'} checked in yet today.` : '',
     input.owedBy ? `${input.owedBy.developer} owes ${input.owedBy.amount} across ${input.owedBy.count} ${input.owedBy.count === 1 ? 'booking' : 'bookings'}${input.owedBy.overdueBuyer ? `; ${input.owedBy.overdueBuyer}’s invoice is ${input.owedBy.overdueDays} days overdue` : ''}.` : '',
     input.registrationsExpiring ? `${input.registrationsExpiring} developer ${input.registrationsExpiring === 1 ? 'registration expires' : 'registrations expire'} this week.` : '',
+    input.closingSoon ? `${input.closingSoon} ${input.closingSoon === 1 ? 'chat leaves' : 'chats leave'} the free 24-hour WhatsApp window in the next 3 hours. A reply now avoids a paid template.` : '',
+    input.speed ? `Portal leads waited a median ${input.speed.portalMedian} min for a human reply this month${input.speed.slowest ? `; ${input.speed.slowest}` : ''}.` : '',
   ]
   return lines.filter(Boolean)
 }

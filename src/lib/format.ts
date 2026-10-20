@@ -106,3 +106,12 @@ export function shortDateLabel(date = new Date()): string {
 export function inlineDayLabel(offsetDays: number, date = new Date()): string {
   return Math.abs(offsetDays) <= 1 ? dayLabel(offsetDays, date).toLowerCase() : dayLabel(offsetDays, date)
 }
+
+/** Minutes → "1h 40m" / "35m" / "2h", for countdowns. */
+export function formatMinutesLeft(minutes: number): string {
+  const whole = Math.max(0, Math.round(minutes))
+  const hours = Math.floor(whole / 60)
+  const rest = whole % 60
+  if (hours === 0) return `${rest}m`
+  return rest === 0 ? `${hours}h` : `${hours}h ${rest}m`
+}

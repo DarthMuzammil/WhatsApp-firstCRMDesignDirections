@@ -50,6 +50,8 @@ export type LeadSeed = {
   addedInDemo?: boolean
   /** True for leads that arrived from a source during the demo; the chat shows only their enquiry. */
   freshEnquiry?: boolean
+  /** When a demo arrival came in (epoch ms), so the first human reply can be timed (spec §3.14 Speed to lead). */
+  arrivedAt?: number
   /** M14: set while a reply that arrived in the demo is unread (inbox preview text, shown as just now). */
   inboxPreview?: string
   inboxMinutesAgo?: number

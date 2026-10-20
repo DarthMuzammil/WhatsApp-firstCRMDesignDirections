@@ -3,6 +3,8 @@ import { DEVELOPERS, bookingStatus, brokerageL, developerOfProject, registration
 import { DAYS_IN_STAGE, STUCK_AFTER_DAYS, monthStats } from '../data/performance'
 import { TEAMS, type Member } from '../data/team'
 import { weeklyDigest } from '../lib/ai'
+import { slowestLine, speedTable } from '../lib/analytics'
+import { windowClosingSoon } from '../data/templates'
 import { formatLakh } from '../lib/format'
 import type { DemoStore } from '../state/useDemoStore'
 import { Icon } from './Icon'
@@ -45,6 +47,8 @@ export function WeeklyDigest({ store }: { store: DemoStore }) {
   const top = store.members
     .filter((person) => person.status !== 'deactivated' && person.roles.includes('sales') && (isOwner || person.teamId === store.viewer.teamId))
     .sort((a, b) => commission(b.id) - commission(a.id))[0]
+  const people = store.members.filter((person) => person.status !== 'deactivated' && (person.roles.includes('sales') || (isOwner && person.roles.includes('presales'))) && (isOwner || person.teamId === store.viewer.teamId))
+  const speed = speedTable(store, people, 'this-month')
   const lines = weeklyDigest({
     team: isOwner ? 'The company' : `The ${teamName} team`,
     pipelineCr: store.activeValueCr,
@@ -56,6 +60,8 @@ export function WeeklyDigest({ store }: { store: DemoStore }) {
     topCommissionL: top ? Math.round(commission(top.id) * 10) / 10 : undefined,
     owedBy: store.viewerCan('viewReceivables') ? owedMost(store.cp.bookings) : undefined,
     registrationsExpiring: store.cp.registrations.filter((registration) => registrationStatus(registration).kind === 'expiring').length,
+    closingSoon: store.leads.filter((lead) => !lead.closed && windowClosingSoon(store.serviceWindowLeft(lead))).length,
+    speed: speed.portalMedian !== null ? { portalMedian: speed.portalMedian, slowest: slowestLine(speed) } : undefined,
   })
   return (
     <section className="card digest">

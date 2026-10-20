@@ -47,6 +47,32 @@
 .att-counts span { color: var(--muted); font-size: var(--fs-meta); }
 .scorecard-note { display: flex; align-items: center; gap: var(--space-2); color: var(--muted); font-size: var(--fs-caption); }
 
+/* Speed to lead and Leads at risk (spec §3.14) */
+.speed-card, .risk-card { margin-top: var(--space-4); }
+.speed-table th:not(:first-child), .speed-table td { text-align: center; }
+.speed-table td { min-width: 56px; }
+/* The person column stays put while the sources scroll sideways on narrow screens. */
+.speed-table th:first-child { position: sticky; left: 0; z-index: 1; background: var(--surface); }
+.speed-table tbody tr:hover th:first-child { background: var(--surface-subtle); }
+.speed-table td.speed-all { font-weight: 800; }
+.band-good { color: var(--success-ink); background: var(--success-soft); }
+.band-warn { color: var(--warning-ink); background: var(--warning-soft); }
+.band-bad { color: var(--danger-text); background: var(--danger-soft); }
+.speed-foot { padding: var(--space-3) var(--space-5) var(--space-4); display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4); color: var(--muted); font-size: var(--fs-caption); }
+.speed-foot i { width: 10px; height: 10px; margin-right: var(--space-1); display: inline-block; border-radius: var(--radius-xs); vertical-align: -1px; }
+.speed-foot .speed-live { display: inline-flex; align-items: center; gap: var(--space-1); color: var(--primary); font-weight: 700; }
+.speed-foot .speed-windows { flex-basis: 100%; }
+.risk-grid { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); align-items: start; gap: var(--space-4); padding-right: var(--space-3); }
+.risk-list button { align-items: flex-start; }
+.risk-list b { flex: 0 0 auto; font-size: var(--fs-body-sm); white-space: nowrap; }
+.risk-reasons { margin-top: var(--space-1); display: flex; flex-wrap: wrap; gap: var(--space-1); }
+.risk-reasons em { padding: var(--space-half) var(--space-2); border-radius: var(--radius-sm); color: var(--warning-ink); background: var(--warning-soft); font-size: var(--fs-meta); font-style: normal; font-weight: 700; }
+.risk-reasons em.danger { color: var(--danger-text); background: var(--danger-soft); }
+.risk-agents { min-width: 0; }
+.listing-table th small { color: var(--muted); font-size: var(--fs-meta); font-weight: 500; }
+.listing-table td.listing-flags { text-align: left; }
+.listing-table .lead-flag + .lead-flag { margin-left: var(--space-1); }
+
 /* Insights */
 .insights-title { margin: var(--space-8) 0 var(--space-4); font-size: var(--fs-title-lg); }
 .insights-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; gap: var(--space-4); }
@@ -61,7 +87,9 @@
 .stuck-empty { padding: var(--space-3); color: var(--muted); font-size: var(--fs-body-sm); }
 
 @media (max-width: 1100px) {
-  .reports-grid, .insights-grid { grid-template-columns: 1fr; }
+  .reports-grid, .insights-grid, .risk-grid { grid-template-columns: 1fr; }
+  .risk-grid { padding-right: 0; }
+  .risk-agents { min-width: 0; }
 }
 
 @media (max-width: 760px) {

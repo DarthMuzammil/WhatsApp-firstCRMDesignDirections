@@ -6,6 +6,7 @@
 .lead-row-top strong { font-size: var(--fs-title-sm); }
 .lead-row-top time { color: var(--faint); font-size: var(--fs-caption); white-space: nowrap; }
 .lead-row.has-unread .lead-row-top time { color: var(--success-ink); font-weight: 700; }
+.lead-row .lead-row-top time.is-closing { color: var(--warning-ink); font-weight: 800; }
 .lead-row-need { overflow: hidden; color: var(--muted); font-size: var(--fs-caption); white-space: nowrap; text-overflow: ellipsis; }
 .lead-row-message { display: flex; align-items: center; gap: var(--space-3); }
 .lead-row-message p { min-width: 0; flex: 1; overflow: hidden; color: var(--ink-soft); font-size: var(--fs-body-sm); white-space: nowrap; text-overflow: ellipsis; }

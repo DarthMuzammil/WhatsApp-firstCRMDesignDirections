@@ -13,6 +13,7 @@ import { MAX_ACCURACY_M, OFFICES, SEED_VISITS, formatDistance, slotMinutes, type
 import { DOC_LABELS, OFFER_BY_LABELS, SEED_DEALS, type Closure, type Deal } from '../data/deals'
 import { SEED_PROPERTIES, matchesForLead, priceLabel, type Property, PIN_SOURCE_LABELS } from '../data/inventory'
 import { DEFAULT_AUTO_REPLY, SERVICE_WINDOW_MINUTES } from '../data/templates'
+import { DAYS_SINCE_TOUCH } from '../data/performance'
 import { maskNumbersInText } from '../lib/ai'
 import { clockLabel, dayLabel, formatDuration, maskPhone, minutesOfDay } from '../lib/format'
 import { distanceM, type LatLng, type PretendLocation, type Reading } from '../lib/location'
@@ -34,6 +35,8 @@ export type CompanySettings = {
 }
 /** One change of lead owner, shown on the lead's history (spec §8.2). */
 export type Assignment = { leadId: number; fromId: string | null; toId: string; byId: string; reason: string; at: string }
+/** The first human reply to a lead that arrived in the demo, timed from its arrival (spec §3.14 Speed to lead). */
+export type FirstReply = { leadId: number; memberId: string; source: string; minutes: number }
 export type Note = { id: number; text: string; byId: string; at: string }
 /** A WhatsApp message added during the demo: by the team, by the auto-reply, or by the buyer (scripted). */
 export type ChatEntry = {
@@ -158,6 +161,7 @@ export function useDemoStore() {
   const [savedPropertyIds, setSavedPropertyIds] = useLocalState<number[]>('saved-properties', [])
   const [properties, setProperties] = useLocalState<Property[]>('properties', SEED_PROPERTIES)
   const [shares, setShares] = useLocalState<Record<number, PropertyShare[]>>('property-shares', {})
+  const [firstReplies, setFirstReplies] = useLocalState<FirstReply[]>('first-replies', [])
   const findProperty = (id: number) => properties.find((item) => item.id === id)
 
   // ---------- People ----------
@@ -431,6 +435,25 @@ export function useDemoStore() {
     chatFor: (leadId: number) => chats[leadId] ?? [],
     /** WhatsApp only allows free text within 24 hours of the buyer's last message; after that, templates only (spec §8.4). */
     serviceWindowClosed: (lead: Lead) => lead.minutesAgo > SERVICE_WINDOW_MINUTES && !(chats[lead.id] ?? []).some((entry) => entry.from === 'buyer'),
+    /**
+     * Minutes until WhatsApp's 24-hour window closes for this lead (≤ 0 = closed), or null when the buyer has never
+     * written (leads typed in during the demo). A buyer message during the demo re-opens the full window (spec §3.1).
+     */
+    serviceWindowLeft: (lead: Lead): number | null => {
+      if (lead.addedInDemo && !(chats[lead.id] ?? []).some((entry) => entry.from === 'buyer')) return null
+      if (replies[lead.id] || (chats[lead.id] ?? []).some((entry) => entry.from === 'buyer')) return SERVICE_WINDOW_MINUTES
+      return SERVICE_WINDOW_MINUTES - lead.minutesAgo
+    },
+    /** Days since anyone on the team touched the lead: the seeded figure (🧱) until a demo action resets it (spec §3.14 Leads at risk). */
+    lastTouchDays: (leadId: number): number => (activity.some((item) => item.leadId === leadId && item.byId !== SYSTEM_ID) ? 0 : DAYS_SINCE_TOUCH[leadId] ?? 0),
+    /** True once someone on the team did something to the lead during the demo. */
+    touchedInDemo: (leadId: number): boolean => activity.some((item) => item.leadId === leadId && item.byId !== SYSTEM_ID),
+    /** Live first replies to demo arrivals, for the Speed to lead table. */
+    firstReplies,
+    /** Ownership changes made for leave cover where the cover hasn't touched the lead yet (spec §3.14 Leads at risk). */
+    coverUntouched: (lead: Lead): boolean =>
+      assignments.some((item) => item.leadId === lead.id && item.toId === lead.ownerId && /leave cover/i.test(item.reason)) &&
+      !activity.some((item) => item.leadId === lead.id && item.byId === lead.ownerId),
     aiSuggestionsFor: (leadId: number) => aiSuggestions[leadId],
     qualifyStepFor: (leadId: number) => qualifySteps[leadId] ?? 0,
     unreadTotal,
@@ -479,7 +502,7 @@ export function useDemoStore() {
       const lead: LeadSeed = {
         ...template, id, source: source.name, enquiry: template.message, minutesAgo: 0, unread: 1,
         budget: 'Budget to qualify', budgetCr: 0, moveIn: 'To confirm', mustHave: 'To confirm',
-        initialStage: 0, ownerId: null, freshEnquiry: true,
+        initialStage: 0, ownerId: null, freshEnquiry: true, arrivedAt: Date.now(),
         answers: { budget: template.budget, budgetCr: template.budgetCr, moveIn: template.moveIn === 'To confirm' ? 'Within 3 months' : template.moveIn },
       }
       const ownerId = routeLead(lead)
@@ -766,6 +789,12 @@ export function useDemoStore() {
     /** Adds a WhatsApp message to the lead's chat. Team and auto-reply messages are logged on the timeline. */
     sendMessage: (leadId: number, text: string, options: { from?: ChatEntry['from']; template?: string } = {}) => {
       const from = options.from ?? 'agent'
+      // Speed to lead (spec §3.14): the first human reply to a demo arrival is timed from when it came in.
+      const lead = allLeads.find((item) => item.id === leadId)
+      if (from === 'agent' && lead?.arrivedAt && !(chats[leadId] ?? []).some((entry) => entry.from === 'agent')) {
+        const minutes = Math.max(0, Math.round((Date.now() - lead.arrivedAt) / 60_000))
+        setFirstReplies((current) => [...current.filter((item) => item.leadId !== leadId), { leadId, memberId: viewer.id, source: lead.source, minutes }])
+      }
       setChats((current) => ({ ...current, [leadId]: [...(current[leadId] ?? []), { from, text, at: clockLabel(), template: options.template }] }))
       if (from === 'buyer') return
       const short = text.length > 80 ? `${text.slice(0, 80)}…` : text

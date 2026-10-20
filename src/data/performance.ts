@@ -91,3 +91,58 @@ export const STUCK_AFTER_DAYS = 7
 
 /** How many times each property was shared on WhatsApp this month (🧱). */
 export const PROPERTY_SHARES: Record<number, number> = { 1: 46, 2: 31, 3: 38, 4: 22, 5: 27, 6: 19, 7: 12, 8: 34 }
+
+// ---------- Owner analytics shortlist (spec §8.19) ----------
+
+/** Sources the Speed to lead table compares, in display order (the ones that produce enquiries with a first reply). */
+export const SPEED_SOURCES = ['99acres', 'MagicBricks', 'Housing', 'Facebook ads', 'WhatsApp', 'Walk-in', 'Referral'] as const
+export const PORTAL_SOURCES: readonly string[] = ['99acres', 'MagicBricks', 'Housing']
+/** A first reply within this many minutes is "fast"; RESPONSE_SLA_MINUTES (15) is the red line. */
+export const SPEED_TARGET_MIN = 5
+const SOURCE_SPEED_FACTOR: Record<string, number> = { '99acres': 1.3, MagicBricks: 1.5, Housing: 1.8, 'Facebook ads': 1.2, WhatsApp: 0.6, 'Walk-in': 0.45, Referral: 0.8 }
+
+/**
+ * Minutes to the first human reply for each lead this person handled from a source this month (🧱 generated,
+ * consistent with their median first reply; [] = no leads from that source). The view adds live demo replies.
+ */
+export function firstReplySamples(memberId: string, source: string, period: Period): number[] {
+  const base = monthStats(memberId, period).medianResponseMin
+  const salt = (period === 'this-month' ? 100 : 200) + Math.max(0, SPEED_SOURCES.indexOf(source as (typeof SPEED_SOURCES)[number])) * 7
+  const r = (n: number) => noise(memberId, salt + n)
+  if (r(0) < 0.22) return []
+  const count = 2 + Math.round(r(1) * 5)
+  const factor = SOURCE_SPEED_FACTOR[source] ?? 1
+  return Array.from({ length: count }, (_, index) => Math.max(1, Math.round(base * factor * (0.55 + r(2 + index) * 0.9))))
+}
+
+/** Median of a list, or null when empty. */
+export function median(values: number[]): number | null {
+  if (values.length === 0) return null
+  const sorted = [...values].sort((a, b) => a - b)
+  const mid = Math.floor(sorted.length / 2)
+  return sorted.length % 2 ? sorted[mid] : Math.round((sorted[mid - 1] + sorted[mid]) / 2)
+}
+
+/** Chats that slipped past WhatsApp's 24-hour window this month and needed a paid template to re-open (🧱). */
+export const WINDOW_TEMPLATES_THIS_MONTH = { chats: 38, rupees: 41 }
+
+/**
+ * Days since anyone on the team last touched a seeded lead (message, note, follow-up or visit), for "Leads at risk" (🧱).
+ * Only quieter leads from the wider book are listed, so the scripted twelve keep their story. Any demo action resets it.
+ */
+export const DAYS_SINCE_TOUCH: Record<number, number> = { 108: 12, 110: 9, 114: 11, 116: 14, 119: 8, 121: 10, 123: 9, 125: 8, 130: 8, 132: 7 }
+export const QUIET_AFTER_DAYS = 7
+
+/** Per-listing funnel this month (🧱): visits booked, verified check-ins and deals closed. Live visits and won deals are added. */
+export const PROPERTY_FUNNEL: Record<number, { booked: number; verified: number; deals: number }> = {
+  1: { booked: 14, verified: 12, deals: 3 },
+  2: { booked: 9, verified: 8, deals: 1 },
+  3: { booked: 11, verified: 9, deals: 2 },
+  4: { booked: 7, verified: 6, deals: 2 },
+  5: { booked: 10, verified: 8, deals: 0 },
+  6: { booked: 8, verified: 6, deals: 1 },
+  7: { booked: 6, verified: 6, deals: 0 },
+  8: { booked: 5, verified: 5, deals: 2 },
+}
+/** A listing with this many verified visits and no deal gets a "Retire?" nudge. */
+export const RETIRE_AFTER_VISITS = 6

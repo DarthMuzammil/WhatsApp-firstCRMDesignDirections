@@ -23,6 +23,10 @@ export function fillTemplate(template: Template, values: Partial<Record<Template
 
 /** WhatsApp only allows free-text replies within 24 hours of the buyer's last message. */
 export const SERVICE_WINDOW_MINUTES = 24 * 60
+/** A window closing within this long is flagged "Closes in …" in the inbox and chat (spec §3.1). */
+export const WINDOW_WARNING_MINUTES = 3 * 60
+/** True when the window is still open but closes within the warning period. `left` comes from `store.serviceWindowLeft`. */
+export const windowClosingSoon = (left: number | null): left is number => left !== null && left > 0 && left <= WINDOW_WARNING_MINUTES
 
 export const DEFAULT_AUTO_REPLY = `Hi {name}, thanks for reaching out to ${BROKERAGE.name}! A property expert will reply in a few minutes. Meanwhile, a few quick questions so we send the right homes.`
 
