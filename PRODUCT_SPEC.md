@@ -792,8 +792,44 @@ Developers pay CP brokerage late, and only after the buyer has paid a set share 
   - Fake-GPS apps can't be blocked, so the product says "verified location", never "proof".
 - **Real fix later:** a map and geocoding service (e.g. Google Maps or Mapbox) and a location-accuracy policy. Not part of the UI prototype.
 
+### 8.19 Owner analytics shortlist · TODO (not built)
+Picked on 2026-10-20 from the competitor research (`bayana-night-run/competitor-analysis.md`, outside the repo) as a product manager would: each item matters to a brokerage owner every week, needs **no new third-party integration** (or is honestly simulated 🎭), and fits a screen that already exists. Deferred as lower value or duplicates: an "agent exit checklist" (Deactivate already moves every lead), a weekly digest sent to the owner's WhatsApp (the digest is already on the team home), receivable ageing export (Brokerage already exports CSV and charts ageing).
+
+#### 8.19.1 Speed to lead: who answers which source, and how fast
+- **Problem:** a portal enquiry reaches several brokers at once; whoever replies first gets the buyer. Competitors show one team-level "turnaround time"; the owner can't see *which agent* is slow on *which source*, so slow portal replies hide inside a good average.
+- **Who uses it:** the Owner weekly, Managers daily (their team only), Sales see only their own row via the scorecard.
+- **Where:** Performance → a **Speed to lead** card for Managers and the Owner (a table, because it compares people): rows = salespeople in scope (plus Pre-sales for the Owner), columns = the live sources (99acres, MagicBricks, Housing, Facebook ads, WhatsApp, Walk-in, Referral) and **All**; each cell is the median minutes to the first human reply this month, coloured by band (≤ 5 min good, ≤ 15 min amber, over the 15-minute response target red), with a dash where that person had no leads from the source. Header line: "Within 5 minutes: 62% of portal leads this month · slowest source: Housing (median 22 min)". Tapping a row opens the scorecard. The team home's AI digest gets one line ("Portal leads waited a median 14 min for a human this week; Vivek S. is slowest on MagicBricks").
+- **Data:** monthly figures generated per person and source in `performance.ts` 🧱 (consistent with each person's `medianResponseMin`); leads that **arrive in the demo** are live ✅: the first human message after the enquiry (the automatic reply doesn't count) sets that agent's reply time for that source.
+- **Why it beats competitors:** Sell.Do and LeadSquared sell TAT dashboards at team level; nobody crosses agent × source, because portal leads often never enter their inbox.
+- **Effort:** M (generated matrix, one card, a digest line, e2e checks).
+
+#### 8.19.2 24-hour window countdown
+- **Problem:** WhatsApp allows free-form replies only within 24 hours of the buyer's last message; after that the firm pays for a template (about ₹0.86–1.09 marketing, ₹0.115–0.145 utility in India) and the thread usually goes cold. Agents can't see when a window closes; owners can't see how many threads are about to.
+- **Who uses it:** every agent daily; the Owner and Managers weekly (how many threads closed, what re-opening cost).
+- **Where:** **Inbox row**: when the window closes within 3 hours the time reads "Closes in 1h 40m" in amber (the one-flag rule stays). **Chat header** status line adds "· window closes in 1h 40m", and a slim amber line above the composer says "Reply within 1h 40m to keep this chat free-form" (after that the existing "Outside WhatsApp's 24-hour window" lock takes over). **Inbox filter** chip **Closing soon · N**. **Today**: the Waiting for a reply card (Sales, Pre-sales) and the team home's digest get "N chats close in the next 3 hours". **Owner insights** (Performance): "Templates this month: N re-opened chats · about ₹N" 🧱.
+- **Data:** live from each lead's last buyer message (`minutesAgo` and demo replies) and `SERVICE_WINDOW_MINUTES` ✅; seed adjusted so one or two Owner-visible leads are 21–23 hours quiet.
+- **Why it beats competitors:** the WhatsApp BSPs (Interakt, Wati, DoubleTick) hide the window because templates are their revenue; the CRMs don't model it at all. It's a real Meta rule, so it is deliverable as plain software.
+- **Effort:** S–M (a helper, four small UI touches, e2e checks).
+
+#### 8.19.3 Leads at risk (leakage)
+- **Problem:** leads die quietly in one agent's hands and the owner finds out when the agent resigns. Competitors list "stale leads"; none combine quiet time, missing follow-ups, the owner being on leave and the money at stake, or show which agent sits on the most.
+- **Who uses it:** the Owner weekly, Managers for their team.
+- **Where:** Performance → **Leads at risk** card (Managers and the Owner; replaces the current Stuck leads list, which it includes): open leads with no activity from the team for 7+ days, biggest budget first, each with the reasons as chips ("Quiet 12 days", "No follow-up set", "Owner on leave · cover hasn't touched it", "Stuck in Qualified 11 days") and the budget; header "₹N Cr at risk across N leads"; a short **by agent** table (open leads, quiet share %, ₹ at risk) alongside. Tapping a lead opens its chat; any team action on it (message, note, follow-up, visit) takes it off the list straight away ✅.
+- **Data:** days since the team last touched each seeded lead generated in `performance.ts` 🧱 (quiet leads chosen among the wider book so the scripted twelve stay as they are), overridden live by the activity log, tasks, visits and leave ✅.
+- **Why it beats competitors:** a ₹-weighted, reason-coded list per agent exists nowhere else; leave cover is unique to Bayana, so the "cover hasn't touched it" signal is too.
+- **Effort:** M.
+
+#### 8.19.4 Listings that earn their visits
+- **Problem:** dead inventory burns field time. Owners know which homes get shared and visited, not which visits turn into deals, and nobody else can know either because only Bayana verifies that a visit happened at the property.
+- **Who uses it:** the Owner weekly; Managers when planning visits.
+- **Where:** Performance → the existing **Property interest** card becomes a table (a comparison of listings): listing, shares, visits booked, verified visits, deals, visit → deal %, with a nudge chip **Retire?** on listings with 6+ verified visits and no deal this quarter, **Location not set** on unpinned listings (§3.4) and **Sold** where applicable; sorted by verified visits.
+- **Data:** per-listing monthly figures generated in `performance.ts` 🧱 plus live visits (verified check-ins today) and deals won in the demo whose lead had a verified visit at that listing ✅.
+- **Why it beats competitors:** the ratio is only meaningful with verified visits; everyone else logs self-reported visits.
+- **Effort:** S.
+
 ## 9. Changelog
 Newest first. One line per change: date, what changed, which section was updated.
+- **2026-10-20:** Added the owner analytics shortlist from the competitor research as TODO (§8.19): speed to lead by agent and source, the 24-hour window countdown, leads at risk, and listings that earn their visits.
 - **2026-10-20:** Built the three TODO items. **Property location pins** (§8.18 → §3.4): every listing has an address and a location pin with who set it, when and how; Add property needs a pin (Use my location ✅, or Place on the map 🎭 on a labelled demo map with the check-in radius ring); the listing agent or a manager pins an unpinned listing, only Owner/Managers move a pin (new permission *Move any property's location pin*); cards show "Pinned on site by …" or a "Location not set" notice with **Pin it now**; visits at unpinned listings are recorded as **not verified** instead of being measured from the locality's centre; pin changes are audited. Seed: Brookside Towers unpinned. **Inbox online dot removed** (§3.1): WhatsApp's API doesn't report presence. **Bundle size** (§6, §7): Calls, Attendance, Performance, New launches and the Manage screens are lazy chunks prefetched after the first paint (main chunk 533 → 387 kB, no build warning). Saved-data prefix `daira:v13:`. Updated §3.1, §3.4, §3.8, §3.12, §3.15, §4, §5, §6, §7, §8.18; `inventory` and `visits` suites extended.
 - **2026-10-20:** Call screen redone as a phone-bridge call (§3.6): "Bayana is calling your phone… Pick up to connect", then the buyer's phone rings, then connected with a timer and REC. Removed "Secure internet call" and the Mute / Speaker / Record buttons; every connected call is recorded and saved when it ends.
 - **2026-10-20:** Calls: stated that the call stats and recording playback are demo data until a telephony provider is connected (§3.6), and that the Calls screen is provider-backed (§8.15).
