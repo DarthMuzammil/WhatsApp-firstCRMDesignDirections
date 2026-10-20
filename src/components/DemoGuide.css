@@ -1,0 +1,25 @@
+/* Presenter's panel, bottom right on desktop and above the tab bar on phones. Sits under dialogs (they cover it). */
+.demo-guide { position: fixed; right: var(--space-6); bottom: var(--space-6); z-index: 60; width: min(380px, calc(100vw - 32px)); padding: var(--space-4) var(--space-5) var(--space-5); border: 1px solid var(--navy-line); border-radius: var(--radius-lg); color: var(--on-navy); background: var(--navy); box-shadow: var(--shadow-lg); }
+.demo-guide header { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.demo-guide .eyebrow { color: var(--mint); }
+.demo-guide-buttons { display: flex; gap: var(--space-1); }
+.demo-guide .icon-button { width: 32px; height: 32px; color: var(--on-navy-muted); }
+.demo-guide .icon-button:hover { color: var(--surface); background: var(--navy-raised); }
+.demo-guide-buttons .icon-button:first-child svg { transform: rotate(90deg); }
+.demo-guide-progress { height: 4px; margin: var(--space-2) 0 var(--space-4); overflow: hidden; border-radius: var(--radius-pill); background: var(--navy-line); }
+.demo-guide-progress i { display: block; height: 100%; border-radius: var(--radius-pill); background: var(--mint); transition: width .3s ease; }
+.demo-guide h2 { color: var(--surface); font-size: var(--fs-title); letter-spacing: -.01em; }
+.demo-guide p { margin-top: var(--space-2); color: var(--on-navy-muted); font-size: var(--fs-body-sm); line-height: 1.5; }
+.demo-guide footer { margin-top: var(--space-4); display: flex; align-items: center; justify-content: flex-end; gap: var(--space-3); }
+.demo-guide footer .btn:disabled { opacity: .6; box-shadow: none; }
+.demo-guide-skip { min-height: 36px; padding: 0 var(--space-2); border: 0; color: var(--on-navy-muted); background: transparent; font-size: var(--fs-caption); font-weight: 700; }
+.demo-guide-skip:hover { color: var(--surface); }
+.demo-guide-pill { position: fixed; right: var(--space-6); bottom: var(--space-6); z-index: 60; min-height: 40px; padding: 0 var(--space-4); border: 0; border-radius: var(--radius-pill); display: inline-flex; align-items: center; gap: var(--space-2); color: var(--navy-deep); background: var(--mint); box-shadow: var(--shadow-lg); font-size: var(--fs-caption); font-weight: 800; }
+
+@media (max-width: 760px) {
+  .demo-guide { right: var(--space-4); bottom: calc(76px + env(safe-area-inset-bottom)); padding: var(--space-3) var(--space-4) var(--space-4); }
+  .demo-guide p { display: -webkit-box; overflow: hidden; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
+  .demo-guide .icon-button { width: var(--tap); height: var(--tap); }
+  .demo-guide footer .btn, .demo-guide-skip { min-height: var(--tap); }
+  .demo-guide-pill { right: var(--space-4); bottom: calc(76px + env(safe-area-inset-bottom)); min-height: var(--tap); }
+}

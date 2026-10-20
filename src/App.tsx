@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Lead } from './data/demo'
 import { MobileTabBar, MobileTopBar, Sidebar } from './components/AppNavigation'
 import { navItemsFor, type View } from './components/navigation'
+import { DemoGuide } from './components/DemoGuide'
 import { IncomingLeadBanner, type Arrival } from './components/IncomingLeadBanner'
 import { Toast, useToast } from './components/Toast'
 import { AddLeadModal } from './modals/AddLeadModal'
@@ -39,6 +40,7 @@ export default function App() {
   const [callPickerOpen, setCallPickerOpen] = useState(false)
   const [callingLeadId, setCallingLeadId] = useState<number | null>(null)
   const [arrival, setArrival] = useState<Arrival | null>(null)
+  const [demoOpen, setDemoOpen] = useState(false)
   const dismissArrival = useCallback(() => setArrival(null), [])
   const mainRef = useRef<HTMLElement>(null)
 
@@ -84,8 +86,8 @@ export default function App() {
 
   return (
     <div className="app">
-      <Sidebar store={store} view={navView} onNavigate={navigate} onSimulateLead={simulateLead} onOpenLead={showLead} />
-      <MobileTopBar store={store} onNavigate={navigate} onAddLead={() => setAddLeadOpen(true)} onSimulateLead={simulateLead} onOpenLead={showLead} />
+      <Sidebar store={store} view={navView} onNavigate={navigate} onSimulateLead={simulateLead} onStartDemo={() => setDemoOpen(true)} onOpenLead={showLead} />
+      <MobileTopBar store={store} onNavigate={navigate} onAddLead={() => setAddLeadOpen(true)} onSimulateLead={simulateLead} onStartDemo={() => setDemoOpen(true)} onOpenLead={showLead} />
 
       <main className="app-main" ref={mainRef}>
         {view === 'today' && <TodayView store={store} onOpenLead={showLead} onAddLead={() => setAddLeadOpen(true)} onNavigate={navigate} notify={notify} />}
@@ -105,6 +107,7 @@ export default function App() {
       </main>
 
       <MobileTabBar store={store} view={navView} onNavigate={navigate} />
+      {demoOpen && <DemoGuide store={store} onSimulate={(source) => store.receiveLead(source)?.lead} onOpenLead={showLead} onNavigate={navigate} notify={notify} onClose={() => setDemoOpen(false)} />}
       <Toast message={toast} />
       {arrival && (
         <IncomingLeadBanner

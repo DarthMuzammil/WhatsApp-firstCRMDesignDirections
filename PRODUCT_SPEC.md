@@ -35,7 +35,7 @@ Layouts: **phone** ≤ 760px, **tablet** 761–1100px, **desktop** > 1100px. Eve
 | Progress card | "Today's progress" ✅: buyers awaiting a reply · follow-ups left, with a progress bar of completed tasks. Says "You're all caught up" only when both are zero. Hidden on windows shorter than 940 px; the nav list scrolls if needed so the user card always stays on screen. | — |
 | User card | Viewer's name and role ("Sales · Indiranagar") | — |
 | Account menu | "⋯" next to the user card (opens upwards, beside the sidebar) | Viewer's avatar |
-| Account menu contents | **Demo · View as** ✅: Arjun Khanna (Owner), Neha Kapoor (Manager · Indiranagar), Priya Nair (Sales · Indiranagar), Kiran Patel (Pre-sales). Then **Simulate incoming lead** ✅ (§3.11) and **Reset demo data** ✅ (asks to confirm first) | same |
+| Account menu contents | **Demo · View as** ✅: Arjun Khanna (Owner), Neha Kapoor (Manager · Indiranagar), Priya Nair (Sales · Indiranagar), Kiran Patel (Pre-sales). Then **Start guided demo** ✅ (§3.16), **Simulate incoming lead** ✅ (§3.11) and **Reset demo data** ✅ (asks to confirm first) | same |
 
 ⚠️ Names differ between desktop and phone (Today/Inbox, Follow-ups/Tasks). Pick one set.
 
@@ -237,6 +237,21 @@ Monthly figures (leads handled, visits booked/verified, deals, commission, first
 - **Export leads** and **Export log** ✅ download CSV files in the browser (`daira-leads.csv`: name, phone, source, owner, stage or Won/Lost, budget, looking for, localities; `daira-audit-log.csv`) and are themselves logged.
 - Not built: logging each time someone views a full phone number (Managers and the Owner always see full numbers in this prototype); editing permissions (the table is read-only, so there are no permission changes to log).
 
+### 3.16 Guided demo (presenter mode)
+- **Start guided demo** (account menu) opens a dark panel bottom right (above the tab bar on phones) for whoever is presenting to a client. It can be minimised to a "Demo · step N of 10" pill or ended at any time, and each step has **Skip**.
+- Each step shows what to point out and one button that does it with the real demo actions (so everything it does also lands on timelines, notifications, the audit log and reports). After it runs, the button becomes **Next step**.
+  1. **A buyer enquires on 99acres**: switches to the Owner, a 99acres enquiry arrives (the next simulated buyer; Meera Iyer on fresh data), routed to Pre-sales with the auto-reply, and its chat opens.
+  2. **Auto-qualification and the AI brief**: waits ("Waiting for the buyer's answers…") until all questions are answered, then **Accept the AI brief**.
+  3. **Pre-sales hands over to Sales**: reassigns to the first active salesperson in the lead's locality team (Sneha P. for HSR Layout; Priya N. if there's no team).
+  4. **Share a match and book the visit**: shares the best match on WhatsApp and books a visit today at 4:00 PM with that salesperson, confirmed in the chat.
+  5. **Switch to <agent>'s phone**: View as the salesperson, opens Visits.
+  6. **A check-in from the wrong place is refused** (1.4 km away; their manager and the Owner are notified).
+  7. **A verified check-in at the property**.
+  8. **Visit outcome**: checks out with "Liked it" and a next step.
+  9. **Negotiate and win**: moves to Negotiation, records the deal (asking = listing price, agreed = 98% of it, ₹5 L token, KYC and token receipt done, 100% to the salesperson), marks it won, opens Pipeline.
+  10. **The leaderboard moves**: back to the Owner on Performance; the salesperson's commission this month rises by agreed price × 2%.
+- The finish card suggests resetting demo data before the next client. The guide's place in the script is not saved; reloading the page ends it.
+
 ## 4. Seed data (`src/data/demo.ts`, `src/data/team.ts`, `src/data/sources.ts`)
 - **Team (22, `team.ts`):** Owner Arjun Khanna; Indiranagar team (manager Neha Kapoor; Sales Priya Nair, Aditya Rao, Kavya Reddy *on leave*, Sameer Joshi, Divya Iyer); Whitefield (manager Rahul Menon; Sales Vivek Sharma, Ritu Bansal, Manoj Kumar, Ayesha Khan, Karthik Srinivas); HSR Layout (manager Farah Sheikh; Sales Sneha Pillai, Rohit Verma, Ananth Krishnan, Meghna Das, Tarun Gowda); central Pre-sales Kiran Patel, Lakshmi Narayan, Imran Ali.
 - **Leads (12):**
@@ -288,7 +303,7 @@ See `AGENTS.md` for conventions. Each component has a matching `.css` file next 
 - `src/data/templates.ts`: WhatsApp templates, the 24-hour window, default auto-reply, qualification questions.
 - `src/state/useDemoStore.ts`: all saved state, the viewer, visibility filtering, routing, activity log and timeline, duplicate lookup, derived numbers and actions.
 - `src/lib/`: `ai.ts` (demo AI: reply drafts, lead score, call summary, weekly digest), `location.ts` (one-off location readings: demo readings, the browser's real location, distance), `permissions.ts` (role → permissions, who sees which lead), `storage.ts` (localStorage), `format.ts` (dates, money, durations, phone masking), `csv.ts` (CSV text and browser download), `useEscapeKey.ts`.
-- `src/components/`: `AppNavigation` (sidebar with Work/Manage groups, phone top bar, tab bar with More sheet), `navigation.ts` (items with required permission), `Dialog` (the one modal / sheet / full-screen shell), `AccountMenu`, `Avatar`, `HeatBadge`, `LeadActions`, `LeadRow`, `LeadTimeline`, `LeadNotes`, `LeadTags`, `IncomingLeadBanner`, `LocationControl` (demo location picker), `BarList` (single-series bar chart), `PropertyCard` (also `PropertyPhoto`), `NotificationBell` (bell + notifications panel), `Toast`, `Icon`.
+- `src/components/`: `DemoGuide` (guided demo panel), `AppNavigation` (sidebar with Work/Manage groups, phone top bar, tab bar with More sheet), `navigation.ts` (items with required permission), `Dialog` (the one modal / sheet / full-screen shell), `AccountMenu`, `Avatar`, `HeatBadge`, `LeadActions`, `LeadRow`, `LeadTimeline`, `LeadNotes`, `LeadTags`, `IncomingLeadBanner`, `LocationControl` (demo location picker), `BarList` (single-series bar chart), `PropertyCard` (also `PropertyPhoto`), `NotificationBell` (bell + notifications panel), `Toast`, `Icon`.
 - `src/views/`: `TodayView`, `ChatView` (chat + lead panel), `PipelineView`, `PropertiesView`, `FollowUpsView`, `CallsView`, `VisitsView` (with the visit outcome form), `AttendanceView` (My day, Leave, Register with team calendar, Requests), `ReportsView` (my performance, leaderboard, scorecard, owner insights), `EscalationsView`, `LeadSourcesView`, `TeamView` (with invite dialog), `SettingsView`, `AuditView` (Owner's audit log with CSV exports).
 - `src/modals/`: `AddLeadModal` (with duplicate check), `EditLeadDialog` (structured buyer brief), `ScheduleVisitDialog`, `TemplateDialog`, `AssignDialog` (people picker for assign / reassign / hand-off / deactivate), `DealDialog` (offer tracker + commission split; also `LostDialog`), `PropertyDialog` (add/edit listing), `ShareDialog` (pick lead → pick homes → WhatsApp preview → send), `CallPicker`, `CallModal`.
 - `src/index.css`: the only place raw colours are defined. Design tokens (colour, 4px spacing scale, radius, shadow, `--fs-*` type sizes, `--tap`) and shared classes (`.btn`, `.card`, `.chip`, `.count-badge`, `.status-dot`, `.icon-badge`, `.is-done` and more).
@@ -456,12 +471,13 @@ Everything here is **UI only**: each item is a screen or flow driven by seed dat
 4. M9: reports and leaderboard (needs the realistic team data from steps 1–3).
 5. M4, M13: chat automation and AI assist.
 6. M10, M11, M12: closing, inventory, notifications and audit.
-7. **Demo mode:** a scripted run across all of the above (new 99acres lead → auto-reply → AI-filled brief → assigned → visit with verified check-in → won → leaderboard moves).
+7. **Demo mode** — ✅ built as the guided demo (§3.16): a scripted run across all of the above (new 99acres lead → auto-reply → AI-filled brief → assigned → visit with verified check-in → won → leaderboard moves).
 
 ---
 
 ## 9. Changelog
 Newest first. One line per change: date, what changed, which section was updated.
+- **2026-10-20:** Built Demo mode: **Start guided demo** in the account menu opens a 10-step presenter panel that runs the full loop with real demo actions (99acres enquiry → auto-qualification and AI brief → hand to Sales → share and book → refused then verified check-in → outcome → won → leaderboard), with Skip, minimise and end. Updated §2, §3.16, §6, §8.16.
 - **2026-10-20:** Built M12: notifications bell and panel (per person, unread count, needs-attention row, mark all read; created by assignments, leave and correction requests/decisions, refused check-ins, won deals), Owner-only Audit log (reassignments, team, settings incl. lead sources, properties, deals, exports; repeated edits coalesce) with leads and log CSV export. New permission: see the audit log. Phone top bar shows only the WhatsApp dot under 430 px. Updated §2, §3.8, §3.15, §4–§6, §8.12.
 - **2026-10-20:** Built M11: 8 listings with availability, listing agent and owner contact (masked unless Manager/Owner/listing agent), Add/Edit property, availability filter, scored matches with reasons in the lead panel, Share dialog (pick lead or homes → WhatsApp preview → send, template outside 24 h → Seen), shared listings in the chat, per-listing shares on Performance. New permissions: add/edit properties, see owners' numbers. Removed fixed known issues (Matches/Share, pipeline tab, deals). Updated §3.2, §3.4, §3.8, §3.14, §4–§7, §8.11.
 - **2026-10-20:** Built M10: Closed pipeline column with Won (agreed price + commission split adding to 100%) and Lost (reason), Reopen, move back, desktop drag-and-drop, phone tabs open on the first non-empty stage; Deal panel on the lead (offer tracker, document checklist, split); won deals feed this month's leaderboard; Won/Lost inbox flags; closed leads leave active value. Updated §3.1–§3.3, §3.14, §5, §6, §8.10.

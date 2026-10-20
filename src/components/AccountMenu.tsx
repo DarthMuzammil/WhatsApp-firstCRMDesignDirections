@@ -15,11 +15,12 @@ type AccountMenuProps = {
   onViewAs: (memberId: string) => void
   /** Demo: make a new enquiry arrive from a connected source. */
   onSimulateLead: () => void
+  onStartDemo: () => void
   onReset: () => void
 }
 
 /** Popover with the demo "View as" switcher and Reset demo data (with confirmation). */
-export function AccountMenu({ trigger, label, placement, viewer, personas, onViewAs, onSimulateLead, onReset }: AccountMenuProps) {
+export function AccountMenu({ trigger, label, placement, viewer, personas, onViewAs, onSimulateLead, onStartDemo, onReset }: AccountMenuProps) {
   const [open, setOpen] = useState(false)
   const [confirming, setConfirming] = useState(false)
   return (
@@ -37,6 +38,10 @@ export function AccountMenu({ trigger, label, placement, viewer, personas, onVie
             </button>
           ))}
           <div className="account-menu-divider" />
+          <button role="menuitem" onClick={() => { setOpen(false); onStartDemo() }}>
+            <span className="account-menu-icon"><Icon name="play" size={16} /></span>
+            <span><strong>Start guided demo</strong><small>Enquiry to won deal, one click per step</small></span>
+          </button>
           <button role="menuitem" onClick={() => { setOpen(false); onSimulateLead() }}>
             <span className="account-menu-icon"><Icon name="bolt" size={16} /></span>
             <span><strong>Simulate incoming lead</strong><small>A new enquiry arrives and is routed</small></span>
