@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { PROPERTY_TYPES, initialsFor, type AvatarColor } from '../data/demo'
+import { PROPERTY_TYPES, initialsFor, type AvatarColor, type Lead } from '../data/demo'
 import { shortName, type Member } from '../data/team'
 import { Icon } from '../components/Icon'
 import { Dialog } from '../components/Dialog'
@@ -13,14 +13,24 @@ const ROUTING_LABEL = { 'round-robin': 'round-robin', locality: 'by locality', s
  * Quick-capture form. Sales and Pre-sales own the leads they add; managers and the owner
  * choose "Auto" (company routing rule) or a specific person.
  */
-export function AddLeadModal({ store, onClose }: { store: DemoStore; onClose: () => void }) {
-  const [saved, setSaved] = useState<{ name: string; owner?: Member } | null>(null)
+export function AddLeadModal({ store, onClose, onOpenLead }: { store: DemoStore; onClose: () => void; onOpenLead: (lead: Lead) => void }) {
+  const [saved, setSaved] = useState<{ name: string; owner?: Member; merged?: boolean } | null>(null)
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [kind, setKind] = useState<string>(PROPERTY_TYPES[0])
   const [area, setArea] = useState('')
   const [ownerChoice, setOwnerChoice] = useState<string>('auto')
   const choosesOwner = store.viewerCan('reassignLeads')
+  // Duplicate check (spec §8.5): once 10 digits are typed, look for the number across the whole company.
+  const duplicate = phone.length === 10 ? store.findDuplicate(phone) : undefined
+  const duplicateVisible = duplicate ? !!store.findLead(duplicate.id) : false
+  const duplicateOwner = store.findMember(duplicate?.ownerId)
+
+  function mergeIntoDuplicate() {
+    if (!duplicate) return
+    store.mergeEnquiry(duplicate.id, `${kind} in ${area.trim() || 'Bengaluru'} via Quick capture${name.trim() ? ` (${name.trim()})` : ''}`)
+    setSaved({ name: duplicate.name, owner: duplicateOwner, merged: true })
+  }
 
   function submit(event: FormEvent) {
     event.preventDefault()
@@ -58,9 +68,11 @@ export function AddLeadModal({ store, onClose }: { store: DemoStore; onClose: ()
         {saved ? (
           <div className="add-lead-success">
             <span className="icon-badge lg"><Icon name="check" size={28} /></span>
-            <h2>Lead captured</h2>
+            <h2>{saved.merged ? 'Enquiry merged' : 'Lead captured'}</h2>
             <p>
-              {saved.owner?.id === store.viewer.id
+              {saved.merged
+                ? `Added to ${saved.name}’s lead as a note${saved.owner && saved.owner.id !== store.viewer.id ? `; ${saved.owner.name} has been told` : ''}. No duplicate was created.`
+                : saved.owner?.id === store.viewer.id
                 ? `${saved.name} is now in your inbox, pipeline and call list.`
                 : saved.owner
                   ? `${saved.name} is assigned to ${saved.owner.name}.`
@@ -82,6 +94,19 @@ export function AddLeadModal({ store, onClose }: { store: DemoStore; onClose: ()
                 <input required inputMode="numeric" pattern="[0-9]{10}" title="Enter a 10-digit mobile number" value={phone} onChange={(event) => setPhone(event.target.value.replace(/\D/g, '').slice(0, 10))} placeholder="98765 43210" />
               </div>
             </label>
+            {duplicate && (
+              <div className="duplicate-alert" role="alert">
+                <Icon name="alert" size={18} />
+                <div>
+                  <strong>This number is already {duplicate.name}</strong>
+                  <small>{duplicate.need} · {duplicate.budget} · {duplicateOwner ? `owner ${shortName(duplicateOwner.name)}` : 'unassigned'}{duplicateVisible ? '' : ' (another team)'}</small>
+                  <span>
+                    {duplicateVisible && <button type="button" className="btn btn-secondary" onClick={() => { onClose(); onOpenLead(duplicate) }}>Open lead</button>}
+                    <button type="button" className="btn btn-primary" onClick={mergeIntoDuplicate}>Merge enquiry</button>
+                  </span>
+                </div>
+              </div>
+            )}
             <div className="form-row">
               <label>Looking for
                 <select value={kind} onChange={(event) => setKind(event.target.value)}>
@@ -100,7 +125,7 @@ export function AddLeadModal({ store, onClose }: { store: DemoStore; onClose: ()
                 </select>
               </label>
             )}
-            <button className="btn btn-primary btn-block add-lead-submit">Add to inbox <Icon name="arrow" /></button>
+            <button className={`btn btn-block add-lead-submit ${duplicate ? 'btn-secondary' : 'btn-primary'}`}>{duplicate ? 'Add as a separate lead anyway' : 'Add to inbox'} <Icon name="arrow" /></button>
           </form>
         </>}
     </Dialog>

@@ -87,7 +87,7 @@ export default function App() {
       <MobileTabBar store={store} view={navView} onNavigate={navigate} />
       <Toast message={toast} />
 
-      {addLeadOpen && <AddLeadModal store={store} onClose={() => setAddLeadOpen(false)} />}
+      {addLeadOpen && <AddLeadModal store={store} onClose={() => setAddLeadOpen(false)} onOpenLead={showLead} />}
       {callPickerOpen && <CallPicker leads={store.leads} onClose={() => setCallPickerOpen(false)} onChoose={startCall} />}
       {callingLead && (
         <CallModal

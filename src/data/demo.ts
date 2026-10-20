@@ -2,6 +2,7 @@
 // from user actions stored by `state/useDemoStore.ts`.
 
 export type Temperature = 'Hot' | 'Warm' | 'New'
+export type Purpose = 'Live-in' | 'Investment'
 export type AvatarColor = 'coral' | 'violet' | 'blue' | 'gold'
 
 /** Pipeline stages, in order. A lead's `stage` is an index into this list. */
@@ -40,6 +41,11 @@ export type LeadSeed = {
   initialStage: number
   /** Team member who owns the lead (see data/team.ts). null = unassigned queue. */
   ownerId: string | null
+  /** All localities the buyer will consider; `locality` is the first. */
+  localities?: string[]
+  purpose?: Purpose
+  /** Portal leads: roughly how many other brokers received the same enquiry (spec §8.5). */
+  sharedWith?: number
   /** True for leads added during the demo; they start with an empty chat. */
   addedInDemo?: boolean
 }
@@ -82,7 +88,7 @@ export const SEED_LEADS: LeadSeed[] = [
     id: 1, name: 'Ananya Rao', initials: 'AR', need: '3 BHK in Indiranagar', budget: '₹2.4–2.8 Cr', budgetCr: 2.6, locality: 'Indiranagar',
     message: 'Can we see the corner unit this Saturday?', enquiry: 'Hi, I’m looking for a 3 BHK in Indiranagar. Is anything good available?',
     minutesAgo: 2, unread: 2, temp: 'Hot', source: '99acres', color: 'coral', online: true, phone: '+91 98861 24018',
-    moveIn: 'Within 3 months', mustHave: 'Natural light · Balcony', initialStage: 2, ownerId: 'm-priya',
+    moveIn: 'Within 3 months', mustHave: 'Natural light · Balcony', initialStage: 2, ownerId: 'm-priya', sharedWith: 6,
   },
   {
     id: 2, name: 'Rohan & Meera', initials: 'RM', need: 'Villa near Whitefield', budget: '₹3.5 Cr', budgetCr: 3.5, locality: 'Whitefield',
@@ -94,7 +100,7 @@ export const SEED_LEADS: LeadSeed[] = [
     id: 3, name: 'Vikram Shah', initials: 'VS', need: 'Investment flat, HSR Layout', budget: '₹1.2–1.5 Cr', budgetCr: 1.35, locality: 'HSR Layout',
     message: 'Please share the rental yield calculation.', enquiry: 'Hi, I want an investment flat that rents out easily. Budget around ₹1.3 Cr.',
     minutesAgo: 60, unread: 0, temp: 'Warm', source: 'MagicBricks', color: 'blue', online: false, phone: '+91 97411 80923',
-    moveIn: 'Investment', mustHave: 'Rental yield > 3%', initialStage: 1, ownerId: 'm-sneha',
+    moveIn: 'Investment', mustHave: 'Rental yield > 3%', initialStage: 1, ownerId: 'm-sneha', purpose: 'Investment',
   },
   {
     id: 4, name: 'Sana Fathima', initials: 'SF', need: '2 BHK in HSR Layout', budget: '₹1.4 Cr', budgetCr: 1.4, locality: 'HSR Layout',
@@ -106,7 +112,7 @@ export const SEED_LEADS: LeadSeed[] = [
     id: 5, name: 'Deepak Malhotra', initials: 'DM', need: '4 BHK in Whitefield', budget: '₹3–3.4 Cr', budgetCr: 3.2, locality: 'Whitefield',
     message: 'Is the clubhouse ready? Can I visit on Sunday?', enquiry: 'Looking for a 4 BHK in a gated community in Whitefield.',
     minutesAgo: 35, unread: 1, temp: 'Hot', source: 'Housing', color: 'blue', online: true, phone: '+91 98455 61207',
-    moveIn: 'Within 2 months', mustHave: 'Gated · Clubhouse', initialStage: 2, ownerId: 'm-ritu',
+    moveIn: 'Within 2 months', mustHave: 'Gated · Clubhouse', initialStage: 2, ownerId: 'm-ritu', sharedWith: 5,
   },
   {
     id: 6, name: 'Nisha Kulkarni', initials: 'NK', need: '3 BHK in HSR Layout', budget: '₹1.8–2 Cr', budgetCr: 1.9, locality: 'HSR Layout',
@@ -118,7 +124,7 @@ export const SEED_LEADS: LeadSeed[] = [
     id: 7, name: 'Farhan Qureshi', initials: 'FQ', need: '2 BHK in Indiranagar', budget: '₹1.5–1.7 Cr', budgetCr: 1.6, locality: 'Indiranagar',
     message: 'Hi, is the 2 BHK on 12th Main still available?', enquiry: 'Hi, is the 2 BHK on 12th Main still available?',
     minutesAgo: 8, unread: 1, temp: 'New', source: '99acres', color: 'gold', online: true, phone: '+91 97390 22814',
-    moveIn: 'To confirm', mustHave: 'To confirm', initialStage: 0, ownerId: null,
+    moveIn: 'To confirm', mustHave: 'To confirm', initialStage: 0, ownerId: null, sharedWith: 4,
   },
   {
     id: 8, name: 'Lavanya Subramaniam', initials: 'LS', need: 'Villa in Whitefield', budget: '₹4–4.2 Cr', budgetCr: 4.1, locality: 'Whitefield',
@@ -130,7 +136,7 @@ export const SEED_LEADS: LeadSeed[] = [
     id: 9, name: 'Gaurav Bhatia', initials: 'GB', need: '3 BHK in Indiranagar', budget: '₹2.8–3 Cr', budgetCr: 2.9, locality: 'Indiranagar',
     message: 'What are the maintenance charges and is there covered parking?', enquiry: 'Interested in 3 BHK options near 100 Feet Road.',
     minutesAgo: 25, unread: 2, temp: 'Warm', source: 'MagicBricks', color: 'blue', online: false, phone: '+91 99459 31876',
-    moveIn: 'Within 6 months', mustHave: 'Covered parking', initialStage: 1, ownerId: 'm-aditya',
+    moveIn: 'Within 6 months', mustHave: 'Covered parking', initialStage: 1, ownerId: 'm-aditya', sharedWith: 3,
   },
   {
     id: 10, name: 'Pooja Venkatesh', initials: 'PV', need: '2 BHK in HSR Layout', budget: '₹1.2–1.3 Cr', budgetCr: 1.25, locality: 'HSR Layout',
@@ -142,13 +148,13 @@ export const SEED_LEADS: LeadSeed[] = [
     id: 11, name: 'Sanjay Mehta', initials: 'SM', need: 'Investment flat, Whitefield', budget: '₹1–1.2 Cr', budgetCr: 1.1, locality: 'Whitefield',
     message: 'Looking for something near ITPL that rents well.', enquiry: 'Looking for something near ITPL that rents well.',
     minutesAgo: 22, unread: 1, temp: 'New', source: 'WhatsApp', color: 'gold', online: false, phone: '+91 98804 66132',
-    moveIn: 'Investment', mustHave: 'Near ITPL', initialStage: 0, ownerId: null,
+    moveIn: 'Investment', mustHave: 'Near ITPL', initialStage: 0, ownerId: null, purpose: 'Investment',
   },
   {
     id: 12, name: 'Ishita Banerjee', initials: 'IB', need: '3 BHK in Indiranagar', budget: '₹2.4–2.6 Cr', budgetCr: 2.5, locality: 'Indiranagar',
     message: 'Could you send the floor plans for the Courtyard House?', enquiry: 'Hi, I liked the Courtyard House listing. Is it still available?',
     minutesAgo: 190, unread: 0, temp: 'Hot', source: '99acres', color: 'coral', online: false, phone: '+91 99723 18850',
-    moveIn: 'Within 3 months', mustHave: 'Low floor · Pet friendly', initialStage: 1, ownerId: 'm-priya',
+    moveIn: 'Within 3 months', mustHave: 'Low floor · Pet friendly', initialStage: 1, ownerId: 'm-priya', sharedWith: 6,
   },
 ]
 
@@ -189,6 +195,27 @@ export const DEMO_METRICS = {
 }
 
 export const PROPERTY_TYPES = ['2 BHK', '3 BHK', '4 BHK', 'Villa', 'Plot'] as const
+export const MOVE_IN_OPTIONS = ['Immediately', 'Within 2 months', 'Within 3 months', 'Within 4 months', 'Within 6 months', 'Before school year', 'Investment', 'To confirm'] as const
+/** Quick tags offered on every lead (spec §8.5). Custom tags can be typed too. */
+export const TAG_SUGGESTIONS = ['First-time buyer', 'Loan needed', 'NRI', 'Investor', 'Urgent', 'Price sensitive', 'Repeat client'] as const
+
+/** "₹2.4–2.8 Cr" → { min: 2.4, max: 2.8 }; "₹3.5 Cr" → { min: 3.5, max: 3.5 }; unqualified → null. */
+export function parseBudget(budget: string): { min: number; max: number } | null {
+  const numbers = (budget.match(/\d+(\.\d+)?/g) ?? []).map(Number)
+  if (numbers.length === 0) return null
+  return { min: numbers[0], max: numbers[numbers.length - 1] }
+}
+
+/** { 2.4, 2.8 } → "₹2.4–2.8 Cr"; equal values → "₹3.5 Cr". */
+export function formatBudget(min: number, max: number): string {
+  const trim = (value: number) => String(Number(value.toFixed(2)))
+  return min === max ? `₹${trim(min)} Cr` : `₹${trim(min)}–${trim(max)} Cr`
+}
+
+/** Last 10 digits, for comparing phone numbers written in different formats. */
+export function phoneKey(phone: string): string {
+  return phone.replace(/\D/g, '').slice(-10)
+}
 
 /** Best property for a lead: same locality first, then same BHK, then the first listing. */
 export function matchPropertyForLead(lead: LeadSeed): Property {

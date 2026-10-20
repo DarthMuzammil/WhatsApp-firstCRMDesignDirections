@@ -1,0 +1,14 @@
+.lead-tags { display: flex; flex-direction: column; gap: var(--space-2); }
+.lead-tags-row, .lead-tags-picker { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.lead-tags-picker { padding: var(--space-3); border: 1px dashed var(--border-strong); border-radius: var(--radius-md); }
+.tag-chip { min-height: 30px; padding: 0 var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-pill); display: inline-flex; align-items: center; gap: var(--space-1); color: var(--ink-soft); background: var(--surface); font-size: var(--fs-caption); font-weight: 600; }
+.tag-chip:hover { border-color: var(--border-strong); }
+.tag-chip.applied { color: var(--primary); border-color: var(--primary-line); background: var(--primary-soft); }
+.tag-chip.add { color: var(--muted); border-style: dashed; }
+.lead-tags-picker form { flex: 1 1 120px; }
+.lead-tags-picker input { width: 100%; height: 30px; padding: 0 var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-pill); outline: 0; background: var(--surface); font-size: var(--fs-caption); }
+.lead-tags-picker input:focus { border-color: var(--primary); }
+
+@media (max-width: 760px) {
+  .tag-chip, .lead-tags-picker input { min-height: 36px; height: 36px; }
+}

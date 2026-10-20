@@ -6,10 +6,14 @@ import { Dialog } from '../components/Dialog'
 import { HeatBadge } from '../components/HeatBadge'
 import { Icon } from '../components/Icon'
 import { LeadActions, type LeadActionHandlers } from '../components/LeadActions'
+import { LeadNotes } from '../components/LeadNotes'
+import { LeadTags } from '../components/LeadTags'
+import { LeadTimeline } from '../components/LeadTimeline'
 import { PropertyCard } from '../components/PropertyCard'
 import type { View } from '../components/navigation'
 import { nextSaturdayLabel } from '../lib/format'
 import { AssignDialog } from '../modals/AssignDialog'
+import { EditLeadDialog } from '../modals/EditLeadDialog'
 import type { DemoStore } from '../state/useDemoStore'
 import './ChatView.css'
 
@@ -30,6 +34,7 @@ type ChatViewProps = {
 export function ChatView({ lead, store, onBack, onCall, onNavigate, notify }: ChatViewProps) {
   const [detailsOpen, setDetailsOpen] = useState(false)
   const [assignMode, setAssignMode] = useState<'reassign' | 'handoff' | null>(null)
+  const [editing, setEditing] = useState(false)
   const actions: LeadActionHandlers = {
     shareShortlist: () => {
       store.sendMessage(lead.id, `Sharing 3 homes that match your brief for a ${lead.need}. Let me know which ones you’d like to see.`)
@@ -44,15 +49,22 @@ export function ChatView({ lead, store, onBack, onCall, onNavigate, notify }: Ch
   return (
     <div className="chat-layout">
       <ChatPanel lead={lead} store={store} actions={actions} onBack={onBack} onCall={() => onCall(lead)} onShowDetails={() => setDetailsOpen(true)} />
-      <aside className="lead-detail"><LeadDetails lead={lead} store={store} actions={actions} onAssign={setAssignMode} /></aside>
+      <aside className="lead-detail"><LeadDetails lead={lead} store={store} actions={actions} onAssign={setAssignMode} onEdit={() => setEditing(true)} /></aside>
       {detailsOpen && (
         <Dialog label={`${lead.name} details`} variant="sheet" onClose={() => setDetailsOpen(false)}>
           <header className="lead-detail-sheet-head">
             <strong>Lead details</strong>
             <button className="icon-button bordered" onClick={() => setDetailsOpen(false)} aria-label="Close"><Icon name="close" /></button>
           </header>
-          <div className="lead-detail-sheet-body dialog-scroll"><LeadDetails lead={lead} store={store} actions={actions} onAssign={(mode) => { setDetailsOpen(false); setAssignMode(mode) }} /></div>
+          <div className="lead-detail-sheet-body dialog-scroll"><LeadDetails lead={lead} store={store} actions={actions} onAssign={(mode) => { setDetailsOpen(false); setAssignMode(mode) }} onEdit={() => { setDetailsOpen(false); setEditing(true) }} /></div>
         </Dialog>
+      )}
+      {editing && (
+        <EditLeadDialog
+          lead={lead}
+          onSave={(edit) => { store.updateLeadProfile(lead.id, edit); setEditing(false); notify('Buyer brief saved') }}
+          onClose={() => setEditing(false)}
+        />
       )}
       {assignMode === 'reassign' && (
         <AssignDialog
@@ -175,10 +187,36 @@ function ChatPanel({ lead, store, actions, onBack, onCall, onShowDetails }: Chat
   )
 }
 
-type LeadDetailsProps = { lead: Lead; store: DemoStore; actions: LeadActionHandlers; onAssign: (mode: 'reassign' | 'handoff') => void }
+type LeadDetailsProps = {
+  lead: Lead
+  store: DemoStore
+  actions: LeadActionHandlers
+  onAssign: (mode: 'reassign' | 'handoff') => void
+  onEdit: () => void
+}
+type DetailsTab = 'overview' | 'timeline' | 'notes'
 
-/** Deal summary for a lead. Rendered in the desktop side panel and in the phone details sheet. */
-function LeadDetails({ lead, store, actions, onAssign }: LeadDetailsProps) {
+/** Everything about a lead, in three tabs. Rendered in the desktop side panel and in the phone details sheet. */
+function LeadDetails({ lead, store, actions, onAssign, onEdit }: LeadDetailsProps) {
+  const [tab, setTab] = useState<DetailsTab>('overview')
+  const notes = store.notesFor(lead.id)
+  const timeline = store.timelineFor(lead.id)
+  const tabs: { id: DetailsTab; label: string }[] = [
+    { id: 'overview', label: 'Overview' },
+    { id: 'timeline', label: `Timeline · ${timeline.length}` },
+    { id: 'notes', label: notes.length > 0 ? `Notes · ${notes.length}` : 'Notes' },
+  ]
+  return <>
+    <div className="segmented lead-detail-tabs" role="tablist" aria-label="Lead details">
+      {tabs.map((item) => <button key={item.id} role="tab" aria-selected={tab === item.id} className={tab === item.id ? 'active' : ''} onClick={() => setTab(item.id)}>{item.label}</button>)}
+    </div>
+    {tab === 'overview' && <LeadOverview lead={lead} store={store} actions={actions} onAssign={onAssign} onEdit={onEdit} />}
+    {tab === 'timeline' && <LeadTimeline events={timeline} findMember={store.findMember} />}
+    {tab === 'notes' && <LeadNotes notes={notes} onAdd={(text) => store.addNote(lead.id, text)} findMember={store.findMember} />}
+  </>
+}
+
+function LeadOverview({ lead, store, actions, onAssign, onEdit }: LeadDetailsProps) {
   const property = matchPropertyForLead(lead)
   const owner = store.findMember(lead.ownerId)
   const canReassign = store.viewerCan('reassignLeads')
@@ -213,6 +251,10 @@ function LeadDetails({ lead, store, actions, onAssign }: LeadDetailsProps) {
       <HeatBadge temp={lead.temp} />
     </div>
 
+    {lead.sharedWith ? (
+      <p className="shared-lead" role="note"><Icon name="alert" size={16} /><span><strong>Also sent to ~{lead.sharedWith} brokers</strong> by {lead.source}. Call now to be first.</span></p>
+    ) : null}
+
     <ol className="stage-track" aria-label={`Stage: ${STAGES[lead.stage]}`}>
       {STAGE_SHORT_LABELS.map((label, index) => (
         <li key={label} className={index < lead.stage ? 'done' : index === lead.stage ? 'current' : ''}>{label}</li>
@@ -220,12 +262,17 @@ function LeadDetails({ lead, store, actions, onAssign }: LeadDetailsProps) {
     </ol>
 
     <div className="buyer-brief">
-      <header><strong>Buyer brief</strong><span>via {lead.source}</span></header>
-      <div><span>Locality</span><strong>{lead.locality}</strong></div>
+      <header><strong>Buyer brief</strong><button className="brief-edit" onClick={onEdit}><Icon name="spark" size={14} /> Edit</button></header>
+      <div><span>Purpose</span><strong>{lead.purpose ?? (lead.moveIn === 'Investment' ? 'Investment' : 'Live-in')}</strong></div>
+      <div><span>Localities</span><strong>{(lead.localities ?? [lead.locality]).join(', ')}</strong></div>
       <div><span>Move-in</span><strong>{lead.moveIn}</strong></div>
       <div><span>Must-have</span><strong>{lead.mustHave}</strong></div>
       <div><span>Phone</span><strong>{store.displayPhone(lead.phone)}</strong></div>
+      <div><span>Source</span><strong>{lead.source}</strong></div>
     </div>
+
+    <span className="eyebrow lead-detail-label">Tags</span>
+    <div className="lead-detail-tags"><LeadTags tags={store.tagsFor(lead.id)} onToggle={(tag) => store.toggleTag(lead.id, tag)} /></div>
 
     <span className="eyebrow lead-detail-label">Top property match</span>
     <PropertyCard property={property} layout="stacked" />

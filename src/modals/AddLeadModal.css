@@ -11,6 +11,13 @@
 .phone-input span { padding: 0 var(--space-3); border-right: 1px solid var(--border); display: grid; place-items: center; color: var(--ink-soft); font-size: var(--fs-body); }
 .add-lead .phone-input input { flex: 1; min-width: 0; height: 44px; border: 0; box-shadow: none; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+.duplicate-alert { padding: var(--space-3) var(--space-4); border: 1px solid var(--warning-soft); border-radius: var(--radius-md); display: flex; gap: var(--space-3); color: var(--warning-ink); background: var(--warning-soft); }
+.duplicate-alert > svg { flex: 0 0 auto; margin-top: var(--space-half); }
+.duplicate-alert > div { min-width: 0; display: flex; flex-direction: column; gap: var(--space-1); }
+.duplicate-alert strong { color: var(--ink); font-size: var(--fs-body-sm); }
+.duplicate-alert small { color: var(--ink-soft); font-size: var(--fs-caption); }
+.duplicate-alert span { margin-top: var(--space-2); display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.duplicate-alert .btn { min-height: 36px; font-size: var(--fs-caption); }
 .add-lead-submit { min-height: 48px; margin-top: var(--space-2); }
 .add-lead-success { padding: var(--space-5) var(--space-3) var(--space-2); display: flex; flex-direction: column; align-items: center; gap: var(--space-3); text-align: center; }
 .add-lead-success p { max-width: 300px; margin-bottom: var(--space-2); color: var(--muted); font-size: var(--fs-body); line-height: 1.55; }

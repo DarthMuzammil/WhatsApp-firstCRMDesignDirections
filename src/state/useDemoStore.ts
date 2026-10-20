@@ -1,10 +1,10 @@
 import { useMemo } from 'react'
 import {
   COMMISSION_RATE, EXTRA_REMINDER, RESPONSE_SLA_MINUTES, SEED_LEADS, SEED_RECORDINGS, SEED_TASKS, SEED_VISIT, STAGES, STAGE_CLOSE_PROBABILITY,
-  type Lead, type LeadSeed, type Recording, type Task,
+  phoneKey, relativeMinutes, type Lead, type LeadSeed, type Recording, type Task,
 } from '../data/demo'
 import { DEFAULT_VIEWER_ID, SEED_MEMBERS, TEAMS, type Member, type MemberStatus } from '../data/team'
-import { maskPhone, nextSaturdayLabel } from '../lib/format'
+import { formatDuration, maskPhone, nextSaturdayLabel } from '../lib/format'
 import { can, canSeeLead, type Permission } from '../lib/permissions'
 import { clearDemoStorage, useLocalState } from '../lib/storage'
 
@@ -16,6 +16,16 @@ export type CompanySettings = {
 }
 /** One change of lead owner, shown on the lead's history (spec §8.2). */
 export type Assignment = { leadId: number; fromId: string | null; toId: string; byId: string; reason: string; at: string }
+export type Note = { id: number; text: string; byId: string; at: string }
+export type ActivityKind = 'enquiry' | 'message' | 'assign' | 'stage' | 'visit' | 'call' | 'note' | 'profile' | 'tag' | 'merge'
+/** Something that happened on a lead during the demo; newest first in the store. */
+export type Activity = { id: number; leadId: number; kind: ActivityKind; text: string; byId: string; at: string }
+/** One row of a lead's timeline (demo activity plus events implied by the seed data). */
+export type TimelineEvent = { key: string; kind: ActivityKind; text: string; at: string; byId?: string }
+/** Fields a person can edit on the lead profile (spec §8.5). */
+export type LeadProfileEdit = Pick<LeadSeed, 'need' | 'budget' | 'budgetCr' | 'locality' | 'localities' | 'moveIn' | 'mustHave' | 'purpose'>
+
+let activitySeq = 0
 
 const DEFAULT_SETTINGS: CompanySettings = { separatePresales: true, routing: 'round-robin' }
 
@@ -34,6 +44,10 @@ export function useDemoStore() {
   const [addedLeads, setAddedLeads] = useLocalState<LeadSeed[]>('added-leads', [])
   const [ownerOverrides, setOwnerOverrides] = useLocalState<Record<number, string | null>>('owners', {})
   const [assignments, setAssignments] = useLocalState<Assignment[]>('assignments', [])
+  const [leadEdits, setLeadEdits] = useLocalState<Record<number, LeadProfileEdit>>('lead-edits', {})
+  const [notes, setNotes] = useLocalState<Record<number, Note[]>>('notes', {})
+  const [tags, setTags] = useLocalState<Record<number, string[]>>('tags', {})
+  const [activity, setActivity] = useLocalState<Activity[]>('activity', [])
   const [stageOverrides, setStageOverrides] = useLocalState<Record<number, number>>('stages', {})
   const [visitLeadIds, setVisitLeadIds] = useLocalState<number[]>('visits', [])
   const [readLeadIds, setReadLeadIds] = useLocalState<number[]>('read-leads', [])
@@ -58,6 +72,7 @@ export function useDemoStore() {
       const unread = readLeadIds.includes(lead.id) ? 0 : lead.unread
       return {
         ...lead,
+        ...leadEdits[lead.id],
         unread,
         ownerId: lead.id in ownerOverrides ? ownerOverrides[lead.id] : lead.ownerId,
         stage: stageOverrides[lead.id] ?? lead.initialStage,
@@ -65,7 +80,7 @@ export function useDemoStore() {
         overdue: unread > 0 && lead.minutesAgo > RESPONSE_SLA_MINUTES,
       }
     }),
-    [addedLeads, ownerOverrides, readLeadIds, stageOverrides, visitLeadIds],
+    [addedLeads, leadEdits, ownerOverrides, readLeadIds, stageOverrides, visitLeadIds],
   )
   const leads = allLeads.filter((lead) => canSeeLead(viewer, lead.ownerId, members))
   const visibleIds = new Set(leads.map((lead) => lead.id))
@@ -92,10 +107,35 @@ export function useDemoStore() {
     return [...pool].sort((a, b) => openLeadCount(a.id) - openLeadCount(b.id))[0]?.id ?? null
   }
 
+  /** Records a demo action on the lead's timeline. */
+  function log(leadId: number, kind: ActivityKind, text: string) {
+    activitySeq += 1
+    setActivity((current) => [{ id: Date.now() * 100 + (activitySeq % 100), leadId, kind, text, byId: viewer.id, at: 'Just now' }, ...current])
+  }
+
   function assign(leadId: number, toId: string, reason: string) {
     const fromId = allLeads.find((lead) => lead.id === leadId)?.ownerId ?? null
     setOwnerOverrides((current) => ({ ...current, [leadId]: toId }))
     setAssignments((current) => [{ leadId, fromId, toId, byId: viewer.id, reason, at: 'Just now' }, ...current])
+    log(leadId, 'assign', `Assigned to ${findMember(toId)?.name ?? 'someone'} · ${reason}`)
+  }
+
+  /** Timeline for one lead: demo activity (newest first), then what the seed data implies, oldest last. */
+  function timelineFor(leadId: number): TimelineEvent[] {
+    const lead = allLeads.find((item) => item.id === leadId)
+    if (!lead) return []
+    const seedOwner = SEED_LEADS.find((item) => item.id === leadId)?.ownerId
+    const seeded: TimelineEvent[] = [
+      ...(lead.addedInDemo ? [] : [{ key: 'latest', kind: 'message' as const, text: `Buyer messaged: “${lead.message}”`, at: `${relativeMinutes(lead.minutesAgo)} ago` }]),
+      ...SEED_RECORDINGS.filter((recording) => recording.leadId === leadId)
+        .map((recording) => ({ key: `rec-${recording.id}`, kind: 'call' as const, text: `Call recorded (${formatDuration(recording.duration)}) · ${recording.note}`, at: recording.when })),
+      ...(leadId === SEED_VISIT.leadId ? [{ key: 'seed-visit', kind: 'visit' as const, text: 'Visit planned at The Courtyard House', at: SEED_VISIT.time }] : []),
+      ...(seedOwner ? [{ key: 'seed-owner', kind: 'assign' as const, text: `Assigned to ${findMember(seedOwner)?.name} by routing`, at: 'On arrival' }] : []),
+      { key: 'enquiry', kind: 'enquiry', text: lead.addedInDemo ? 'Lead captured with Quick capture' : `First enquiry via ${lead.source}`, at: lead.addedInDemo ? 'Today' : 'Earlier' },
+    ]
+    const demo: TimelineEvent[] = activity.filter((entry) => entry.leadId === leadId)
+      .map((entry) => ({ key: `a-${entry.id}`, kind: entry.kind, text: entry.text, at: entry.at, byId: entry.byId }))
+    return [...demo, ...seeded]
   }
 
   // ---------- Work items (scoped to visible leads) ----------
@@ -133,6 +173,11 @@ export function useDemoStore() {
     allLeads,
     findLead,
     assignments,
+    notesFor: (leadId: number) => notes[leadId] ?? [],
+    tagsFor: (leadId: number) => tags[leadId] ?? [],
+    timelineFor,
+    /** Any lead in the company with this phone number, visible to the viewer or not (spec §8.5 duplicate alert). */
+    findDuplicate: (phone: string) => allLeads.find((lead) => phoneKey(lead.phone) === phoneKey(phone)),
     tasks: visibleTasks,
     remainingTasks,
     completedTaskIds,
@@ -162,6 +207,26 @@ export function useDemoStore() {
       return findMember(ownerId)
     },
     reassignLead: (leadId: number, toId: string, reason: string) => assign(leadId, toId, reason),
+    updateLeadProfile: (leadId: number, edit: LeadProfileEdit) => {
+      setLeadEdits((current) => ({ ...current, [leadId]: edit }))
+      log(leadId, 'profile', `Buyer brief updated: ${edit.need} · ${edit.budget}`)
+    },
+    addNote: (leadId: number, text: string) => {
+      activitySeq += 1
+      setNotes((current) => ({ ...current, [leadId]: [{ id: Date.now() * 100 + (activitySeq % 100), text, byId: viewer.id, at: 'Just now' }, ...(current[leadId] ?? [])] }))
+      log(leadId, 'note', `Note: ${text.length > 80 ? `${text.slice(0, 80)}…` : text}`)
+    },
+    toggleTag: (leadId: number, tag: string) => {
+      const has = (tags[leadId] ?? []).includes(tag)
+      setTags((current) => ({ ...current, [leadId]: has ? (current[leadId] ?? []).filter((item) => item !== tag) : [...(current[leadId] ?? []), tag] }))
+      log(leadId, 'tag', has ? `Tag removed: ${tag}` : `Tagged ${tag}`)
+    },
+    /** Duplicate found on capture: keep the existing lead and record the new enquiry on it. */
+    mergeEnquiry: (leadId: number, summary: string) => {
+      activitySeq += 1
+      setNotes((current) => ({ ...current, [leadId]: [{ id: Date.now() * 100 + (activitySeq % 100), text: `New enquiry merged: ${summary}`, byId: viewer.id, at: 'Just now' }, ...(current[leadId] ?? [])] }))
+      log(leadId, 'merge', `Duplicate enquiry merged: ${summary}`)
+    },
     inviteMember: (person: Member) => setAddedMembers((current) => [...current, person]),
     /** Deactivates someone after moving all their leads to `reassignToId`. */
     deactivateMember: (memberId: string, reassignToId: string) => {
@@ -173,7 +238,9 @@ export function useDemoStore() {
     moveToNextStage: (leadId: number) => {
       const lead = findLead(leadId)
       if (!lead) return
-      setStageOverrides((current) => ({ ...current, [leadId]: Math.min(STAGES.length - 1, lead.stage + 1) }))
+      const next = Math.min(STAGES.length - 1, lead.stage + 1)
+      setStageOverrides((current) => ({ ...current, [leadId]: next }))
+      log(leadId, 'stage', `Moved to ${STAGES[next]}`)
     },
     /** Books the Saturday visit and moves the lead to "Visit planned" unless it is already further along. */
     scheduleVisit: (leadId: number) => {
@@ -181,9 +248,12 @@ export function useDemoStore() {
       if (!lead) return
       setVisitLeadIds((current) => (current.includes(leadId) ? current : [...current, leadId]))
       setStageOverrides((current) => ({ ...current, [leadId]: Math.max(lead.stage, 2) }))
+      log(leadId, 'visit', `Visit booked for ${nextSaturdayLabel()} · 11:30 AM`)
     },
-    sendMessage: (leadId: number, text: string) =>
-      setSentMessages((current) => ({ ...current, [leadId]: [...(current[leadId] ?? []), text] })),
+    sendMessage: (leadId: number, text: string) => {
+      setSentMessages((current) => ({ ...current, [leadId]: [...(current[leadId] ?? []), text] }))
+      log(leadId, 'message', `WhatsApp sent: “${text.length > 80 ? `${text.slice(0, 80)}…` : text}”`)
+    },
     toggleTask: (taskId: number) =>
       setCompletedTaskIds((current) => (current.includes(taskId) ? current.filter((id) => id !== taskId) : [...current, taskId])),
     addExtraReminder: () => {
@@ -191,8 +261,10 @@ export function useDemoStore() {
       if (leadId === undefined) return
       setTasks((current) => (current.some((task) => task.id === EXTRA_REMINDER.id) ? current : [...current, { ...EXTRA_REMINDER, leadId }]))
     },
-    addRecording: (leadId: number, duration: number) =>
-      setRecordings((current) => [{ id: Date.now(), leadId, when: 'Just now', duration, note: 'New recorded call · Add a note' }, ...current]),
+    addRecording: (leadId: number, duration: number) => {
+      setRecordings((current) => [{ id: Date.now(), leadId, when: 'Just now', duration, note: 'New recorded call · Add a note' }, ...current])
+      log(leadId, 'call', `Call recorded (${formatDuration(duration)})`)
+    },
     toggleSavedProperty: (propertyId: number) =>
       setSavedPropertyIds((current) => (current.includes(propertyId) ? current.filter((id) => id !== propertyId) : [...current, propertyId])),
     resetDemo: () => {

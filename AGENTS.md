@@ -19,9 +19,9 @@ Daira is a clickable client-demo prototype of a WhatsApp-first CRM for independe
 - `src/data/team.ts` - The brokerage's people, teams, roles and the "View as" personas.
 - `src/state/useDemoStore.ts` - The single store hook. Persisted state, derived numbers (unread count, active value, commission) and every action (move stage, schedule visit, send message, reset demo). Views receive `store` as a prop and never touch localStorage directly.
 - `src/lib/` - Small helpers: `permissions.ts` (role → permissions, `canSeeLead`), `storage.ts` (localStorage hook, key prefix `daira:v3:`), `format.ts` (dates, money, durations, `maskPhone`), `useEscapeKey.ts`.
-- `src/components/` - Shared UI: `AppNavigation` (desktop sidebar, phone top bar and tab bar), `navigation.ts` (nav items and the `View` type), `Dialog` (the one modal/sheet/full-screen shell), `Avatar`, `HeatBadge`, `LeadActions`, `LeadRow`, `PropertyCard`, `AccountMenu` (reset demo data, with confirmation), `Toast`, `Icon` (inline SVG icon set).
+- `src/components/` - Shared UI: `AppNavigation` (desktop sidebar, phone top bar and tab bar), `navigation.ts` (nav items and the `View` type), `Dialog` (the one modal/sheet/full-screen shell), `Avatar`, `HeatBadge`, `LeadActions`, `LeadRow`, `LeadTimeline`, `LeadNotes`, `LeadTags`, `PropertyCard`, `AccountMenu` (reset demo data, with confirmation), `Toast`, `Icon` (inline SVG icon set).
 - `src/views/` - One file per screen: `TodayView`, `ChatView` (chat + lead detail panel), `PipelineView`, `PropertiesView`, `FollowUpsView`, `CallsView`, `EscalationsView`, `TeamView`, `SettingsView`.
-- `src/modals/` - `AddLeadModal`, `AssignDialog` (shared people picker), `CallPicker`, `CallModal`.
+- `src/modals/` - `AddLeadModal`, `EditLeadDialog`, `AssignDialog` (shared people picker), `CallPicker`, `CallModal`.
 
 ## Product spec (required)
 
@@ -42,7 +42,7 @@ Daira is a clickable client-demo prototype of a WhatsApp-first CRM for independe
 - Breakpoints: phone `max-width: 760px`, tablet `max-width: 1100px`. On phones every tappable control is at least 44px (`--tap`).
 - `Avatar` renders a `<span class="avatar">`. Layout selectors like `.parent > span` must use `span:not(.avatar)` or they will stretch the avatar.
 - When a stored data shape changes, bump the `daira:v3:` prefix in `src/lib/storage.ts` so old saved data is ignored.
-- **Roles and visibility:** never filter leads or hide features by checking a role name. Use `store.viewerCan(permission)` and the already-filtered `store.leads` / `store.tasks` / `store.recordings`. Show phone numbers through `store.displayPhone()` so masking applies. New Manage screens go in `NAV_ITEMS` with a `requires` permission.
+- **Roles and visibility:** never filter leads or hide features by checking a role name. Use `store.viewerCan(permission)` and the already-filtered `store.leads` / `store.tasks` / `store.recordings`. Show phone numbers through `store.displayPhone()` so masking applies. Any new action that changes a lead should also write to the activity log (the store's `log()` helper) so it appears on the lead's timeline. New Manage screens go in `NAV_ITEMS` with a `requires` permission.
 - Verify changes with `npx tsc --noEmit -p .` and `npx vite build`, then check the phone (390px), tablet (900px) and desktop (1440px) layouts.
 
 ## Dependencies

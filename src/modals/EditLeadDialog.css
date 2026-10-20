@@ -1,0 +1,8 @@
+/* Shares form styles with the Add lead dialog (.add-lead in AddLeadModal.css). */
+.edit-lead { width: min(560px, 100%); }
+.purpose-field { min-width: 0; margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+.purpose-field legend { margin-bottom: var(--space-2); padding: 0; color: var(--ink-soft); font-size: var(--fs-body-sm); font-weight: 700; }
+.purpose-field .segmented { display: flex; }
+.purpose-field .segmented button { flex: 1; min-height: 38px; }
+.form-error { margin-top: calc(var(--space-2) * -1); color: var(--danger-text); font-size: var(--fs-caption); font-weight: 600; }
+.add-lead-submit:disabled { opacity: .5; box-shadow: none; }
