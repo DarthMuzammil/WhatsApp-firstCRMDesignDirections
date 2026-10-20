@@ -1,32 +1,33 @@
-.locality-chips { margin: -6px 0 18px; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
-.locality-chips button { flex: 0 0 auto; min-height: 38px; padding: 0 16px; border: 1px solid var(--border); border-radius: 20px; color: var(--ink-soft); background: white; font-size: var(--fs-body-sm); font-weight: 600; }
-.locality-chips button.active { color: white; border-color: var(--primary); background: var(--primary); }
+.locality-chips { margin: calc(var(--space-2) * -1) 0 var(--space-5); }
 
-.property-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-.listing { overflow: hidden; border: 1px solid var(--border); border-radius: 16px; background: white; box-shadow: 0 10px 30px #3039580b; transition: transform .25s ease, box-shadow .25s ease; }
-.listing:hover { transform: translateY(-4px); box-shadow: 0 18px 35px #30395816; }
+.property-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-4); }
+.listing { overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); box-shadow: var(--shadow-md); transition: transform .25s ease, box-shadow .25s ease; }
 .listing-image { position: relative; height: 240px; overflow: hidden; }
 .listing-image img { width: 100%; height: 100%; object-fit: cover; transition: transform .5s ease; }
-.listing:hover .listing-image img { transform: scale(1.035); }
-.listing-image > span { position: absolute; left: 14px; top: 14px; padding: 5px 9px; border-radius: 7px; color: #1e3a2e; background: #dff9e9e6; font-size: var(--fs-meta); font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
-.listing-image button { position: absolute; right: 12px; top: 12px; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 50%; display: grid; place-items: center; color: var(--muted); background: #ffffffeb; }
-.listing-image button.saved { color: white; background: var(--primary); }
-.listing-copy { padding: 18px; }
+.listing-image > span { position: absolute; left: var(--space-4); top: var(--space-4); padding: var(--space-1) var(--space-2); border-radius: var(--radius-sm); color: var(--success-ink); background: var(--success-soft); font-size: var(--fs-meta); font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+.listing-image button { position: absolute; right: var(--space-3); top: var(--space-3); width: 40px; height: 40px; padding: 0; border: 0; border-radius: 50%; display: grid; place-items: center; color: var(--muted); background: var(--surface-translucent); }
+.listing-image button.saved { color: var(--surface); background: var(--primary); }
+.listing-copy { padding: var(--space-5); }
 .listing-copy > span { color: var(--muted); font-size: var(--fs-caption); }
-.listing-copy h2 { margin: 4px 0 10px; font-size: var(--fs-title-lg); font-weight: 700; letter-spacing: -.02em; }
-.listing-copy p { display: flex; align-items: center; gap: 6px; color: var(--ink-soft); font-size: var(--fs-body-sm); }
+.listing-copy h2 { margin: var(--space-1) 0 var(--space-3); font-size: var(--fs-title-lg); letter-spacing: -.02em; }
+.listing-copy p { display: flex; align-items: center; gap: var(--space-2); color: var(--ink-soft); font-size: var(--fs-body-sm); }
 .listing-copy p svg { color: var(--faint); }
-.listing-copy p svg:not(:first-child) { margin-left: 10px; }
-.listing-copy footer { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border-soft); display: flex; align-items: center; justify-content: space-between; }
+.listing-copy p svg:not(:first-child) { margin-left: var(--space-3); }
+.listing-copy footer { margin-top: var(--space-4); padding-top: var(--space-4); border-top: 1px solid var(--border-soft); display: flex; align-items: center; justify-content: space-between; }
 .listing-copy strong { font-size: var(--fs-title); }
+
+/* Lift and zoom only where hover really exists, so it doesn't stick after a tap */
+@media (hover: hover) {
+  .listing:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+  .listing:hover .listing-image img { transform: scale(1.035); }
+}
 
 @media (max-width: 1100px) {
   .property-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 760px) {
-  .locality-chips { margin: -4px -16px 16px; padding: 0 16px; }
-  .locality-chips button { min-height: var(--tap); }
+  .locality-chips { margin: calc(var(--space-1) * -1) calc(var(--space-4) * -1) var(--space-4); padding: 0 var(--space-4); }
   .property-grid { grid-template-columns: 1fr; }
   .listing-image { height: 210px; }
   .listing-image button { width: var(--tap); height: var(--tap); }

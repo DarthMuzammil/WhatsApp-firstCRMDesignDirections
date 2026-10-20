@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Lead } from '../data/demo'
 import { LeadAvatar } from '../components/Avatar'
+import { Dialog } from '../components/Dialog'
 import { Icon } from '../components/Icon'
 import { formatDuration } from '../lib/format'
 import './CallModal.css'
@@ -31,15 +32,15 @@ export function CallModal({ lead, onClose, onSave }: { lead: Lead; onClose: () =
   const endCall = () => (status === 'connected' ? setStatus('ended') : onClose())
 
   return (
-    <div className="call-backdrop">
-      <section className="call-modal" role="dialog" aria-modal="true" aria-label={`Call with ${lead.name}`}>
-        <div className="call-security"><span /><Icon name="phone" size={14} /> Secure internet call</div>
+    // Escape / clicking outside only cancels while dialling, so a live or unsaved call is never lost by accident.
+    <Dialog label={`Call with ${lead.name}`} variant="fullscreen" onClose={onClose} dismissible={status === 'dialling'} className="call-modal">
+        <div className="call-security"><i className="status-dot mint" /><Icon name="phone" size={14} /> Secure internet call</div>
         <LeadAvatar lead={lead} size="lg" />
         <h2>{lead.name}</h2>
         <p>{lead.need}</p>
         <div className={`call-status ${status}`} aria-live="polite">
           {status === 'dialling' && 'Calling…'}
-          {status === 'connected' && <><i />{formatDuration(seconds)}{recording && <span>REC</span>}</>}
+          {status === 'connected' && <><i className="status-dot mint" />{formatDuration(seconds)}{recording && <span>REC</span>}</>}
           {status === 'ended' && 'Call ended'}
         </div>
         {status !== 'ended' ? <>
@@ -59,7 +60,6 @@ export function CallModal({ lead, onClose, onSave }: { lead: Lead; onClose: () =
               : <button onClick={onClose}>Done</button>}
           </div>
         )}
-      </section>
-    </div>
+    </Dialog>
   )
 }

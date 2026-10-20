@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { DEMO_METRICS, SEED_LEADS, matchPropertyForLead, type Lead, type Temperature } from '../data/demo'
+import { DEMO_METRICS, firstName, matchPropertyForLead, type Lead, type Temperature } from '../data/demo'
 import { Avatar, LeadAvatar } from '../components/Avatar'
 import { Icon } from '../components/Icon'
 import { LeadRow } from '../components/LeadRow'
@@ -28,15 +28,15 @@ export function TodayView({ store, onOpenLead, onAddLead, onNavigate, notify }: 
     (filter === 'All' || lead.temp === filter) &&
     `${lead.name} ${lead.need} ${lead.locality}`.toLowerCase().includes(query.trim().toLowerCase()),
   )
-  const nextVisitLead = store.findLead(SEED_LEADS[0].id)
-  const nextVisitProperty = nextVisitLead ? matchPropertyForLead(nextVisitLead) : undefined
+  const [nextVisit, ...laterVisits] = store.upcomingVisits
+  const nextVisitProperty = nextVisit ? matchPropertyForLead(nextVisit.lead) : undefined
 
   return (
     <section className="today-view">
       <header className="page-head">
         <div><span className="eyebrow">{todayLabel()}</span><h1>Your day, at a glance</h1></div>
         <div className="page-head-actions">
-          <button className={`icon-button bordered ${searchOpen ? 'active' : ''}`} aria-label={searchOpen ? 'Close search' : 'Search leads'} onClick={() => { setSearchOpen(!searchOpen); setQuery('') }}>
+          <button className={`icon-button bordered today-search-toggle ${searchOpen ? 'active' : ''}`} aria-label={searchOpen ? 'Close search' : 'Search leads'} onClick={() => { setSearchOpen(!searchOpen); setQuery('') }}>
             <Icon name={searchOpen ? 'close' : 'search'} />
           </button>
           <button className="btn btn-primary today-add" onClick={onAddLead}><Icon name="plus" /> Add lead</button>
@@ -51,17 +51,25 @@ export function TodayView({ store, onOpenLead, onAddLead, onNavigate, notify }: 
       )}
 
       <div className="day-cards">
-        {nextVisitLead && nextVisitProperty && (
+        {nextVisit && nextVisitProperty ? (
           <article className="day-focus">
-            <span className="day-card-label">Up next · 11:30 AM</span>
+            <div className="day-focus-top">
+              <span className="day-card-label">Up next · {nextVisit.when}</span>
+              {laterVisits.length > 0 && <span className="day-focus-more">+{laterVisits.length} more {laterVisits.length === 1 ? 'visit' : 'visits'} booked</span>}
+            </div>
             <div className="day-focus-person">
-              <LeadAvatar lead={nextVisitLead} />
-              <div><h2>Visit with {nextVisitLead.name.split(' ')[0]}</h2><p>{nextVisitProperty.name} · {nextVisitProperty.locality}</p></div>
+              <LeadAvatar lead={nextVisit.lead} />
+              <div><h2>Visit with {firstName(nextVisit.lead.name)}</h2><p>{nextVisitProperty.name} · {nextVisitProperty.locality}</p></div>
             </div>
             <footer>
               <button className="btn day-focus-secondary" onClick={() => notify(`Directions to ${nextVisitProperty.name} sent to your phone`)}><Icon name="pin" /> Directions</button>
-              <button className="btn day-focus-primary" onClick={() => onOpenLead(nextVisitLead)}><Icon name="whatsapp" /> Message</button>
+              <button className="btn day-focus-primary" onClick={() => onOpenLead(nextVisit.lead)}><Icon name="whatsapp" /> Message</button>
             </footer>
+          </article>
+        ) : (
+          <article className="day-focus">
+            <span className="day-card-label">Up next</span>
+            <div className="day-focus-person"><div><h2>No visits booked</h2><p>Plan one from any buyer’s chat.</p></div></div>
           </article>
         )}
         <article className="day-stat warm">
@@ -95,7 +103,7 @@ export function TodayView({ store, onOpenLead, onAddLead, onNavigate, notify }: 
             {visibleLeads.map((lead) => <LeadRow key={lead.id} lead={lead} onOpen={() => onOpenLead(lead)} />)}
             {visibleLeads.length === 0 && (
               <div className="empty-state">
-                <span><Icon name="check" /></span>
+                <span className="icon-badge"><Icon name="check" /></span>
                 <h3>No matching leads</h3>
                 <p>Try another filter or search term. New WhatsApp conversations appear here as they arrive.</p>
               </div>
@@ -114,7 +122,7 @@ export function TodayView({ store, onOpenLead, onAddLead, onNavigate, notify }: 
               </button>
             )
           })}
-          {store.remainingTasks.length === 0 && <div className="empty-state"><span><Icon name="check" /></span><h3>All done for today</h3></div>}
+          {store.remainingTasks.length === 0 && <div className="empty-state"><span className="icon-badge"><Icon name="check" /></span><h3>All done for today</h3></div>}
           <button className="due-all" onClick={() => onNavigate('tasks')}>Open follow-ups <Icon name="arrow" size={16} /></button>
         </aside>
       </div>

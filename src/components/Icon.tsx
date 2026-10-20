@@ -27,6 +27,7 @@ const PATHS = {
   play: <path d="m8 5 11 7-11 7z" />,
   volume: <><path d="M5 10v4h4l5 4V6L9 10zM18 9a4 4 0 0 1 0 6" /></>,
   bookmark: <path d="M6 3h12v18l-6-4-6 4z" />,
+  info: <><circle cx="12" cy="12" r="9" /><path d="M12 11v6M12 7.5v.5" /></>,
   refresh: <><path d="M20 11a8 8 0 1 0-2.3 5.7" /><path d="M20 4v7h-7" /></>,
 } satisfies Record<string, ReactNode>
 

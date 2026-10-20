@@ -2,9 +2,10 @@ import { BROKER } from '../data/demo'
 import { AccountMenu } from './AccountMenu'
 import { Avatar } from './Avatar'
 import { Icon } from './Icon'
-import { NAV_ITEMS, isNavActive, type View } from './navigation'
+import { NAV_ITEMS, type View } from './navigation'
 import './AppNavigation.css'
 
+/** `view` is the nav item to highlight (App passes the chat's origin screen while a chat is open). */
 type NavProps = { view: View; onNavigate: (view: View) => void }
 
 type SidebarProps = NavProps & {
@@ -24,10 +25,10 @@ export function Sidebar({ view, onNavigate, unreadTotal, leadsAwaitingReply, tas
       <button className="brand" onClick={() => onNavigate('today')}><span className="brand-mark">D</span><strong>Daira</strong></button>
       <nav className="sidebar-nav" aria-label="Main">
         {NAV_ITEMS.map((item) => (
-          <button key={item.view} className={isNavActive(item.view, view) ? 'active' : ''} aria-current={isNavActive(item.view, view) ? 'page' : undefined} onClick={() => onNavigate(item.view)}>
+          <button key={item.view} className={item.view === view ? 'active' : ''} aria-current={item.view === view ? 'page' : undefined} onClick={() => onNavigate(item.view)}>
             <Icon name={item.icon} /><span>{item.label}</span>
-            {item.view === 'today' && unreadTotal > 0 && <b aria-label={`${unreadTotal} unread messages`}>{unreadTotal}</b>}
-            {item.view === 'tasks' && tasksRemaining > 0 && <b aria-label={`${tasksRemaining} follow-ups left`}>{tasksRemaining}</b>}
+            {item.view === 'today' && unreadTotal > 0 && <b className={`count-badge ${item.view === view ? 'navy' : 'mint'}`} aria-label={`${unreadTotal} unread messages`}>{unreadTotal}</b>}
+            {item.view === 'tasks' && tasksRemaining > 0 && <b className={`count-badge ${item.view === view ? 'navy' : 'mint'}`} aria-label={`${tasksRemaining} follow-ups left`}>{tasksRemaining}</b>}
           </button>
         ))}
       </nav>
@@ -58,7 +59,7 @@ export function MobileTopBar({ onNavigate, onAddLead, onReset }: { onNavigate: (
   return (
     <header className="mobile-top-bar">
       <button className="brand" onClick={() => onNavigate('today')}><span className="brand-mark">D</span><strong>Daira</strong></button>
-      <span className="whatsapp-status"><i /> WhatsApp connected</span>
+      <span className="whatsapp-status"><i className="status-dot glow" /><span>WhatsApp connected</span></span>
       <AccountMenu trigger={<Avatar initials={BROKER.initials} color="blue" size="sm" />} label="Account menu" placement="down" onReset={onReset} />
       <button className="mobile-add" aria-label="Add a new lead" onClick={onAddLead}><Icon name="plus" /></button>
     </header>
@@ -70,8 +71,8 @@ export function MobileTabBar({ view, onNavigate, unreadTotal }: NavProps & { unr
   return (
     <nav className="mobile-tab-bar" aria-label="Main">
       {NAV_ITEMS.map((item) => (
-        <button key={item.view} className={isNavActive(item.view, view) ? 'active' : ''} aria-current={isNavActive(item.view, view) ? 'page' : undefined} onClick={() => onNavigate(item.view)}>
-          <span className="tab-icon"><Icon name={item.icon} />{item.view === 'today' && unreadTotal > 0 && <b>{unreadTotal}</b>}</span>
+        <button key={item.view} className={item.view === view ? 'active' : ''} aria-current={item.view === view ? 'page' : undefined} onClick={() => onNavigate(item.view)}>
+          <span className="tab-icon"><Icon name={item.icon} />{item.view === 'today' && unreadTotal > 0 && <b className="count-badge">{unreadTotal}</b>}</span>
           <span>{item.shortLabel}</span>
         </button>
       ))}

@@ -4,36 +4,36 @@
 .completion-ring strong { font-size: var(--fs-title-sm); }
 .completion-ring span { color: var(--muted); font-size: var(--fs-meta); }
 
-.followup-layout { display: grid; grid-template-columns: minmax(0, 1fr) 290px; align-items: start; gap: 16px; }
+.followup-layout { display: grid; grid-template-columns: minmax(0, 1fr) 290px; align-items: start; gap: var(--space-4); }
 
-.task { min-height: 80px; padding: 12px 18px 12px 8px; border-bottom: 1px solid var(--border-soft); display: flex; align-items: center; gap: 12px; transition: background .2s ease, opacity .2s ease; }
-.task:hover { background: #fafbfc; }
-.task-done { opacity: .5; background: #f7f8f8; }
+.task { min-height: 80px; padding: var(--space-3) var(--space-5) var(--space-3) var(--space-2); border-bottom: 1px solid var(--border-soft); display: flex; align-items: center; gap: var(--space-3); transition: background .2s ease, opacity .2s ease; }
+.task:hover { background: var(--surface-subtle); }
+.task-done { opacity: .5; background: var(--surface-subtle); }
 .task-done .task-copy strong { text-decoration: line-through; }
 .task-check { width: var(--tap); height: var(--tap); flex: 0 0 auto; padding: 0; border: 0; display: grid; place-items: center; background: transparent; }
-.task-check > span { width: 22px; height: 22px; border: 1.5px solid #c3c8d1; border-radius: 6px; display: grid; place-items: center; color: white; background: white; }
-.task-done .task-check > span { border-color: #55b47f; background: #55b47f; }
+.task-check > span { width: 22px; height: 22px; border: 1.5px solid var(--border-strong); border-radius: var(--radius-xs); display: grid; place-items: center; color: var(--surface); background: var(--surface); }
+.task-done .task-check > span { border-color: var(--success); background: var(--success); }
 .task > time { width: 66px; flex: 0 0 auto; color: var(--ink-soft); font-size: var(--fs-caption); font-weight: 700; }
-.task-copy { min-width: 0; flex: 1; padding: 0; border: 0; display: flex; flex-direction: column; gap: 3px; text-align: left; background: transparent; }
+.task-copy { min-width: 0; flex: 1; padding: 0; border: 0; display: flex; flex-direction: column; gap: var(--space-1); text-align: left; background: transparent; }
 .task-copy strong { font-size: var(--fs-body); }
 .task-copy span { overflow: hidden; color: var(--muted); font-size: var(--fs-caption); white-space: nowrap; text-overflow: ellipsis; }
-.task-action { min-width: 112px; min-height: 40px; padding: 0 12px; border: 1px solid #d3e6da; border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 6px; color: var(--success-ink); background: #f2faf5; font-size: var(--fs-caption); font-weight: 700; }
+.task-action { min-width: 112px; min-height: 40px; padding: 0 var(--space-3); border: 1px solid var(--success-line); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; gap: var(--space-2); color: var(--success-ink); background: var(--success-soft); font-size: var(--fs-caption); font-weight: 700; }
 
-.followup-aside { padding: 22px; border-radius: 16px; color: white; background: var(--navy); }
+.followup-aside { padding: var(--space-6); border-radius: var(--radius-lg); color: var(--surface); background: var(--navy); }
 .followup-aside > .eyebrow { color: var(--mint); }
-.followup-aside h2 { margin-top: 8px; font-size: var(--fs-title-lg); font-weight: 700; }
+.followup-aside h2 { margin-top: var(--space-2); font-size: var(--fs-title-lg); }
 .followup-aside > strong { display: block; font-size: var(--fs-display); letter-spacing: -.04em; }
-.followup-aside > p { color: #aab2c6; font-size: var(--fs-body-sm); }
-.week-chart { height: 150px; margin: 22px 0 18px; padding-top: 8px; border-bottom: 1px solid #424b68; display: flex; gap: 8px; }
-.week-chart > div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 7px; }
-.week-chart i { width: 100%; max-width: 16px; min-height: 6px; border-radius: 5px 5px 0 0; background: #485370; }
-.week-chart i.today { background: var(--mint); box-shadow: 0 0 15px #9ff0c244; }
-.week-chart span { padding-bottom: 7px; color: #a3abc0; font-size: var(--fs-meta); }
-.followup-note { margin-top: 22px; padding: 14px; border: 1px solid #3d496a; border-radius: 12px; display: flex; gap: 10px; background: #2a3555; }
+.followup-aside > p { color: var(--on-navy-muted); font-size: var(--fs-body-sm); }
+.week-chart { height: 150px; margin: var(--space-6) 0 var(--space-5); padding-top: var(--space-2); border-bottom: 1px solid var(--navy-line); display: flex; gap: var(--space-2); }
+.week-chart > div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: var(--space-2); }
+.week-chart i { width: 100%; max-width: 16px; min-height: 6px; border-radius: var(--radius-xs) var(--radius-xs) 0 0; background: var(--navy-line); }
+.week-chart i.today { background: var(--mint); }
+.week-chart span { padding-bottom: var(--space-2); color: var(--on-navy-muted); font-size: var(--fs-meta); }
+.followup-note { margin-top: var(--space-6); padding: var(--space-4); border: 1px solid var(--navy-line); border-radius: var(--radius-md); display: flex; gap: var(--space-3); background: var(--navy-raised); }
 .followup-note > svg { flex: 0 0 auto; color: var(--mint); }
-.followup-note span { display: flex; flex-direction: column; gap: 3px; }
+.followup-note span { display: flex; flex-direction: column; gap: var(--space-1); }
 .followup-note strong { font-size: var(--fs-body-sm); }
-.followup-note small { color: #a3abc0; font-size: var(--fs-caption); }
+.followup-note small { color: var(--on-navy-muted); font-size: var(--fs-caption); }
 
 @media (max-width: 1100px) {
   .followup-layout { grid-template-columns: 1fr; }
@@ -42,9 +42,8 @@
 
 @media (max-width: 760px) {
   .completion-ring { width: 64px; height: 64px; }
-  .task { padding: 10px 12px 10px 4px; gap: 6px; }
+  .task { padding: var(--space-3) var(--space-3) var(--space-3) var(--space-1); gap: var(--space-2); }
   .task > time { width: 58px; }
   .task-action { min-width: var(--tap); width: var(--tap); height: var(--tap); padding: 0; }
   .task-action span { display: none; }
-  .followup-aside { margin-top: 0; }
 }

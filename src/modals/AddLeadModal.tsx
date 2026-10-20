@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { PROPERTY_TYPES, initialsFor, type AvatarColor, type LeadSeed } from '../data/demo'
 import { Icon } from '../components/Icon'
-import { useEscapeKey } from '../lib/useEscapeKey'
+import { Dialog } from '../components/Dialog'
 import './AddLeadModal.css'
 
 const NEW_LEAD_COLORS: AvatarColor[] = ['blue', 'coral', 'violet', 'gold']
@@ -13,7 +13,6 @@ export function AddLeadModal({ onClose, onSave }: { onClose: () => void; onSave:
   const [phone, setPhone] = useState('')
   const [kind, setKind] = useState<string>(PROPERTY_TYPES[0])
   const [area, setArea] = useState('')
-  useEscapeKey(onClose)
 
   function submit(event: FormEvent) {
     event.preventDefault()
@@ -45,12 +44,11 @@ export function AddLeadModal({ onClose, onSave }: { onClose: () => void; onSave:
   }
 
   return (
-    <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
-      <div className="modal" role="dialog" aria-modal="true" aria-label="New lead">
-        <button className="icon-button bordered modal-close" onClick={onClose} aria-label="Close"><Icon name="close" /></button>
+    <Dialog label="New lead" onClose={onClose} className="add-lead">
+        <button className="icon-button bordered add-lead-close" onClick={onClose} aria-label="Close"><Icon name="close" /></button>
         {savedName ? (
-          <div className="modal-success">
-            <span><Icon name="check" size={28} /></span>
+          <div className="add-lead-success">
+            <span className="icon-badge lg"><Icon name="check" size={28} /></span>
             <h2>Lead captured</h2>
             <p>{savedName} is now in your inbox, pipeline and call list.</p>
             <button className="btn btn-primary" onClick={onClose}>Done <Icon name="check" /></button>
@@ -58,7 +56,7 @@ export function AddLeadModal({ onClose, onSave }: { onClose: () => void; onSave:
         ) : <>
           <span className="eyebrow">Quick capture</span>
           <h2>New lead</h2>
-          <p className="modal-intro">Add the essentials now. Enrich the details after your visit.</p>
+          <p className="add-lead-intro">Add the essentials now. Enrich the details after your visit.</p>
           <form onSubmit={submit}>
             <label>Full name
               <input required autoFocus value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Priya Menon" autoComplete="off" />
@@ -79,10 +77,9 @@ export function AddLeadModal({ onClose, onSave }: { onClose: () => void; onSave:
                 <input value={area} onChange={(event) => setArea(event.target.value)} placeholder="e.g. Koramangala" />
               </label>
             </div>
-            <button className="btn btn-primary btn-block modal-submit">Add to inbox <Icon name="arrow" /></button>
+            <button className="btn btn-primary btn-block add-lead-submit">Add to inbox <Icon name="arrow" /></button>
           </form>
         </>}
-      </div>
-    </div>
+    </Dialog>
   )
 }

@@ -14,11 +14,11 @@ A Vite development server is **already running** on `$PORT` (default 8443). You 
 Daira is a clickable client-demo prototype of a WhatsApp-first CRM for independent real-estate brokers in India. There is no backend: all data is seed data plus user actions saved in localStorage.
 
 - `src/main.tsx` - React entrypoint. Imports `src/index.css` **before** `App` so component styles can override global ones. Keep that order.
-- `src/App.tsx` - App shell. Owns the current view, the open lead, modals (add lead, call picker, call) and toasts. Renders one view at a time.
+- `src/App.tsx` - App shell. Owns the current view, the open lead, the screen a chat was opened from (`chatOrigin`, used by Back and the nav highlight), modals (add lead, call picker, call) and toasts. Renders one view at a time.
 - `src/data/demo.ts` - All seed data and types: leads, properties, tasks, recordings, pipeline stages, demo metrics. Change demo content here.
 - `src/state/useDemoStore.ts` - The single store hook. Persisted state, derived numbers (unread count, active value, commission) and every action (move stage, schedule visit, send message, reset demo). Views receive `store` as a prop and never touch localStorage directly.
 - `src/lib/` - Small helpers: `storage.ts` (localStorage hook, key prefix `daira:v2:`), `format.ts` (dates, money, durations), `useEscapeKey.ts`.
-- `src/components/` - Shared UI: `AppNavigation` (desktop sidebar, phone top bar and tab bar), `navigation.ts` (nav items and the `View` type), `Avatar`, `LeadRow`, `PropertyCard`, `AccountMenu` (reset demo data), `Toast`, `Icon` (inline SVG icon set).
+- `src/components/` - Shared UI: `AppNavigation` (desktop sidebar, phone top bar and tab bar), `navigation.ts` (nav items and the `View` type), `Dialog` (the one modal/sheet/full-screen shell), `Avatar`, `HeatBadge`, `LeadActions`, `LeadRow`, `PropertyCard`, `AccountMenu` (reset demo data, with confirmation), `Toast`, `Icon` (inline SVG icon set).
 - `src/views/` - One file per screen: `TodayView`, `ChatView` (chat + lead detail panel), `PipelineView`, `PropertiesView`, `FollowUpsView`, `CallsView`.
 - `src/modals/` - `AddLeadModal`, `CallPicker`, `CallModal`.
 
@@ -28,8 +28,16 @@ Daira is a clickable client-demo prototype of a WhatsApp-first CRM for independe
 
 ## Conventions
 
-- Every component has a co-located `.css` file with the same name, imported at the top of the component. Global tokens and shared classes (`.btn`, `.card`, `.page-head`, `.stat-strip`, `.segmented`, `.search-field`, `.empty-state`, `.heat`, `.eyebrow`) live in `src/index.css`.
-- Use the CSS variables in `src/index.css` for colour and type. Font sizes come from the `--fs-*` scale; 11px (`--fs-meta`) is the minimum and is only for timestamps and badges.
+- Every component has a co-located `.css` file with the same name, imported at the top of the component. Global tokens and shared classes live in `src/index.css`.
+- **Tokens only.** Raw colours (hex) may appear only in the `:root` block of `src/index.css`. Everywhere else (component CSS and inline styles) use variables: colour (`--ink`, `--muted`, `--primary`, `--success-*`, `--navy-*` …), spacing (`--space-half`, `--space-1` … `--space-10` on a 4px grid), radius (`--radius-xs` … `--radius-xl`, `--radius-pill`), shadow (`--shadow-*`) and font size (`--fs-*`; 11px `--fs-meta` is the minimum, for timestamps and badges only). Need a new colour? Add a named token to `:root` first. Fixed element sizes (e.g. a 36px avatar) may stay in px.
+- **Contrast.** Every text colour token passes WCAG AA (4.5:1) on the surfaces it is used on. Keep it that way when adding or changing colour tokens.
+- **Reuse shared pieces, don't copy them:**
+  - `components/Dialog` for every modal, sheet or full-screen overlay (backdrop, Escape, click-outside, focus trap and focus return are built in)
+  - `components/HeatBadge` for Hot/Warm/New
+  - `components/LeadActions` for Shortlist / Visit / Matches
+  - `firstName()` and `initialsFor()` in `src/data/demo.ts`
+  - Shared CSS classes in `src/index.css`: `.btn*`, `.card`, `.page-head`, `.stat-strip`, `.segmented`, `.chip-row` / `.chip`, `.count-badge`, `.status-dot`, `.icon-badge`, `.is-done`, `.search-field`, `.empty-state`
+- Hover-only effects (lifts, zooms) go inside `@media (hover: hover)` so they don't stick on touch screens.
 - Breakpoints: phone `max-width: 760px`, tablet `max-width: 1100px`. On phones every tappable control is at least 44px (`--tap`).
 - `Avatar` renders a `<span class="avatar">`. Layout selectors like `.parent > span` must use `span:not(.avatar)` or they will stretch the avatar.
 - When a stored data shape changes, bump the `daira:v2:` prefix in `src/lib/storage.ts` so old saved data is ignored.

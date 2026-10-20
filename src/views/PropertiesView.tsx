@@ -21,9 +21,9 @@ export function PropertiesView({ store, notify }: { store: DemoStore; notify: (m
         </div>
       </header>
 
-      <div className="locality-chips" role="group" aria-label="Filter by locality">
+      <div className="chip-row locality-chips" role="group" aria-label="Filter by locality">
         {LOCALITY_FILTERS.map((option) => (
-          <button key={option} className={locality === option ? 'active' : ''} aria-pressed={locality === option} onClick={() => setLocality(option)}>{option}</button>
+          <button key={option} className={`chip ${locality === option ? 'active' : ''}`} aria-pressed={locality === option} onClick={() => setLocality(option)}>{option}</button>
         ))}
       </div>
 

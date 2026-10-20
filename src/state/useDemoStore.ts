@@ -1,8 +1,9 @@
 import { useMemo } from 'react'
 import {
-  COMMISSION_RATE, EXTRA_REMINDER, SEED_LEADS, SEED_RECORDINGS, SEED_TASKS, STAGES, STAGE_CLOSE_PROBABILITY,
+  COMMISSION_RATE, EXTRA_REMINDER, SEED_LEADS, SEED_RECORDINGS, SEED_TASKS, SEED_VISIT, STAGES, STAGE_CLOSE_PROBABILITY,
   type Lead, type LeadSeed, type Recording, type Task,
 } from '../data/demo'
+import { nextSaturdayLabel } from '../lib/format'
 import { clearDemoStorage, useLocalState } from '../lib/storage'
 
 /**
@@ -38,6 +39,15 @@ export function useDemoStore() {
   const remainingTasks = tasks.filter((task) => !completedTaskIds.includes(task.id))
   const activeValueCr = leads.reduce((sum, lead) => sum + lead.budgetCr, 0)
   const weightedCommissionCr = leads.reduce((sum, lead) => sum + lead.budgetCr * COMMISSION_RATE * STAGE_CLOSE_PROBABILITY[lead.stage], 0)
+  /** Visits in date order: the seeded visit today, then every visit booked in the demo (coming Saturday). */
+  const upcomingVisits: { lead: Lead; when: string }[] = [
+    ...leads.filter((lead) => lead.id === SEED_VISIT.leadId).map((lead) => ({ lead, when: SEED_VISIT.time })),
+    ...visitLeadIds
+      .filter((id) => id !== SEED_VISIT.leadId)
+      .map((id) => leads.find((lead) => lead.id === id))
+      .filter((lead): lead is Lead => !!lead)
+      .map((lead) => ({ lead, when: `${nextSaturdayLabel()} · 11:30 AM` })),
+  ]
 
   return {
     leads,
@@ -52,6 +62,7 @@ export function useDemoStore() {
     leadsAwaitingReply,
     activeValueCr,
     weightedCommissionCr,
+    upcomingVisits,
     extraReminderAdded: tasks.some((task) => task.id === EXTRA_REMINDER.id),
 
     addLead: (lead: LeadSeed) => setAddedLeads((current) => [lead, ...current]),

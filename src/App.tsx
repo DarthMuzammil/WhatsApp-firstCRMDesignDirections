@@ -24,6 +24,8 @@ export default function App() {
   const { message: toast, notify } = useToast()
   const [view, setView] = useState<View>('today')
   const [openLeadId, setOpenLeadId] = useState<number | null>(null)
+  // Screen the chat was opened from: Back returns here and the nav keeps it highlighted.
+  const [chatOrigin, setChatOrigin] = useState<Exclude<View, 'chat'>>('today')
   const [addLeadOpen, setAddLeadOpen] = useState(false)
   const [callPickerOpen, setCallPickerOpen] = useState(false)
   const [callingLeadId, setCallingLeadId] = useState<number | null>(null)
@@ -31,6 +33,7 @@ export default function App() {
 
   const openLead = openLeadId === null ? undefined : store.findLead(openLeadId)
   const callingLead = callingLeadId === null ? undefined : store.findLead(callingLeadId)
+  const navView: View = view === 'chat' ? chatOrigin : view
 
   // Start every screen at the top. Desktop scrolls <main>; phones scroll the window.
   useEffect(() => {
@@ -43,6 +46,7 @@ export default function App() {
   }
 
   function showLead(lead: Lead) {
+    if (view !== 'chat') setChatOrigin(view)
     store.markRead(lead.id)
     setOpenLeadId(lead.id)
     setView('chat')
@@ -56,7 +60,7 @@ export default function App() {
   return (
     <div className="app">
       <Sidebar
-        view={view}
+        view={navView}
         onNavigate={navigate}
         unreadTotal={store.unreadTotal}
         leadsAwaitingReply={store.leadsAwaitingReply}
@@ -68,14 +72,14 @@ export default function App() {
 
       <main className="app-main" ref={mainRef}>
         {view === 'today' && <TodayView store={store} onOpenLead={showLead} onAddLead={() => setAddLeadOpen(true)} onNavigate={navigate} notify={notify} />}
-        {view === 'chat' && openLead && <ChatView key={openLead.id} lead={openLead} store={store} onBack={() => setView('today')} onCall={startCall} onNavigate={navigate} notify={notify} />}
+        {view === 'chat' && openLead && <ChatView key={openLead.id} lead={openLead} store={store} onBack={() => setView(chatOrigin)} onCall={startCall} onNavigate={navigate} notify={notify} />}
         {view === 'pipeline' && <PipelineView store={store} onOpenLead={showLead} notify={notify} />}
         {view === 'properties' && <PropertiesView store={store} notify={notify} />}
         {view === 'tasks' && <FollowUpsView store={store} onOpenLead={showLead} onCall={startCall} />}
         {view === 'calls' && <CallsView store={store} onOpenLead={showLead} onNewCall={() => setCallPickerOpen(true)} />}
       </main>
 
-      <MobileTabBar view={view} onNavigate={navigate} unreadTotal={store.unreadTotal} />
+      <MobileTabBar view={navView} onNavigate={navigate} unreadTotal={store.unreadTotal} />
       <Toast message={toast} />
 
       {addLeadOpen && <AddLeadModal onClose={() => setAddLeadOpen(false)} onSave={store.addLead} />}

@@ -31,11 +31,13 @@ Layouts: **phone** ≤ 760px, **tablet** 761–1100px, **desktop** > 1100px. Eve
 | Brand + status | Sidebar with Daira logo (tap → Today) | Top bar: logo, "● WhatsApp connected" 🧱, **AK** avatar (account menu), **+** add lead |
 | Main nav | Sidebar: **Today** (unread-message badge), **Pipeline**, **Properties**, **Follow-ups** (tasks-left badge), **Calls** | Bottom tabs: **Inbox** (unread badge), **Pipeline**, **Homes**, **Tasks**, **Calls** |
 | Progress card | "Today's progress" ✅: buyers awaiting a reply · follow-ups left, with a progress bar of completed tasks. Says "You're all caught up" only when both are zero. | — |
-| Account menu | "⋯" next to the user card → **Reset demo data** ✅ | AK avatar → **Reset demo data** ✅ |
+| Account menu | "⋯" next to the user card → **Reset demo data** ✅ (asks to confirm first) | AK avatar → **Reset demo data** ✅ (asks to confirm first) |
 
 ⚠️ Names differ between desktop and phone (Today/Inbox, Properties/Homes, Follow-ups/Tasks). Pick one set.
 
-Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with **Escape** or by tapping outside.
+While a chat is open, the nav keeps the screen it was opened from highlighted.
+
+Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with **Escape** or by tapping outside, keep keyboard focus inside while open, and return focus to the button that opened them. On phones, pickers and lead details open as bottom sheets.
 
 ---
 
@@ -43,7 +45,7 @@ Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with
 
 ### 3.1 Today (home / inbox)
 - Header: today's real date ✅, search toggle ✅, **Add lead** ✅ (desktop/tablet; phones use the top-bar **+**).
-- **Up next card** 🎭: "Visit with Ananya · 11:30 AM · The Courtyard House". **Directions** shows a toast ("Directions to … sent to your phone") 🎭. **Message** opens Ananya's chat ✅.
+- **Up next card** ✅: the next visit on the calendar. The demo starts with Ananya's visit ("Today · 11:30 AM · The Courtyard House") 🎭. Every visit booked in the demo is added after it (coming Saturday, 11:30 AM), and the card shows "+N more visits booked". With no visits it says "No visits booked". **Directions** shows a toast ("Directions to … sent to your phone") 🎭. **Message** opens that lead's chat ✅.
 - **Follow-up rate 82%** 🧱 (with three lead avatars). **Active value** ✅ = sum of lead budget midpoints (seed data: ₹8.8 Cr), with the open-lead count.
 - **Lead inbox** ✅: filter *All / Hot / Warm / New*, plus search by name, requirement or locality. Subtitle counts conversations awaiting a reply. Each row: avatar (green dot if online), name, time, requirement · budget, last message, unread count, intent tag, "via <source>". Tapping a row opens the chat and **marks it read** ✅. Empty state when nothing matches.
 - **Due today** ✅: up to 4 remaining follow-ups (time, title, lead). Tapping one, or **Open follow-ups**, goes to Follow-ups.
@@ -51,7 +53,7 @@ Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with
 
 ### 3.2 Lead conversation (WhatsApp chat + lead panel)
 **Chat column**
-- Header: back (→ Today), avatar, status line, **Call** button opens the call screen ✅. Status line 🎭 comes from lead data: "Online on WhatsApp", "Last seen <time> ago", or "New lead · <phone>" for leads added in the demo.
+- Header: **Back** returns to the screen the chat was opened from (Today, Pipeline, Follow-ups or Calls) ✅, avatar, status line, **Details** (phones only, opens the lead panel as a bottom sheet ✅), **Call** opens the call screen ✅. Status line 🎭 comes from lead data: "Online on WhatsApp", "Last seen <time> ago", or "New lead · <phone>" for leads added in the demo.
 - **Brief strip:** requirement · budget · move-in timing (per lead).
 - **Phone-only action buttons:**
   - **Shortlist** ✅ posts a "Sharing 3 homes…" message into the chat and shows a toast.
@@ -62,7 +64,7 @@ Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with
 - Sending ✅ adds the message to the thread. Sent messages are **saved per lead** and survive switching leads and refreshing.
 - The thread scrolls to the newest message.
 
-**Lead panel** (desktop/tablet only)
+**Lead panel** (side panel on desktop/tablet; bottom sheet from **Details** on phones)
 - Stage name, budget, requirement, intent tag.
 - **Stage track** ✅ shows the lead's real stage: New / Qualified / Visit / Offer.
 - **Buyer brief** (per lead): locality, move-in, must-have, phone, and "via <source>".
@@ -98,7 +100,7 @@ Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with
 - Stats: calls this week 18 🧱, answer rate 72% 🧱, recorded count ✅.
 - Recording list: play/pause toggle (visual only 🎭, moving playhead), waveform, duration, note. Search by buyer ✅. Tapping a person opens the chat.
 - **New call** opens the lead picker ✅ (search by name, area or budget; a bottom sheet on phones) and then the call screen.
-- **Call screen** 🎭: "Calling…" (button reads **Cancel**) → connected after 1.2 s, live timer ✅, REC badge, Mute / Speaker / Record toggles. **End call** shows the duration and recording status, then **Save recording** adds it to the top of the list ("Just now") and shows a toast ✅ (saved locally). If recording was turned off, **Done** closes without saving. Full screen on phones.
+- **Call screen** 🎭: "Calling…" (button reads **Cancel**; Escape also cancels while dialling, but never during or after a call) → connected after 1.2 s, live timer ✅, REC badge, Mute / Speaker / Record toggles. **End call** shows the duration and recording status, then **Save recording** adds it to the top of the list ("Just now") and shows a toast ✅ (saved locally). If recording was turned off, **Done** closes without saving. Full screen on phones.
 - Copy: "Secure internet call", "Your personal number stays private", and a consent reminder about recording.
 
 ### 3.7 Add lead (quick capture)
@@ -125,7 +127,7 @@ Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with
 
 ## 5. Saved in the browser (localStorage)
 All keys use the prefix `daira:v2:`: `added-leads`, `stages`, `visits`, `read-leads`, `sent-messages`, `tasks`, `completed-tasks`, `recordings`, `saved-properties`.
-**Reset demo data** (account menu) deletes these, plus any old `daira-*` keys, and reloads the page. Run it before every client demo.
+**Reset demo data** (account menu → confirm) deletes these, plus any old `daira-*` keys, and reloads the page. Run it before every client demo.
 
 ## 6. Code map
 See `AGENTS.md` for conventions. Each component has a matching `.css` file next to it.
@@ -133,19 +135,22 @@ See `AGENTS.md` for conventions. Each component has a matching `.css` file next 
 - `src/data/demo.ts`: types, seed data, stages, commission settings, property matching.
 - `src/state/useDemoStore.ts`: all saved state, derived numbers and actions.
 - `src/lib/`: `storage.ts` (localStorage), `format.ts` (dates, money, durations), `useEscapeKey.ts`.
-- `src/components/`: `AppNavigation` (sidebar, phone top bar, tab bar), `navigation.ts`, `AccountMenu`, `Avatar`, `LeadRow`, `PropertyCard`, `Toast`, `Icon`.
+- `src/components/`: `AppNavigation` (sidebar, phone top bar, tab bar), `navigation.ts`, `Dialog` (the one modal / sheet / full-screen shell), `AccountMenu`, `Avatar`, `HeatBadge`, `LeadActions`, `LeadRow`, `PropertyCard`, `Toast`, `Icon`.
 - `src/views/`: `TodayView`, `ChatView` (chat + lead panel), `PipelineView`, `PropertiesView`, `FollowUpsView`, `CallsView`.
 - `src/modals/`: `AddLeadModal`, `CallPicker`, `CallModal`.
-- `src/index.css`: design tokens (colours, `--fs-*` type sizes, radii, `--tap`) and shared classes.
+- `src/index.css`: the only place raw colours are defined. Design tokens (colour, 4px spacing scale, radius, shadow, `--fs-*` type sizes, `--tap`) and shared classes (`.btn`, `.card`, `.chip`, `.count-badge`, `.status-dot`, `.icon-badge`, `.is-done` and more).
 
 ---
 
 ## 7. Known issues
-- Navigation labels differ between phone and desktop.
-- Property matching ignores budget, and Properties isn't linked to the open lead.
-- "Up next" is always Ananya's visit at 11:30 AM, whatever is actually scheduled.
-- Lead times ("2m", "18m") and message timestamps are fixed text.
-- About 146 colour values are written directly in component CSS instead of using the tokens in `src/index.css`.
+- Navigation labels differ between phone and desktop (Today/Inbox, Properties/Homes, Follow-ups/Tasks).
+- "Matches" / "See all property matches" open the unfiltered Properties page; there's no way back to the chat, and **Share** on a listing doesn't say who it goes to. Matching also ignores budget.
+- Due today items open the Follow-ups page, not the lead's chat.
+- On phones the toast can cover the chat composer for 2.6 s.
+- The phone pipeline always opens on the "New lead" tab, even when it's empty.
+- On desktop, Add lead is only on Today.
+- Sent messages show "Now" forever; lead times ("2m", "18m") and message timestamps are fixed text.
+- The "Visits planned · Next 7 days" caption is not computed.
 - Photos need an internet connection.
 
 ## 8. Backlog (not built)
@@ -162,5 +167,6 @@ Ordered by demo impact. Move items into §3 when they ship.
 
 ## 9. Changelog
 Newest first. One line per change: date, what changed, which section was updated.
+- **2026-10-20:** Design-system pass: all colours, spacing, radius, shadows and font sizes now come from tokens in `src/index.css` (161 scattered colours → one named set); text colours darkened to pass WCAG AA; shared `Dialog`, `HeatBadge`, `LeadActions`, `.chip`, `.count-badge`, `.status-dot`, `.icon-badge` replace duplicates. UX fixes: lead details sheet on phones, Back returns to the originating screen, reset asks for confirmation, "Up next" follows booked visits, dialog focus handling, no sticky hover on touch. Updated §2, §3.1, §3.2, §3.6, §5, §6, §7.
 - **2026-10-20:** Spec rewritten to match commit `eb13612` (UI polish and module split): readable type scale, phone pipeline tabs, per-lead chat details, live numbers, saved messages, reset demo data, new code map. All sections updated.
 - **2026-10-20:** Spec created from the Figma Make export (commit `0e43a34`).

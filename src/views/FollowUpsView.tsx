@@ -18,7 +18,7 @@ export function FollowUpsView({ store, onOpenLead, onCall }: { store: DemoStore;
     <section className="followups-view">
       <header className="page-head">
         <div><span className="eyebrow">{todayLabel()}</span><h1>Follow-ups</h1><p>A focused list of promises to keep today.</p></div>
-        <div className="completion-ring" style={{ background: `conic-gradient(#58bc86 0 ${percent}%, #e2e5ea ${percent}% 100%)` }} role="img" aria-label={`${done} of ${total} follow-ups completed`}>
+        <div className="completion-ring" style={{ background: `conic-gradient(var(--success) 0 ${percent}%, var(--border) ${percent}% 100%)` }} role="img" aria-label={`${done} of ${total} follow-ups completed`}>
           <strong>{done}/{total}</strong><span>done</span>
         </div>
       </header>
@@ -50,7 +50,7 @@ export function FollowUpsView({ store, onOpenLead, onCall }: { store: DemoStore;
             )
           })}
           {store.remainingTasks.length === 0 && (
-            <div className="empty-state"><span><Icon name="check" /></span><h3>That’s everything for today</h3><p>Every buyer has heard from you. Enjoy the breathing room.</p></div>
+            <div className="empty-state"><span className="icon-badge"><Icon name="check" /></span><h3>That’s everything for today</h3><p>Every buyer has heard from you. Enjoy the breathing room.</p></div>
           )}
         </section>
 

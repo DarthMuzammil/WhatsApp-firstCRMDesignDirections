@@ -111,6 +111,9 @@ export const SEED_RECORDINGS: Recording[] = [
   { id: 103, leadId: 1, when: '3 days ago · 11:06 AM', duration: 132, note: 'Confirmed preferences: corner unit and morning light.' },
 ]
 
+/** The visit already on the broker's calendar when the demo starts. Booked visits are added after it. */
+export const SEED_VISIT = { leadId: 1, time: 'Today · 11:30 AM' }
+
 /** Fixed demo metrics that are not derived from the seed data. */
 export const DEMO_METRICS = {
   followUpRate: 82,
@@ -131,6 +134,11 @@ export function matchPropertyForLead(lead: LeadSeed): Property {
     PROPERTIES.find((p) => lead.need.startsWith(p.bedrooms)) ??
     PROPERTIES[0]
   )
+}
+
+/** "Rohan & Meera" → "Rohan", "Arjun Khanna" → "Arjun" */
+export function firstName(name: string): string {
+  return name.trim().split(/\s+/)[0] ?? name
 }
 
 export function initialsFor(name: string): string {

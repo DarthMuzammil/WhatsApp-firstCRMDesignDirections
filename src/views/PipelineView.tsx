@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { COMMISSION_RATE, STAGES, type Lead } from '../data/demo'
 import { LeadAvatar } from '../components/Avatar'
+import { HeatBadge } from '../components/HeatBadge'
 import { Icon } from '../components/Icon'
 import { formatCrore, formatLakhFromCrore } from '../lib/format'
 import type { DemoStore } from '../state/useDemoStore'
@@ -43,10 +44,10 @@ export function PipelineView({ store, onOpenLead, notify }: { store: DemoStore; 
         <div><span>Likely commission</span><strong>{formatLakhFromCrore(store.weightedCommissionCr)}</strong><small>Weighted by stage · {COMMISSION_RATE * 100}% fee</small></div>
       </div>
 
-      <div className="stage-tabs" role="tablist" aria-label="Pipeline stages">
+      <div className="chip-row stage-tabs" role="tablist" aria-label="Pipeline stages">
         {STAGES.map((stage, index) => (
-          <button key={stage} role="tab" aria-selected={phoneStage === index} className={phoneStage === index ? 'active' : ''} onClick={() => setPhoneStage(index)}>
-            <i className={`stage-dot stage-${index}`} />{stage}<b>{leadsInStage(index).length}</b>
+          <button key={stage} role="tab" aria-selected={phoneStage === index} className={`chip chip-dark ${phoneStage === index ? 'active' : ''}`} onClick={() => setPhoneStage(index)}>
+            <i className={`stage-dot stage-${index}`} />{stage}<b className={`count-badge ${phoneStage === index ? 'mint' : 'neutral'}`}>{leadsInStage(index).length}</b>
           </button>
         ))}
       </div>
@@ -56,7 +57,7 @@ export function PipelineView({ store, onOpenLead, notify }: { store: DemoStore; 
           const stageLeads = leadsInStage(index)
           return (
             <section key={stage} className={`pipeline-stage ${phoneStage === index ? 'phone-visible' : ''}`} aria-label={stage}>
-              <header><div><i className={`stage-dot stage-${index}`} /><strong>{stage}</strong></div><span>{stageLeads.length}</span></header>
+              <header><div><i className={`stage-dot stage-${index}`} /><strong>{stage}</strong></div><b className="count-badge neutral">{stageLeads.length}</b></header>
               <div className="pipeline-cards">
                 {stageLeads.map((lead) => (
                   <article key={lead.id} className="deal-card">
@@ -68,7 +69,7 @@ export function PipelineView({ store, onOpenLead, notify }: { store: DemoStore; 
                     <div className="deal-budget"><span>Budget</span><strong>{lead.budget}</strong></div>
                     <p className="deal-message"><Icon name="whatsapp" size={14} />{lead.message}</p>
                     <footer>
-                      <span className={`heat heat-${lead.temp.toLowerCase()}`}>{lead.temp}</span>
+                      <HeatBadge temp={lead.temp} />
                       {index < STAGES.length - 1 && (
                         <button className="deal-advance" onClick={() => moveForward(lead)}>Move to {STAGES[index + 1]} <Icon name="arrow" size={14} /></button>
                       )}
