@@ -56,6 +56,8 @@
   --warning-soft: #fdf3d3;
   --danger: #d0393f;
   --danger-bright: #ff716a;
+  --danger-soft: #fde4e4;
+  --danger-text: #a8262c;
   --danger-deep: #873d43;
   --danger-deep-ink: #ffc2bd;
   --danger-on-navy: #49323e;
@@ -169,6 +171,11 @@ h1, h2, h3 { font-weight: 700; }
 .heat-warm { color: var(--heat-warm-ink); background: var(--heat-warm-bg); }
 .heat-new { color: var(--heat-new-ink); background: var(--heat-new-bg); }
 
+/* Small status flag next to a lead: Overdue, Unassigned */
+.lead-flag { padding: var(--space-half) var(--space-2); border-radius: var(--radius-sm); font-size: var(--fs-meta); font-weight: 800; white-space: nowrap; }
+.lead-flag.danger { color: var(--danger-text); background: var(--danger-soft); }
+.lead-flag.warning { color: var(--warning-ink); background: var(--warning-soft); }
+
 /* Round icon-only button */
 .icon-button { width: 40px; height: 40px; flex: 0 0 auto; padding: 0; border: 0; border-radius: 50%; display: grid; place-items: center; color: var(--muted); background: transparent; }
 .icon-button:hover { color: var(--ink); background: var(--hover-tint); }
@@ -230,6 +237,7 @@ h1, h2, h3 { font-weight: 700; }
 .count-badge.mint { color: var(--navy-deep); background: var(--mint); }
 .count-badge.navy { color: var(--surface); background: var(--navy); }
 .count-badge.neutral { color: var(--ink-soft); background: var(--surface-sunken); }
+.count-badge.danger { color: var(--surface); background: var(--danger); }
 
 /* Small round status light */
 .status-dot { width: 8px; height: 8px; flex: 0 0 auto; display: inline-block; border-radius: 50%; background: var(--success); }
@@ -240,6 +248,10 @@ h1, h2, h3 { font-weight: 700; }
 .icon-badge { width: 44px; height: 44px; flex: 0 0 auto; border-radius: 50%; display: grid; place-items: center; color: var(--success-ink); background: var(--success-soft); }
 .icon-badge.lg { width: 60px; height: 60px; }
 .icon-badge.sm { width: 40px; height: 40px; }
+
+/* Round radio indicator for single-choice lists (assign picker, routing options) */
+.radio-dot { width: 22px; height: 22px; flex: 0 0 auto; border: 1.5px solid var(--border-strong); border-radius: 50%; display: grid; place-items: center; color: var(--surface); }
+.selected > .radio-dot { border-color: var(--primary); background: var(--primary); }
 
 /* Success-tinted "done" state for action buttons */
 .is-done { border-color: var(--success-line) !important; background: var(--success-soft) !important; }

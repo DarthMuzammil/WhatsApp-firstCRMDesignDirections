@@ -10,7 +10,7 @@
 ## 1. Product in one paragraph
 Daira is a WhatsApp-first CRM for **real estate brokerages of 20–25 people** in India, starting with Bengaluru: an owner, team managers, field agents and (in some companies) separate telecallers. Agents work from their phones: leads arrive, conversations happen on WhatsApp, matching homes get shared, visits are planned and verified, and follow-ups are kept. Managers and owners see the team: who is handling which lead, who turned up, who is performing. All of it happens in one place instead of across WhatsApp, Excel and a paper diary. This repo is a **UI-only prototype** for customer demos. There is no backend; data is seeded in code, changes are saved in the browser's localStorage, and anything a backend would do (portal sync, WhatsApp delivery, calling, GPS, AI) is **simulated with scripted data**.
 
-**Persona in the prototype today:** Arjun Khanna, broker, Indiranagar (single-user view). §8 M1 adds the team, roles and a "View as" role switcher.
+**People in the prototype:** a 22-person brokerage (owner Arjun Khanna, 3 team managers, 15 Sales, 3 Pre-sales). The demo **"View as"** switcher (account menu) shows the app as the Owner, a Manager, a Sales agent or a Pre-sales telecaller; data visibility, phone masking and navigation change with the role (§3.8).
 
 > **Positioning note:** the research PRD targeted solo brokers and 2–5 person shops. At 20–25 seats Daira competes directly with Leadrat and LeadSquared, so per-seat pricing needs revisiting. The edge remains: phone-first for agents in the field, WhatsApp-native, verified visits, and leave-aware lead handover.
 
@@ -30,14 +30,16 @@ Layouts: **phone** ≤ 760px, **tablet** 761–1100px, **desktop** > 1100px. Eve
 
 | Area | Desktop / tablet | Phone |
 |---|---|---|
-| Brand + status | Sidebar with Daira logo (tap → Today) | Top bar: logo, "● WhatsApp connected" 🧱, **AK** avatar (account menu), **+** add lead |
-| Main nav | Sidebar: **Today** (unread-message badge), **Pipeline**, **Properties**, **Follow-ups** (tasks-left badge), **Calls** | Bottom tabs: **Inbox** (unread badge), **Pipeline**, **Homes**, **Tasks**, **Calls** |
+| Brand + status | Sidebar with Daira logo (tap → Today) | Top bar: logo, "● WhatsApp connected" 🧱, viewer's avatar (account menu), **+** add lead |
+| Main nav | Sidebar **Work** group: **Today** (unread badge), **Pipeline**, **Properties**, **Follow-ups** (tasks-left badge), **Calls**. **Manage** group, by permission: **Escalations** (red count; Manager/Owner), **Team** (Manager/Owner), **Settings** (Owner) | Bottom tabs: **Inbox** (unread badge), **Pipeline**, **Homes**, **Tasks**, **More**. **More** opens a sheet with Calls plus the Manage screens the viewer may use (a red "!" on More when escalations are waiting) |
 | Progress card | "Today's progress" ✅: buyers awaiting a reply · follow-ups left, with a progress bar of completed tasks. Says "You're all caught up" only when both are zero. | — |
-| Account menu | "⋯" next to the user card → **Reset demo data** ✅ (asks to confirm first) | AK avatar → **Reset demo data** ✅ (asks to confirm first) |
+| User card | Viewer's name and role ("Sales · Indiranagar") | — |
+| Account menu | "⋯" next to the user card (opens upwards, beside the sidebar) | Viewer's avatar |
+| Account menu contents | **Demo · View as** ✅: Arjun Khanna (Owner), Neha Kapoor (Manager · Indiranagar), Priya Nair (Sales · Indiranagar), Kiran Patel (Pre-sales). Then **Reset demo data** ✅ (asks to confirm first) | same |
 
 ⚠️ Names differ between desktop and phone (Today/Inbox, Properties/Homes, Follow-ups/Tasks). Pick one set.
 
-While a chat is open, the nav keeps the screen it was opened from highlighted.
+While a chat is open, the nav keeps the screen it was opened from highlighted. If switching "View as" hides the open lead or screen, the app falls back to that screen or to Today.
 
 Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with **Escape** or by tapping outside, keep keyboard focus inside while open, and return focus to the button that opened them. On phones, pickers and lead details open as bottom sheets.
 
@@ -46,10 +48,11 @@ Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with
 ## 3. Screens & workflows
 
 ### 3.1 Today (home / inbox)
-- Header: today's real date ✅, search toggle ✅, **Add lead** ✅ (desktop/tablet; phones use the top-bar **+**).
+- Header: today's real date ✅; title "Your day, at a glance" (Sales/Pre-sales) or "Your team today" (Manager/Owner); search toggle ✅; **Add lead** ✅ (desktop/tablet; phones use the top-bar **+**).
+- Every number and list on this screen covers only the leads the viewer may see (§3.8).
 - **Up next card** ✅: the next visit on the calendar. The demo starts with Ananya's visit ("Today · 11:30 AM · The Courtyard House") 🎭. Every visit booked in the demo is added after it (coming Saturday, 11:30 AM), and the card shows "+N more visits booked". With no visits it says "No visits booked". **Directions** shows a toast ("Directions to … sent to your phone") 🎭. **Message** opens that lead's chat ✅.
-- **Follow-up rate 82%** 🧱 (with three lead avatars). **Active value** ✅ = sum of lead budget midpoints (seed data: ₹8.8 Cr), with the open-lead count.
-- **Lead inbox** ✅: filter *All / Hot / Warm / New*, plus search by name, requirement or locality. Subtitle counts conversations awaiting a reply. Each row: avatar (green dot if online), name, time, requirement · budget, last message, unread count, intent tag, "via <source>". Tapping a row opens the chat and **marks it read** ✅. Empty state when nothing matches.
+- **Follow-up rate 82%** 🧱 (with three lead avatars). **Active value** ✅ = sum of budget midpoints of the leads the viewer sees (Owner with seed data: ₹27.4 Cr), with the open-lead count.
+- **Lead inbox** ✅: filter *All / Hot / Warm / New*, plus search by name, requirement or locality. Subtitle counts conversations awaiting a reply. Each row: avatar (green dot if online), name, time since the last message, requirement · budget, last message, unread count, intent tag, red **Overdue** flag (unread for more than 15 min), and "via <source>". Managers and the Owner also see the **owner** ("Priya N.") or a yellow **Unassigned** flag. Tapping a row opens the chat and **marks it read** ✅. Empty state when nothing matches.
 - **Due today** ✅: up to 4 remaining follow-ups (time, title, lead). Tapping one, or **Open follow-ups**, goes to Follow-ups.
 - Desktop: inbox and Due today side by side. Tablet/phone: stacked.
 
@@ -67,9 +70,14 @@ Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with
 - The thread scrolls to the newest message.
 
 **Lead panel** (side panel on desktop/tablet; bottom sheet from **Details** on phones)
+- **Lead owner card** ✅: owner's name and role (or "Unassigned").
+  - Manager/Owner: **Reassign** (or **Assign**) opens a people picker with open-lead counts and a reason (Workload balance / Locality expertise / Leave cover / Buyer request / Other).
+  - Pre-sales, when the lead is theirs and *Separate pre-sales team* is on: **Hand to Sales** (picker of Sales people). The lead then leaves their view and the chat closes.
+  - Sales: no reassign button.
+- **Ownership history** ✅ under the card: each change with new owner, reason, previous owner, who did it and when.
 - Stage name, budget, requirement, intent tag.
 - **Stage track** ✅ shows the lead's real stage: New / Qualified / Visit / Offer.
-- **Buyer brief** (per lead): locality, move-in, must-have, phone, and "via <source>".
+- **Buyer brief** (per lead): locality, move-in, must-have, phone, and "via <source>". **Phone numbers are masked** (`+91 98XXX XX018`) for Sales and Pre-sales; Managers and the Owner see full numbers.
 - **Top property match** ✅: the first listing in the lead's locality, otherwise the first with the same BHK, otherwise the first listing. Budget is not used yet.
 - **Share shortlist** ✅ posts the shortlist message into the chat and shows a toast.
 - **Schedule visit** ✅ books the coming Saturday at 11:30 AM (no picker) and moves the lead to *Visit planned*. A lead already in *Negotiation* stays there.
@@ -77,9 +85,9 @@ Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with
 
 ### 3.3 Pipeline
 - Stages: **New lead → Qualified → Visit planned → Negotiation**.
-- Summary: Open deals ✅, Visits planned ✅ (leads in *Visit planned*; the "Next 7 days" caption is 🧱), Likely commission ✅ = sum of budget × 2% fee × stage close probability (10% / 30% / 60% / 80%). Seed data gives ₹9.8 L.
+- Summary: Open deals ✅, Visits planned ✅ (leads in *Visit planned*; the "Next 7 days" caption is 🧱), Likely commission ✅ = sum of budget × 2% fee × stage close probability (10% / 30% / 60% / 80%), over the leads the viewer sees.
 - **Hot leads only** filter toggle ✅.
-- Deal card: person (tap → chat), requirement, budget, last WhatsApp message, intent tag, and **Move to <next stage>** ✅ (advances one stage, toast confirms). Stages are saved locally.
+- Deal card: person (tap → chat), requirement (Managers/Owner also see the owner or "Unassigned"), budget, last WhatsApp message, intent tag, and **Move to <next stage>** ✅ (advances one stage, toast confirms). Stages are saved locally.
 - Desktop: 4 columns. Tablet: 2 × 2 grid. Phone: **stage tabs** with counts, one stage's cards at a time.
 - Not available yet: moving back, Won/Lost stages, drag-and-drop.
 
@@ -91,7 +99,7 @@ Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with
 
 ### 3.5 Follow-ups ("Tasks")
 - Header shows today's date ✅ and a progress ring (done/total) ✅.
-- 4 seeded tasks for today, each with a time, lead avatar, title, note and action type.
+- Today's seeded tasks for the leads the viewer sees (8 in total; e.g. 2 for Priya Nair), each with a time, lead avatar, title, note and action type.
 - Tick to complete ✅ (saved; done tasks are struck through and faded).
 - Task action: **Call** opens the call screen ✅. **WhatsApp / Send details** opens the chat ✅. Tapping the title also opens the chat.
 - **Add reminder** ✅ adds one fixed task ("Send post-visit follow-up · 6:30 PM"), once only.
@@ -107,39 +115,73 @@ Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with
 
 ### 3.7 Add lead (quick capture)
 - Opens from **+** (phone top bar) or **Add lead** (Today on desktop/tablet).
-- Fields: Full name\*, WhatsApp number\* (+91, exactly 10 digits), Looking for (2 BHK / 3 BHK / 4 BHK / Villa / Plot), Preferred area (defaults to "Bengaluru").
-- Saving creates a lead at the top of the inbox ✅: source "Quick capture", intent New, stage New lead, budget "Budget to qualify" (counts as ₹0 in totals), 1 unread, phone stored. It appears in the inbox, pipeline and call picker (saved locally). Success screen, then **Done**.
+- Fields: Full name\*, WhatsApp number\* (+91, exactly 10 digits), Looking for (2 BHK / 3 BHK / 4 BHK / Villa / Plot), Preferred area (defaults to "Bengaluru"). Managers and the Owner also get **Assign to**: *Auto* (company routing, §3.10) or a named person with their open-lead count.
+- **Who owns the new lead:** Sales and Pre-sales own what they add. For Managers/Owner, *Auto* routes it: to the Pre-sales person with fewest open leads when *Separate pre-sales team* is on; otherwise to Sales, by locality team (if routing is "By locality" and the area matches a team) or fewest open leads.
+- Saving creates a lead at the top of the inbox ✅: source "Quick capture", intent New, stage New lead, budget "Budget to qualify" (counts as ₹0 in totals), 1 unread, phone stored, and an ownership-history entry. Success screen says where it went: "now in your inbox", "assigned to <name>" or "in the unassigned queue".
+
+### 3.8 Team, roles and visibility (M1)
+- **Roles** (permission bundles; one person can hold several): **Owner**, **Manager**, **Sales**, **Pre-sales**. Permissions: see all leads · see team's leads · assign/reassign · see full phone numbers · invite/deactivate people · change settings · view reports · export · hand leads to Sales (table in §3.10).
+- **Which leads someone sees** ✅: Owner, every lead. Manager, leads owned by their team plus unassigned leads. Sales and Pre-sales, only their own. Tasks, recordings, upcoming visits, badges and every total follow the same rule.
+- **Team screen** ✅ (Manager: own team; Owner: everyone):
+  - Stat strip: Active / On leave / Deactivated.
+  - Cards per area team (Indiranagar, Whitefield, HSR Layout) plus, for the Owner, **Pre-sales** and **Leadership**.
+  - Each person: avatar, name (and "(you)"), phone, role chips, status (Active / On leave / Deactivated), open-lead count, and **Deactivate** or **Reactivate** (never for yourself or the Owner).
+  - **Deactivate** someone with open leads → picker "who takes them over" → every lead moves (with a history entry "Previous owner deactivated"), then the person is marked Deactivated. With no leads it deactivates directly.
+  - **Invite person** 🎭: name, mobile, role (Owner may pick Sales / Pre-sales / Manager; a Manager can only add Sales to their own team), team. The person is added straight away and a toast says the WhatsApp invite was sent.
+- "On leave" is seed status only (Kavya Reddy) until M8 leave management.
+
+### 3.9 Escalations (M2)
+- **Manager/Owner screen** with stat strip: overdue replies, unassigned, response target (15 min 🧱).
+- **Unassigned leads**: lead, need, budget, source, intent, "Arrived Xm ago", and **Assign** (picker with reasons: New lead / Locality expertise / Workload balance).
+- **Overdue replies**: owned leads unread for more than 15 min, with "Waiting Xm", owner, and **Reassign** (reasons: Overdue reply / Workload balance / Leave cover / Other).
+- Tapping a lead opens its chat. Assigning updates the nav badge immediately. Seed data starts with **5** escalations (2 unassigned, 3 overdue).
+- Overdue is computed from fixed "minutes ago" seed values 🧱, so it does not tick over time; opening a chat marks it read and clears it.
+
+### 3.10 Settings (M1/M2, Owner only)
+- **Separate pre-sales team** ✅ on/off (the whole row is the switch). On: new leads route to Pre-sales first and they get **Hand to Sales**. Off: Sales handle leads end to end; hand-off is hidden and Pre-sales are left out of routing and pickers.
+- **Lead routing** ✅: Round-robin (fewest open leads) / By locality / By source. *By source* is 🎭: it behaves like round-robin until lead sources exist (M3).
+- **Roles and permissions** table 🧱 (read-only; custom roles later).
 
 ---
 
-## 4. Seed data (`src/data/demo.ts`)
-- **Leads (4):**
+## 4. Seed data (`src/data/demo.ts`, `src/data/team.ts`)
+- **Team (22, `team.ts`):** Owner Arjun Khanna; Indiranagar team (manager Neha Kapoor; Sales Priya Nair, Aditya Rao, Kavya Reddy *on leave*, Sameer Joshi, Divya Iyer); Whitefield (manager Rahul Menon; Sales Vivek Sharma, Ritu Bansal, Manoj Kumar, Ayesha Khan, Karthik Srinivas); HSR Layout (manager Farah Sheikh; Sales Sneha Pillai, Rohit Verma, Ananth Krishnan, Meghna Das, Tarun Gowda); central Pre-sales Kiran Patel, Lakshmi Narayan, Imran Ali.
+- **Leads (12):**
 
-  | Lead | Requirement | Budget | Intent | Source | Stage | Online |
-  |---|---|---|---|---|---|---|
-  | Ananya Rao | 3 BHK in Indiranagar | ₹2.4–2.8 Cr | Hot | 99acres | Visit planned | Yes |
-  | Rohan & Meera | Villa near Whitefield | ₹3.5 Cr | Warm | Referral | Negotiation | Yes |
-  | Vikram Shah | Investment flat, HSR Layout | ₹1.2–1.5 Cr | Warm | MagicBricks | Qualified | No |
-  | Sana Fathima | 2 BHK in HSR Layout | ₹1.4 Cr | New | WhatsApp | New lead | No |
+  | Lead | Requirement | Budget | Intent | Source | Stage | Owner | Note |
+  |---|---|---|---|---|---|---|---|
+  | Ananya Rao | 3 BHK in Indiranagar | ₹2.4–2.8 Cr | Hot | 99acres | Visit planned | Priya Nair | visit today 11:30 |
+  | Rohan & Meera | Villa near Whitefield | ₹3.5 Cr | Warm | Referral | Negotiation | Vivek Sharma | overdue |
+  | Vikram Shah | Investment flat, HSR Layout | ₹1.2–1.5 Cr | Warm | MagicBricks | Qualified | Sneha Pillai | |
+  | Sana Fathima | 2 BHK in HSR Layout | ₹1.4 Cr | New | WhatsApp | New lead | Kiran Patel (Pre-sales) | |
+  | Deepak Malhotra | 4 BHK in Whitefield | ₹3–3.4 Cr | Hot | Housing | Visit planned | Ritu Bansal | overdue |
+  | Nisha Kulkarni | 3 BHK in HSR Layout | ₹1.8–2 Cr | Warm | Facebook ads | Qualified | Rohit Verma | |
+  | Farhan Qureshi | 2 BHK in Indiranagar | ₹1.5–1.7 Cr | New | 99acres | New lead | — | unassigned |
+  | Lavanya Subramaniam | Villa in Whitefield | ₹4–4.2 Cr | Hot | Referral | Negotiation | Manoj Kumar | |
+  | Gaurav Bhatia | 3 BHK in Indiranagar | ₹2.8–3 Cr | Warm | MagicBricks | Qualified | Aditya Rao | overdue |
+  | Pooja Venkatesh | 2 BHK in HSR Layout | ₹1.2–1.3 Cr | New | Walk-in | New lead | Kiran Patel (Pre-sales) | |
+  | Sanjay Mehta | Investment flat, Whitefield | ₹1–1.2 Cr | New | WhatsApp | New lead | — | unassigned, overdue |
+  | Ishita Banerjee | 3 BHK in Indiranagar | ₹2.4–2.6 Cr | Hot | 99acres | Qualified | Priya Nair | |
 
-  Each lead also has a phone number, move-in timing, must-haves, opening enquiry and latest message.
+  Each lead also has a phone number, minutes since the last message, move-in timing, must-haves, opening enquiry and latest message. The Owner's totals with this data: active value ₹27.4 Cr across 12 leads.
 - **Properties (3):** The Courtyard House (Indiranagar, 3 BHK, ₹2.65 Cr) · Windermere Residences (Whitefield, 4 BHK, ₹3.40 Cr) · Lakeview Terraces (HSR Layout, 2 BHK, ₹1.48 Cr). Photos load from Unsplash, so the demo needs internet.
-- **Tasks (4)** and **recordings (3)** linked to the leads above, plus the one optional "Add reminder" task.
+- **Tasks (8)** and **recordings (5)** linked to the leads above, plus the one optional "Add reminder" task (attached to the viewer's first lead).
 - **Fixed demo numbers** (`DEMO_METRICS`): follow-up rate 82% (+12%), weekly chart values, 18 calls this week (2h 14m), 72% answer rate (+8%).
 
 ## 5. Saved in the browser (localStorage)
-All keys use the prefix `daira:v2:`: `added-leads`, `stages`, `visits`, `read-leads`, `sent-messages`, `tasks`, `completed-tasks`, `recordings`, `saved-properties`.
-**Reset demo data** (account menu → confirm) deletes these, plus any old `daira-*` keys, and reloads the page. Run it before every client demo.
+All keys use the prefix `daira:v3:`: `viewer`, `settings`, `added-members`, `member-status`, `added-leads`, `owners`, `assignments`, `stages`, `visits`, `read-leads`, `sent-messages`, `tasks`, `completed-tasks`, `recordings`, `saved-properties`.
+**Reset demo data** (account menu → confirm) deletes these, plus any older `daira:*` / `daira-*` keys, and reloads the page. Run it before every client demo.
 
 ## 6. Code map
 See `AGENTS.md` for conventions. Each component has a matching `.css` file next to it.
-- `src/App.tsx`: shell; owns the current view, the open lead, dialogs and toasts.
-- `src/data/demo.ts`: types, seed data, stages, commission settings, property matching.
-- `src/state/useDemoStore.ts`: all saved state, derived numbers and actions.
-- `src/lib/`: `storage.ts` (localStorage), `format.ts` (dates, money, durations), `useEscapeKey.ts`.
-- `src/components/`: `AppNavigation` (sidebar, phone top bar, tab bar), `navigation.ts`, `Dialog` (the one modal / sheet / full-screen shell), `AccountMenu`, `Avatar`, `HeatBadge`, `LeadActions`, `LeadRow`, `PropertyCard`, `Toast`, `Icon`.
-- `src/views/`: `TodayView`, `ChatView` (chat + lead panel), `PipelineView`, `PropertiesView`, `FollowUpsView`, `CallsView`.
-- `src/modals/`: `AddLeadModal`, `CallPicker`, `CallModal`.
+- `src/App.tsx`: shell; owns the current view, the open lead, dialogs and toasts, and falls back when "View as" hides a screen.
+- `src/data/demo.ts`: lead/property/task types and seed data, stages, response SLA, commission settings, property matching.
+- `src/data/team.ts`: people, teams, roles, "View as" personas.
+- `src/state/useDemoStore.ts`: all saved state, the viewer, visibility filtering, routing, derived numbers and actions.
+- `src/lib/`: `permissions.ts` (role → permissions, who sees which lead), `storage.ts` (localStorage), `format.ts` (dates, money, durations, phone masking), `useEscapeKey.ts`.
+- `src/components/`: `AppNavigation` (sidebar with Work/Manage groups, phone top bar, tab bar with More sheet), `navigation.ts` (items with required permission), `Dialog` (the one modal / sheet / full-screen shell), `AccountMenu`, `Avatar`, `HeatBadge`, `LeadActions`, `LeadRow`, `PropertyCard`, `Toast`, `Icon`.
+- `src/views/`: `TodayView`, `ChatView` (chat + lead panel), `PipelineView`, `PropertiesView`, `FollowUpsView`, `CallsView`, `EscalationsView`, `TeamView` (with invite dialog), `SettingsView`.
+- `src/modals/`: `AddLeadModal`, `AssignDialog` (people picker for assign / reassign / hand-off / deactivate), `CallPicker`, `CallModal`.
 - `src/index.css`: the only place raw colours are defined. Design tokens (colour, 4px spacing scale, radius, shadow, `--fs-*` type sizes, `--tap`) and shared classes (`.btn`, `.card`, `.chip`, `.count-badge`, `.status-dot`, `.icon-badge`, `.is-done` and more).
 
 ---
@@ -151,7 +193,9 @@ See `AGENTS.md` for conventions. Each component has a matching `.css` file next 
 - On phones the toast can cover the chat composer for 2.6 s.
 - The phone pipeline always opens on the "New lead" tab, even when it's empty.
 - On desktop, Add lead is only on Today.
-- Sent messages show "Now" forever; lead times ("2m", "18m") and message timestamps are fixed text.
+- Sent messages show "Now" forever; lead times ("2m", "18m") and message timestamps are fixed seed values, so "Overdue" never appears or clears on its own.
+- The permissions table can't be edited; "By source" routing behaves like round-robin.
+- Newly invited people can't log in (there is no login); they only appear in Team and pickers.
 - The "Visits planned · Next 7 days" caption is not computed.
 - Photos need an internet connection.
 
@@ -168,7 +212,7 @@ Everything here is **UI only**: each item is a screen or flow driven by seed dat
   - **Demo:** a hidden "Pretend location" control (At office / Near client / Far away) shows both approved and refused paths.
 - **Phone masking everywhere:** agents never see a buyer's or property owner's full number (`+91 98XXX XX018`). Calls go through the app (§8.15), and WhatsApp goes through the shared business number in the app.
 
-### 8.1 M1 · Team, roles and permissions (foundation)
+### 8.1 M1 · Team, roles and permissions (foundation) — ✅ built (§3.8, §3.10); permissions table is read-only
 - **Roles are permission bundles, and one person can hold several:**
   - **Owner:** everything, including settings, billing, audit log and exports.
   - **Manager:** their team's leads, people, attendance, leave approvals and reports; reassigns leads; sees full phone numbers.
@@ -182,7 +226,7 @@ Everything here is **UI only**: each item is a screen or flow driven by seed dat
 - **Demo "View as"** switcher in the account menu: Owner / Manager / Sales / Pre-sales. Nav, data visibility and number masking change to match.
 - **Seed data:** about 22 people. Owner Arjun Khanna; 3 managers (Indiranagar, Whitefield, HSR teams); about 15 Sales; 3 Pre-sales.
 
-### 8.2 M2 · Lead assignment and routing
+### 8.2 M2 · Lead assignment and routing — ✅ built (§3.2, §3.7, §3.9, §3.10); "By source" waits for M3
 - **Owner** on every lead; **Reassign** with a reason; history on the lead timeline ("Reassigned from Rahul to Priya by Neha · Leave cover").
 - **Routing rules** screen (simulated): round-robin, by locality, by source, Pre-sales first.
 - **Response-time alert:** untouched for more than 15 min → red "Overdue" badge, and the lead appears in the manager's **Escalations** list.
@@ -302,6 +346,7 @@ Everything here is **UI only**: each item is a screen or flow driven by seed dat
 
 ## 9. Changelog
 Newest first. One line per change: date, what changed, which section was updated.
+- **2026-10-20:** Built M1 + M2: 22-person team, roles and permissions, "View as" switcher, role-based lead visibility and phone masking, lead owner card with reassign / hand to Sales and ownership history, Overdue/Unassigned flags, Escalations, Team (invite, deactivate with lead handover), Settings (separate pre-sales, routing, permissions table), Assign-to on Add lead, phone More sheet. Seed data grows to 12 leads. Fixed the desktop account menu opening off-screen. Updated §1–§7, §8.1, §8.2.
 - **2026-10-20:** Product reframed for brokerages of 20–25 people (§1). Backlog replaced by the approved plan (§8): roles with optional separate pre-sales, phone masking, routing, lead arrival, chat automation, lead record, verified visit check-ins within web-app limits (200 m, no live tracking), attendance, leave with cover agent, performance reports, deal closing, inventory, notifications and audit, targeted AI assist, backend notes on Indian calling providers, and build order.
 - **2026-10-20:** Design-system pass: all colours, spacing, radius, shadows and font sizes now come from tokens in `src/index.css` (161 scattered colours → one named set); text colours darkened to pass WCAG AA; shared `Dialog`, `HeatBadge`, `LeadActions`, `.chip`, `.count-badge`, `.status-dot`, `.icon-badge` replace duplicates. UX fixes: lead details sheet on phones, Back returns to the originating screen, reset asks for confirmation, "Up next" follows booked visits, dialog focus handling, no sticky hover on touch. Updated §2, §3.1, §3.2, §3.6, §5, §6, §7.
 - **2026-10-20:** Spec rewritten to match commit `eb13612` (UI polish and module split): readable type scale, phone pipeline tabs, per-lead chat details, live numbers, saved messages, reset demo data, new code map. All sections updated.

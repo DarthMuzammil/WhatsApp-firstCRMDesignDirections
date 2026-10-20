@@ -2,13 +2,18 @@
 .account-menu-trigger { min-width: 40px; min-height: 40px; padding: 0; border: 0; border-radius: var(--radius-md); display: grid; place-items: center; color: inherit; background: transparent; }
 .account-menu-trigger:hover { background: var(--hover-tint); }
 .account-menu-dismiss { position: fixed; inset: 0; z-index: 120; }
-.account-menu-popover { position: absolute; right: 0; z-index: 121; width: 270px; padding: var(--space-2); border: 1px solid var(--border); border-radius: var(--radius-md); color: var(--ink); background: var(--surface); box-shadow: var(--shadow-lg); animation: rise .18s ease; }
-.account-menu-popover.up { bottom: calc(100% + var(--space-2)); }
+.account-menu-popover { position: absolute; right: 0; z-index: 121; width: 300px; padding: var(--space-2); border: 1px solid var(--border); border-radius: var(--radius-md); color: var(--ink); background: var(--surface); box-shadow: var(--shadow-lg); animation: rise .18s ease; }
+/* Sidebar (desktop): opens upwards and rightwards so it never leaves the screen. */
+.account-menu-popover.up { right: auto; left: 0; bottom: calc(100% + var(--space-2)); }
 .account-menu-popover.down { top: calc(100% + var(--space-2)); }
-.account-menu-popover button { width: 100%; min-height: var(--tap); padding: var(--space-3); border: 0; border-radius: var(--radius-sm); display: flex; align-items: flex-start; gap: var(--space-3); text-align: left; background: transparent; }
+.account-menu-popover button { width: 100%; min-height: var(--tap); padding: var(--space-2) var(--space-3); border: 0; border-radius: var(--radius-sm); display: flex; align-items: center; gap: var(--space-3); text-align: left; background: transparent; }
 .account-menu-popover button:hover { background: var(--surface-subtle); }
-.account-menu-popover button > svg { margin-top: var(--space-half); color: var(--primary); }
-.account-menu-popover span { display: flex; flex-direction: column; gap: var(--space-half); }
+.account-menu-popover button > svg { margin-left: auto; color: var(--primary); }
+.account-menu-popover button.current { background: var(--primary-soft); }
+.account-menu-icon { width: 36px; height: 36px; flex: 0 0 auto; border-radius: 50%; display: grid !important; place-items: center; color: var(--primary); background: var(--primary-soft); }
+.account-menu-section { padding: var(--space-2) var(--space-3) var(--space-1); }
+.account-menu-divider { height: 1px; margin: var(--space-2) 0; background: var(--border-soft); }
+.account-menu-popover button > span:not(.avatar):not(.account-menu-icon) { min-width: 0; display: flex; flex-direction: column; gap: var(--space-half); }
 .account-menu-popover strong { font-size: var(--fs-body-sm); }
 .account-menu-popover small { color: var(--muted); font-size: var(--fs-caption); }
 

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { DEMO_METRICS, firstName, matchPropertyForLead, type Lead, type Temperature } from '../data/demo'
+import { shortName } from '../data/team'
 import { Avatar, LeadAvatar } from '../components/Avatar'
 import { Icon } from '../components/Icon'
 import { LeadRow } from '../components/LeadRow'
@@ -29,12 +30,15 @@ export function TodayView({ store, onOpenLead, onAddLead, onNavigate, notify }: 
     `${lead.name} ${lead.need} ${lead.locality}`.toLowerCase().includes(query.trim().toLowerCase()),
   )
   const [nextVisit, ...laterVisits] = store.upcomingVisits
+  // Managers and the owner see other people's leads, so rows show who owns each one.
+  const seesOthers = store.viewerCan('seeTeamLeads')
+  const ownerLabel = (lead: Lead) => (lead.ownerId ? shortName(store.findMember(lead.ownerId)?.name ?? '') : null)
   const nextVisitProperty = nextVisit ? matchPropertyForLead(nextVisit.lead) : undefined
 
   return (
     <section className="today-view">
       <header className="page-head">
-        <div><span className="eyebrow">{todayLabel()}</span><h1>Your day, at a glance</h1></div>
+        <div><span className="eyebrow">{todayLabel()}</span><h1>{seesOthers ? 'Your team today' : 'Your day, at a glance'}</h1></div>
         <div className="page-head-actions">
           <button className={`icon-button bordered today-search-toggle ${searchOpen ? 'active' : ''}`} aria-label={searchOpen ? 'Close search' : 'Search leads'} onClick={() => { setSearchOpen(!searchOpen); setQuery('') }}>
             <Icon name={searchOpen ? 'close' : 'search'} />
@@ -100,7 +104,7 @@ export function TodayView({ store, onOpenLead, onAddLead, onNavigate, notify }: 
             </div>
           </header>
           <div>
-            {visibleLeads.map((lead) => <LeadRow key={lead.id} lead={lead} onOpen={() => onOpenLead(lead)} />)}
+            {visibleLeads.map((lead) => <LeadRow key={lead.id} lead={lead} onOpen={() => onOpenLead(lead)} ownerLabel={seesOthers ? ownerLabel(lead) : undefined} />)}
             {visibleLeads.length === 0 && (
               <div className="empty-state">
                 <span className="icon-badge"><Icon name="check" /></span>

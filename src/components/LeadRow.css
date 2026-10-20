@@ -10,8 +10,9 @@
 .lead-row-message { display: flex; align-items: center; gap: var(--space-3); }
 .lead-row-message p { min-width: 0; flex: 1; overflow: hidden; color: var(--ink-soft); font-size: var(--fs-body-sm); white-space: nowrap; text-overflow: ellipsis; }
 .lead-row.has-unread .lead-row-message p { color: var(--ink); font-weight: 600; }
-.lead-row footer { margin-top: var(--space-1); display: flex; align-items: center; gap: var(--space-2); }
+.lead-row footer { margin-top: var(--space-1); display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
 .lead-row footer > span:last-child { color: var(--faint); font-size: var(--fs-caption); }
+.lead-owner { padding: var(--space-half) var(--space-2); border-radius: var(--radius-sm); color: var(--ink-soft); background: var(--surface-sunken); font-size: var(--fs-meta); font-weight: 700; }
 
 @media (max-width: 760px) {
   .lead-row { padding: var(--space-4); gap: var(--space-3); }

@@ -33,6 +33,16 @@
 
 /* Lead details: desktop side panel and phone sheet share the inner styles */
 .lead-detail { min-width: 0; padding: var(--space-6); overflow-y: auto; border-left: 1px solid var(--border); background: var(--surface-subtle); }
+.lead-owner-card { margin-bottom: var(--space-3); padding: var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-md); display: flex; align-items: center; gap: var(--space-3); background: var(--surface); }
+.lead-owner-card > span:not(.avatar):not(.icon-badge) { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: var(--space-half); }
+.lead-owner-card small { color: var(--muted); font-size: var(--fs-meta); }
+.lead-owner-card strong { font-size: var(--fs-body-sm); }
+.lead-owner-card .btn { min-height: 36px; padding: 0 var(--space-3); font-size: var(--fs-caption); }
+.lead-owner-empty { color: var(--warning-ink); background: var(--warning-soft); }
+.owner-history { margin: 0 0 var(--space-5); padding: 0 0 0 var(--space-4); display: flex; flex-direction: column; gap: var(--space-2); border-left: 2px solid var(--border); list-style: none; }
+.owner-history li { display: flex; flex-direction: column; gap: var(--space-half); color: var(--ink-soft); font-size: var(--fs-caption); }
+.owner-history strong { color: var(--ink); }
+.owner-history small { color: var(--muted); font-size: var(--fs-meta); }
 .lead-detail-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3); }
 .lead-detail-heading h2 { margin-top: var(--space-2); font-size: var(--fs-display-lg); letter-spacing: -.03em; }
 .lead-detail-heading p { margin-top: var(--space-half); color: var(--muted); font-size: var(--fs-body-sm); }

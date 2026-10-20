@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { COMMISSION_RATE, STAGES, type Lead } from '../data/demo'
 import { LeadAvatar } from '../components/Avatar'
+import { shortName } from '../data/team'
 import { HeatBadge } from '../components/HeatBadge'
 import { Icon } from '../components/Icon'
 import { formatCrore, formatLakhFromCrore } from '../lib/format'
@@ -18,6 +19,7 @@ export function PipelineView({ store, onOpenLead, notify }: { store: DemoStore; 
   const [phoneStage, setPhoneStage] = useState(0)
   const visibleLeads = store.leads.filter((lead) => !hotOnly || lead.temp === 'Hot')
   const leadsInStage = (stage: number) => visibleLeads.filter((lead) => lead.stage === stage)
+  const seesOthers = store.viewerCan('seeTeamLeads')
 
   function moveForward(lead: Lead) {
     const nextStage = Math.min(STAGES.length - 1, lead.stage + 1)
@@ -63,7 +65,7 @@ export function PipelineView({ store, onOpenLead, notify }: { store: DemoStore; 
                   <article key={lead.id} className="deal-card">
                     <button className="deal-person" onClick={() => onOpenLead(lead)}>
                       <LeadAvatar lead={lead} size="sm" />
-                      <span><strong>{lead.name}</strong><small>{lead.need}</small></span>
+                      <span><strong>{lead.name}</strong><small>{lead.need}{seesOthers ? ` · ${lead.ownerId ? shortName(store.findMember(lead.ownerId)?.name ?? '') : 'Unassigned'}` : ''}</small></span>
                       <Icon name="chevron" size={16} />
                     </button>
                     <div className="deal-budget"><span>Budget</span><strong>{lead.budget}</strong></div>

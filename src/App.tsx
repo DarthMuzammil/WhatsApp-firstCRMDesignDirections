@@ -1,23 +1,26 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Lead } from './data/demo'
 import { MobileTabBar, MobileTopBar, Sidebar } from './components/AppNavigation'
-import type { View } from './components/navigation'
+import { navItemsFor, type View } from './components/navigation'
 import { Toast, useToast } from './components/Toast'
 import { AddLeadModal } from './modals/AddLeadModal'
 import { CallModal } from './modals/CallModal'
 import { CallPicker } from './modals/CallPicker'
 import { useDemoStore } from './state/useDemoStore'
 import { CallsView } from './views/CallsView'
+import { EscalationsView } from './views/EscalationsView'
 import { ChatView } from './views/ChatView'
 import { FollowUpsView } from './views/FollowUpsView'
 import { PipelineView } from './views/PipelineView'
 import { PropertiesView } from './views/PropertiesView'
+import { SettingsView } from './views/SettingsView'
+import { TeamView } from './views/TeamView'
 import { TodayView } from './views/TodayView'
 import './App.css'
 
 /**
- * Daira — WhatsApp-first CRM for independent brokers (client demo prototype).
- * App owns navigation, the open lead, modals and toasts. Data lives in useDemoStore.
+ * Daira — WhatsApp-first CRM for brokerage teams (client demo prototype).
+ * App owns navigation, the open lead, modals and toasts. Data and the current viewer live in useDemoStore.
  */
 export default function App() {
   const store = useDemoStore()
@@ -34,6 +37,13 @@ export default function App() {
   const openLead = openLeadId === null ? undefined : store.findLead(openLeadId)
   const callingLead = callingLeadId === null ? undefined : store.findLead(callingLeadId)
   const navView: View = view === 'chat' ? chatOrigin : view
+
+  // Switching "View as" can hide the open lead or a manager-only screen: fall back instead of showing nothing.
+  const allowedViews = navItemsFor(store.viewerCan).map((item) => item.view)
+  useEffect(() => {
+    if (view === 'chat' && !openLead) setView(allowedViews.includes(chatOrigin) ? chatOrigin : 'today')
+    else if (view !== 'chat' && !allowedViews.includes(view)) setView('today')
+  }, [view, openLead, chatOrigin, allowedViews])
 
   // Start every screen at the top. Desktop scrolls <main>; phones scroll the window.
   useEffect(() => {
@@ -59,16 +69,8 @@ export default function App() {
 
   return (
     <div className="app">
-      <Sidebar
-        view={navView}
-        onNavigate={navigate}
-        unreadTotal={store.unreadTotal}
-        leadsAwaitingReply={store.leadsAwaitingReply}
-        tasksRemaining={store.remainingTasks.length}
-        tasksTotal={store.tasks.length}
-        onReset={store.resetDemo}
-      />
-      <MobileTopBar onNavigate={navigate} onAddLead={() => setAddLeadOpen(true)} onReset={store.resetDemo} />
+      <Sidebar store={store} view={navView} onNavigate={navigate} />
+      <MobileTopBar store={store} onNavigate={navigate} onAddLead={() => setAddLeadOpen(true)} />
 
       <main className="app-main" ref={mainRef}>
         {view === 'today' && <TodayView store={store} onOpenLead={showLead} onAddLead={() => setAddLeadOpen(true)} onNavigate={navigate} notify={notify} />}
@@ -77,12 +79,15 @@ export default function App() {
         {view === 'properties' && <PropertiesView store={store} notify={notify} />}
         {view === 'tasks' && <FollowUpsView store={store} onOpenLead={showLead} onCall={startCall} />}
         {view === 'calls' && <CallsView store={store} onOpenLead={showLead} onNewCall={() => setCallPickerOpen(true)} />}
+        {view === 'escalations' && <EscalationsView store={store} onOpenLead={showLead} notify={notify} />}
+        {view === 'team' && <TeamView store={store} notify={notify} />}
+        {view === 'settings' && <SettingsView store={store} notify={notify} />}
       </main>
 
-      <MobileTabBar view={navView} onNavigate={navigate} unreadTotal={store.unreadTotal} />
+      <MobileTabBar store={store} view={navView} onNavigate={navigate} />
       <Toast message={toast} />
 
-      {addLeadOpen && <AddLeadModal onClose={() => setAddLeadOpen(false)} onSave={store.addLead} />}
+      {addLeadOpen && <AddLeadModal store={store} onClose={() => setAddLeadOpen(false)} />}
       {callPickerOpen && <CallPicker leads={store.leads} onClose={() => setCallPickerOpen(false)} onChoose={startCall} />}
       {callingLead && (
         <CallModal

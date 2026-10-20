@@ -32,3 +32,10 @@ export function formatCrore(crore: number): string {
 export function formatLakhFromCrore(crore: number): string {
   return `₹${(crore * 100).toFixed(1)} L`
 }
+
+/** "+91 98861 24018" → "+91 98XXX XX018". Used wherever the viewer may not see full numbers (spec §8.0). */
+export function maskPhone(phone: string): string {
+  const digits = phone.replace(/\D/g, '').slice(-10)
+  if (digits.length < 10) return phone
+  return `+91 ${digits.slice(0, 2)}XXX XX${digits.slice(7)}`
+}

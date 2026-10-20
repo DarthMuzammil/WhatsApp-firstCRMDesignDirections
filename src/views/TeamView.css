@@ -1,0 +1,31 @@
+.team-groups { display: flex; flex-direction: column; gap: var(--space-4); }
+.team-member { min-height: 64px; padding: var(--space-3) var(--space-5); border-bottom: 1px solid var(--border-soft); display: grid; grid-template-columns: 36px minmax(160px, 1.4fr) minmax(120px, 1fr) 110px 110px 150px; align-items: center; gap: var(--space-3); }
+.team-member:last-of-type { border-bottom: 0; }
+.team-member.is-deactivated { opacity: .55; }
+.team-member-name { min-width: 0; display: flex; flex-direction: column; gap: var(--space-half); }
+.team-member-name strong { overflow: hidden; font-size: var(--fs-body); white-space: nowrap; text-overflow: ellipsis; }
+.team-member-name small { color: var(--muted); font-size: var(--fs-caption); }
+.team-member-roles { display: flex; flex-wrap: wrap; gap: var(--space-1); }
+.role-chip { padding: var(--space-half) var(--space-2); border-radius: var(--radius-sm); color: var(--ink-soft); background: var(--surface-sunken); font-size: var(--fs-meta); font-weight: 700; }
+.role-chip.role-owner, .role-chip.role-manager { color: var(--primary); background: var(--primary-soft); }
+.role-chip.role-presales { color: var(--heat-new-ink); background: var(--heat-new-bg); }
+.member-status { justify-self: start; padding: var(--space-half) var(--space-2); border-radius: var(--radius-pill); font-size: var(--fs-meta); font-weight: 700; }
+.member-status.status-active { color: var(--success-ink); background: var(--success-soft); }
+.member-status.status-on-leave { color: var(--warning-ink); background: var(--warning-soft); }
+.member-status.status-deactivated { color: var(--muted); background: var(--surface-sunken); }
+.team-member-leads { color: var(--muted); font-size: var(--fs-caption); }
+.team-member-leads strong { color: var(--ink); font-size: var(--fs-body); }
+.team-member-action { justify-self: end; }
+.team-member-action .btn { min-height: 36px; padding: 0 var(--space-3); font-size: var(--fs-caption); }
+
+@media (max-width: 1100px) {
+  .team-member { grid-template-columns: 36px minmax(0, 1fr) auto; row-gap: var(--space-2); }
+  .team-member-roles { grid-column: 2; grid-row: 2; }
+  .member-status { grid-column: 3; grid-row: 1; justify-self: end; }
+  .team-member-leads { grid-column: 2; grid-row: 3; }
+  .team-member-action { grid-column: 3; grid-row: 2 / span 2; }
+}
+
+@media (max-width: 760px) {
+  .team-member { padding: var(--space-3) var(--space-4); }
+}

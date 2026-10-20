@@ -17,7 +17,7 @@ export function CallPicker({ leads, onClose, onChoose }: { leads: Lead[]; onClos
         </header>
         <label className="search-field"><Icon name="search" /><input autoFocus value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search name, area or budget" aria-label="Search leads" /></label>
         {!search && <span className="eyebrow picker-section">Recent conversations</span>}
-        <div className="contact-list">
+        <div className="contact-list dialog-scroll">
           {matches.map((lead) => (
             <button key={lead.id} onClick={() => onChoose(lead)}>
               <LeadAvatar lead={lead} />
