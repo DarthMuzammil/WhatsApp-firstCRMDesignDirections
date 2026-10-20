@@ -5,7 +5,7 @@ import './LeadTimeline.css'
 
 const KIND_ICON: Record<ActivityKind, IconName> = {
   enquiry: 'inbox', message: 'whatsapp', assign: 'swap', stage: 'pipeline', visit: 'calendar',
-  call: 'phone', note: 'info', profile: 'spark', tag: 'bookmark', merge: 'users',
+  call: 'phone', note: 'info', profile: 'spark', tag: 'bookmark', merge: 'users', task: 'clock',
 }
 
 /** " · Priya N.", " · Automatic" for the product itself, or nothing. */

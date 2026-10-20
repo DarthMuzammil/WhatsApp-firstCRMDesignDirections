@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { RESPONSE_SLA_MINUTES, firstName, type Lead, type Temperature } from '../data/demo'
+import { RESPONSE_SLA_MINUTES, firstName, relativeMinutes, type Lead, type Temperature } from '../data/demo'
 import { tracksAttendance } from '../data/attendance'
 import { shortName } from '../data/team'
 import { Avatar, LeadAvatar } from '../components/Avatar'
 import { Icon } from '../components/Icon'
 import { LeadRow } from '../components/LeadRow'
 import type { View } from '../components/navigation'
+import { DailySummary, WeeklyDigest } from '../components/TeamPulse'
 import { formatCrore, todayLabel } from '../lib/format'
 import type { DemoStore } from '../state/useDemoStore'
 import './TodayView.css'
@@ -16,11 +17,17 @@ type TodayViewProps = {
   store: DemoStore
   onOpenLead: (lead: Lead) => void
   onNavigate: (view: View) => void
+  onCall: (lead: Lead) => void
   notify: (message: string) => void
 }
 
-/** Home screen: next visit, headline numbers, lead inbox and today's follow-ups. */
-export function TodayView({ store, onOpenLead, onNavigate, notify }: TodayViewProps) {
+/**
+ * Home screen, by what the viewer does all day:
+ * - Managers and the Owner ("Your team today"): daily summary tiles, the lead inbox, the AI digest and the team's follow-ups.
+ * - Sales: next visit, buyers waiting for a reply, active value, then the inbox and today's follow-ups.
+ * - Pre-sales: the next buyer to call (longest waiting first), waiting buyers and their queue, then the inbox.
+ */
+export function TodayView({ store, onOpenLead, onNavigate, onCall, notify }: TodayViewProps) {
   const [filter, setFilter] = useState<'All' | Temperature>('All')
   const [sourceFilter, setSourceFilter] = useState('All')
   const [searchOpen, setSearchOpen] = useState(false)
@@ -35,6 +42,10 @@ export function TodayView({ store, onOpenLead, onNavigate, notify }: TodayViewPr
   // Buyers waiting for a reply, longest wait first (live).
   const waiting = store.leads.filter((lead) => lead.unread > 0 && !lead.closed).sort((a, b) => b.minutesAgo - a.minutesAgo)
   const overdueCount = waiting.filter((lead) => lead.overdue).length
+  const runsVisits = store.viewerCan('handleVisits')
+  // Pre-sales: call the buyer who has waited longest; with nobody waiting, the newest unqualified lead.
+  const openLeads = store.leads.filter((lead) => !lead.closed)
+  const nextCall = waiting[0] ?? openLeads.filter((lead) => lead.stage === 0).sort((a, b) => a.minutesAgo - b.minutesAgo)[0]
   // Managers and the owner see other people's leads, so rows show who owns each one.
   const seesOthers = store.viewerCan('seeTeamLeads')
   const ownerLabel = (lead: Lead) => (lead.ownerId ? shortName(store.findMember(lead.ownerId)?.name ?? '') : null)
@@ -65,43 +76,68 @@ export function TodayView({ store, onOpenLead, onNavigate, notify }: TodayViewPr
         </div>
       )}
 
-      <div className="day-cards">
-        {nextVisit ? (
-          <article className="day-focus">
-            <div className="day-focus-top">
-              <span className="day-card-label">Up next · {nextVisit.when}</span>
-              {laterVisits.length > 0 && <span className="day-focus-more">+{laterVisits.length} more {laterVisits.length === 1 ? 'visit' : 'visits'} booked</span>}
+      {seesOthers ? <DailySummary store={store} onNavigate={onNavigate} /> : (
+        <div className="day-cards">
+          {!runsVisits ? (
+            <article className="day-focus">
+              <span className="day-card-label">Up next · {nextCall ? 'call' : 'queue'}</span>
+              {nextCall ? <>
+                <div className="day-focus-person">
+                  <LeadAvatar lead={nextCall} />
+                  <div><h2>Call {firstName(nextCall.name)}</h2><p>{nextCall.need} · {nextCall.unread > 0 ? `waiting ${relativeMinutes(nextCall.minutesAgo)}` : 'new, to qualify'}</p></div>
+                </div>
+                <footer>
+                  <button className="btn day-focus-secondary" onClick={() => onOpenLead(nextCall)}><Icon name="whatsapp" /> Message</button>
+                  <button className="btn day-focus-primary" onClick={() => onCall(nextCall)}><Icon name="phone" /> Call now</button>
+                </footer>
+              </> : <div className="day-focus-person"><div><h2>Queue clear</h2><p>New enquiries land here first.</p></div></div>}
+            </article>
+          ) : nextVisit ? (
+            <article className="day-focus">
+              <div className="day-focus-top">
+                <span className="day-card-label">Up next · {nextVisit.when}</span>
+                {laterVisits.length > 0 && <span className="day-focus-more">+{laterVisits.length} more {laterVisits.length === 1 ? 'visit' : 'visits'} booked</span>}
+              </div>
+              <div className="day-focus-person">
+                <LeadAvatar lead={nextVisit.lead} />
+                <div><h2>Visit with {firstName(nextVisit.lead.name)}</h2><p>{nextVisit.propertyName} · {nextVisit.lead.locality}</p></div>
+              </div>
+              <footer>
+                <button className="btn day-focus-secondary" onClick={() => notify(`Directions to ${nextVisit.propertyName} sent to your phone`)}><Icon name="pin" /> Directions</button>
+                <button className="btn day-focus-primary" onClick={() => onOpenLead(nextVisit.lead)}><Icon name="whatsapp" /> Message</button>
+              </footer>
+            </article>
+          ) : (
+            <article className="day-focus">
+              <span className="day-card-label">Up next</span>
+              <div className="day-focus-person"><div><h2>No visits booked</h2><p>Plan one from any buyer’s chat.</p></div></div>
+            </article>
+          )}
+          <article className="day-stat warm">
+            <span className="day-card-label">Waiting for a reply</span>
+            <strong>{waiting.length}</strong>
+            <p>{waiting.length === 0 ? 'Every buyer has heard back' : overdueCount > 0 ? `${overdueCount} over ${RESPONSE_SLA_MINUTES} min · reply first` : `All within ${RESPONSE_SLA_MINUTES} min`}</p>
+            <div className="day-stat-avatars">
+              {waiting.slice(0, 3).map((lead) => <Avatar key={lead.id} initials={lead.initials} color={lead.color} size="sm" />)}
             </div>
-            <div className="day-focus-person">
-              <LeadAvatar lead={nextVisit.lead} />
-              <div><h2>Visit with {firstName(nextVisit.lead.name)}</h2><p>{nextVisit.propertyName} · {nextVisit.lead.locality}</p></div>
-            </div>
-            <footer>
-              <button className="btn day-focus-secondary" onClick={() => notify(`Directions to ${nextVisit.propertyName} sent to your phone`)}><Icon name="pin" /> Directions</button>
-              <button className="btn day-focus-primary" onClick={() => onOpenLead(nextVisit.lead)}><Icon name="whatsapp" /> Message</button>
-            </footer>
           </article>
-        ) : (
-          <article className="day-focus">
-            <span className="day-card-label">Up next</span>
-            <div className="day-focus-person"><div><h2>No visits booked</h2><p>Plan one from any buyer’s chat.</p></div></div>
-          </article>
-        )}
-        <article className="day-stat warm">
-          <span className="day-card-label">Waiting for a reply</span>
-          <strong>{waiting.length}</strong>
-          <p>{waiting.length === 0 ? 'Every buyer has heard back' : overdueCount > 0 ? `${overdueCount} over ${RESPONSE_SLA_MINUTES} min · reply first` : `All within ${RESPONSE_SLA_MINUTES} min`}</p>
-          <div className="day-stat-avatars">
-            {waiting.slice(0, 3).map((lead) => <Avatar key={lead.id} initials={lead.initials} color={lead.color} size="sm" />)}
-          </div>
-        </article>
-        <article className="day-stat cool">
-          <span className="day-card-label">Active value</span>
-          <strong>{formatCrore(store.activeValueCr)}</strong>
-          <p>Across {store.openLeads.length} open leads</p>
-          <div className="day-stat-bars" aria-hidden="true"><i /><i /><i /><i /></div>
-        </article>
-      </div>
+          {runsVisits ? (
+            <article className="day-stat cool">
+              <span className="day-card-label">Active value</span>
+              <strong>{formatCrore(store.activeValueCr)}</strong>
+              <p>Across {store.openLeads.length} open leads</p>
+              <div className="day-stat-bars" aria-hidden="true"><i /><i /><i /><i /></div>
+            </article>
+          ) : (
+            <article className="day-stat cool">
+              <span className="day-card-label">Your queue</span>
+              <strong>{openLeads.length}</strong>
+              <p>{openLeads.filter((lead) => lead.stage === 0).length} to qualify · {openLeads.filter((lead) => lead.stage > 0).length} ready for Sales</p>
+              <div className="day-stat-bars" aria-hidden="true"><i /><i /><i /><i /></div>
+            </article>
+          )}
+        </div>
+      )}
 
       <div className="today-grid">
         <section className="card">
@@ -132,8 +168,10 @@ export function TodayView({ store, onOpenLead, onNavigate, notify }: TodayViewPr
           </div>
         </section>
 
+        <div className="today-aside">
+        {seesOthers && <WeeklyDigest store={store} />}
         <aside className="card due-today">
-          <header className="card-head"><div><h2>Due today</h2><p>{store.remainingTasks.length} of {store.tasks.length} follow-ups left</p></div></header>
+          <header className="card-head"><div><h2>{seesOthers ? 'Team follow-ups today' : 'Due today'}</h2><p>{store.remainingTasks.length} of {store.tasks.length} follow-ups left</p></div></header>
           {store.remainingTasks.slice(0, 4).map((task) => {
             const lead = store.findLead(task.leadId)
             return (
@@ -147,6 +185,7 @@ export function TodayView({ store, onOpenLead, onNavigate, notify }: TodayViewPr
           {store.remainingTasks.length === 0 && <div className="empty-state"><span className="icon-badge"><Icon name="check" /></span><h3>All done for today</h3></div>}
           <button className="due-all" onClick={() => onNavigate('tasks')}>Open follow-ups <Icon name="arrow" size={16} /></button>
         </aside>
+        </div>
       </div>
     </section>
   )

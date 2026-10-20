@@ -59,7 +59,7 @@ await p.close()
 // Phone layout
 p = await (await b.newContext({ viewport: { width: 390, height: 844 } })).newPage(); p.on('pageerror', e => errs.push(e.message))
 await p.goto(BASE_URL); await p.evaluate(() => localStorage.clear()); await p.reload(); await p.waitForTimeout(800)
-ok((await p.locator('.mobile-tab-bar button').allInnerTexts()).map(t => t.split('\n').pop()).join(',') === 'Inbox,Visits,Pipeline,Tasks,More', 'phone tabs: Inbox, Visits, Pipeline, Tasks, More')
+ok((await p.locator('.mobile-tab-bar button').allInnerTexts()).map(t => t.split('\n').pop()).join(',') === 'Today,Visits,Pipeline,Follow-ups,More', 'phone tabs: Today, Visits, Pipeline, Follow-ups, More')
 await p.click('.mobile-tab-bar button:has-text("Visits")'); await p.waitForTimeout(300)
 ok(await p.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), 'phone visits: no sideways scroll')
 await p.screenshot({ path: `${SHOTS}/m6-mob.png`, fullPage: true })

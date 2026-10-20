@@ -3,12 +3,23 @@ import { LeadAvatar } from './Avatar'
 import { HeatBadge } from './HeatBadge'
 import './LeadRow.css'
 
+type Flag = { label: string; tone: string; title?: string }
+
+/** At most one coloured flag per row, the most urgent: closed (Won/Lost), then Overdue, then shared with other brokers. */
+function rowFlag(lead: Lead): Flag | null {
+  if (lead.closed) return lead.closed.result === 'won' ? { label: 'Won', tone: 'won' } : { label: 'Lost', tone: 'closed' }
+  if (lead.overdue) return { label: 'Overdue', tone: 'danger', title: 'Waiting more than 15 minutes for a reply' }
+  if (lead.sharedWith) return { label: `Also with ${lead.sharedWith} brokers`, tone: 'shared', title: `The portal sent this enquiry to about ${lead.sharedWith} other brokers` }
+  return null
+}
+
 /**
- * One conversation in the lead inbox.
+ * One conversation in the lead inbox: heat tag, at most one flag, then owner and source as plain text.
  * `ownerLabel` is shown to people who see other people's leads ("Priya N." or null for unassigned);
  * leave it undefined for someone looking at their own leads.
  */
 export function LeadRow({ lead, onOpen, ownerLabel }: { lead: Lead; onOpen: () => void; ownerLabel?: string | null }) {
+  const flag = rowFlag(lead)
   return (
     <button className={`lead-row ${lead.unread > 0 ? 'has-unread' : ''}`} onClick={onOpen}>
       <LeadAvatar lead={lead} showStatus />
@@ -21,12 +32,12 @@ export function LeadRow({ lead, onOpen, ownerLabel }: { lead: Lead; onOpen: () =
         </div>
         <footer>
           <HeatBadge temp={lead.temp} />
-          {lead.closed && <span className={`lead-flag ${lead.closed.result === 'won' ? 'won' : 'closed'}`}>{lead.closed.result === 'won' ? 'Won' : 'Lost'}</span>}
-          {lead.overdue && <span className="lead-flag danger">Overdue</span>}
-          {lead.sharedWith ? <span className="lead-flag shared" title={`Also sent to about ${lead.sharedWith} other brokers`}>Shared ×{lead.sharedWith}</span> : null}
-          {ownerLabel === null && <span className="lead-flag warning">Unassigned</span>}
-          {ownerLabel && <span className="lead-owner">{ownerLabel}</span>}
-          <span>via {lead.source}</span>
+          {flag && <span className={`lead-flag ${flag.tone}`} title={flag.title}>{flag.label}</span>}
+          <span className="lead-row-meta">
+            {ownerLabel === null && <b className="lead-unassigned">Unassigned</b>}
+            {ownerLabel && <span className="lead-owner">{ownerLabel}</span>}
+            <span>via {lead.source}</span>
+          </span>
         </footer>
       </div>
     </button>

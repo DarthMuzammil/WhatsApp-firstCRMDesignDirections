@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import {
-  COMMISSION_RATE, EXTRA_REMINDER, RESPONSE_SLA_MINUTES, SEED_LEADS, SEED_RECORDINGS, SEED_TASKS, STAGES, STAGE_CLOSE_PROBABILITY,
-  firstName, phoneKey, relativeMinutes, type Lead, type LeadSeed, type Recording, type Task,
+  COMMISSION_RATE, RESPONSE_SLA_MINUTES, SEED_LEADS, SEED_RECORDINGS, SEED_TASKS, STAGES, STAGE_CLOSE_PROBABILITY,
+  firstName, phoneKey, relativeMinutes, type Lead, type LeadSeed, type Recording, type Task, type TaskChannel,
 } from '../data/demo'
 import { SEED_CORRECTIONS, SEED_TODAY, seedAttendance, type AttendanceCode, type CorrectionRequest, type TodayAttendance } from '../data/attendance'
 import { LEAVE_ALLOWANCE, SEED_LEAVE, coversDay, leaveDays, seedLeaveUsed, type LeaveRequest, type LeaveType } from '../data/leave'
@@ -38,7 +38,7 @@ export type Note = { id: number; text: string; byId: string; at: string }
 export type ChatEntry = { from: 'agent' | 'auto' | 'buyer'; text: string; at: string; template?: string; /** Listings sent with the message (spec §8.11). */ propertyIds?: number[] }
 /** A listing sent to a lead on WhatsApp. `seen` flips a few seconds after sending (🎭). */
 export type PropertyShare = { propertyId: number; at: string; seen: boolean }
-export type ActivityKind = 'enquiry' | 'message' | 'assign' | 'stage' | 'visit' | 'call' | 'note' | 'profile' | 'tag' | 'merge'
+export type ActivityKind = 'enquiry' | 'message' | 'assign' | 'stage' | 'visit' | 'call' | 'note' | 'profile' | 'tag' | 'merge' | 'task'
 /** Something that happened on a lead during the demo; newest first in the store. */
 export type Activity = { id: number; leadId: number; kind: ActivityKind; text: string; byId: string; at: string }
 /** One row of a lead's timeline (demo activity plus events implied by the seed data). */
@@ -268,8 +268,11 @@ export function useDemoStore() {
   }
 
   // ---------- Work items (scoped to visible leads) ----------
-  // Follow-ups in time order ('10:30 AM' before '2:00 PM').
-  const visibleTasks = tasks.filter((task) => visibleIds.has(task.leadId)).sort((a, b) => minutesOfDay(a.time) - minutesOfDay(b.time))
+  // Today's follow-ups in time order ('10:30 AM' before '2:00 PM'); reminders for later days are listed separately.
+  const byTime = (a: Task, b: Task) => (a.day ?? 0) - (b.day ?? 0) || minutesOfDay(a.time) - minutesOfDay(b.time)
+  const myTasks = tasks.filter((task) => visibleIds.has(task.leadId))
+  const visibleTasks = myTasks.filter((task) => (task.day ?? 0) === 0).sort(byTime)
+  const upcomingTasks = myTasks.filter((task) => (task.day ?? 0) > 0).sort(byTime)
   const remainingTasks = visibleTasks.filter((task) => !completedTaskIds.includes(task.id))
   const visibleRecordings = recordings.filter((recording) => visibleIds.has(recording.leadId))
   const unreadTotal = leads.reduce((sum, lead) => sum + lead.unread, 0)
@@ -376,8 +379,11 @@ export function useDemoStore() {
     timelineFor,
     /** Any lead in the company with this phone number, visible to the viewer or not (spec §8.5 duplicate alert). */
     findDuplicate: (phone: string) => allLeads.find((lead) => phoneKey(lead.phone) === phoneKey(phone)),
+    /** Today's follow-ups (in time order). */
     tasks: visibleTasks,
     remainingTasks,
+    /** Follow-ups set for later days, soonest first. */
+    upcomingTasks,
     completedTaskIds,
     recordings: visibleRecordings,
     savedPropertyIds,
@@ -406,7 +412,6 @@ export function useDemoStore() {
     },
     pretendLocation,
     officeFor,
-    extraReminderAdded: tasks.some((task) => task.id === EXTRA_REMINDER.id),
 
     // ---------- Actions ----------
     setViewer: (memberId: string) => setViewerId(memberId),
@@ -719,10 +724,13 @@ export function useDemoStore() {
       setAiSuggestions((current) => { const next = { ...current }; delete next[leadId]; return next }),
     toggleTask: (taskId: number) =>
       setCompletedTaskIds((current) => (current.includes(taskId) ? current.filter((id) => id !== taskId) : [...current, taskId])),
-    addExtraReminder: () => {
-      const leadId = leads[0]?.id
-      if (leadId === undefined) return
-      setTasks((current) => (current.some((task) => task.id === EXTRA_REMINDER.id) ? current : [...current, { ...EXTRA_REMINDER, leadId }]))
+    /** A follow-up set by the viewer ("Remind me"), for today or a later day. Logged on the lead's timeline. */
+    addTask: (leadId: number, task: { title: string; day: number; time: string; channel: TaskChannel; note?: string }) => {
+      const lead = findLead(leadId)
+      if (!lead) return
+      const id = nextId()
+      setTasks((current) => [...current, { id, leadId, title: task.title, day: task.day, time: task.time, channel: task.channel, note: task.note || lead.need }])
+      log(leadId, 'task', `Follow-up set: ${task.title} · ${dayLabel(task.day)} at ${task.time}`)
     },
     /** Saves a recorded call with an AI summary (demo text) as its note. */
     addRecording: (leadId: number, duration: number) => {

@@ -68,7 +68,8 @@ export type Lead = LeadSeed & {
 export const RESPONSE_SLA_MINUTES = 15
 
 export type TaskChannel = 'WhatsApp' | 'Call' | 'Send details'
-export type Task = { id: number; leadId: number; time: string; title: string; note: string; channel: TaskChannel }
+/** A follow-up. `day` is days from today (missing or 0 = today); reminders set in the demo can be later in the week. */
+export type Task = { id: number; leadId: number; time: string; title: string; note: string; channel: TaskChannel; day?: number }
 
 export type Recording = { id: number; leadId: number; when: string; duration: number; note: string; aiSummary?: boolean }
 
@@ -158,8 +159,13 @@ export const SEED_TASKS: Task[] = [
   { id: 9, leadId: 12, time: '6:00 PM', title: 'Send Courtyard House floor plans', note: 'The Courtyard House · Indiranagar', channel: 'Send details' },
 ]
 
-/** Offered by the "Add reminder" button on the Follow-ups page; attached to the viewer's first lead. */
-export const EXTRA_REMINDER: Omit<Task, 'leadId'> = { id: 5, time: '6:30 PM', title: 'Send post-visit follow-up', note: 'Ask for feedback and next steps', channel: 'WhatsApp' }
+/** Quick picks in the "Remind me" dialog (what to do, and how). */
+export const REMINDER_PRESETS: { title: string; channel: TaskChannel }[] = [
+  { title: 'Call back', channel: 'Call' },
+  { title: 'Send more options', channel: 'Send details' },
+  { title: 'Check their decision', channel: 'WhatsApp' },
+  { title: 'Confirm the visit', channel: 'WhatsApp' },
+]
 
 export const SEED_RECORDINGS: Recording[] = [
   { id: 101, leadId: 2, when: 'Today · 9:42 AM', duration: 248, note: 'Discussed revised offer and garden maintenance.' },

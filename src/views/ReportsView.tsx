@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { STAGES, STAGE_CLOSE_PROBABILITY, COMMISSION_RATE, type Lead } from '../data/demo'
-import { pastWorkingDays, tracksAttendance, type AttendanceCode } from '../data/attendance'
+import { pastWorkingDays, type AttendanceCode } from '../data/attendance'
 import { DAYS_IN_STAGE, LOST_REASONS, PROPERTY_SHARES, RESPONSE_BANDS, SOURCE_FUNNEL, STUCK_AFTER_DAYS, monthStats, targetFor, type MonthStats, type Period } from '../data/performance'
 import { LEAD_SOURCES } from '../data/sources'
 import { TEAMS, roleSummary, shortName, type Member, type TeamId } from '../data/team'
@@ -8,8 +8,6 @@ import { Avatar } from '../components/Avatar'
 import { BarList } from '../components/BarList'
 import { Dialog } from '../components/Dialog'
 import { Icon } from '../components/Icon'
-import type { View } from '../components/navigation'
-import { weeklyDigest } from '../lib/ai'
 import { formatCrore, formatLakhFromCrore } from '../lib/format'
 import type { DemoStore } from '../state/useDemoStore'
 import './ReportsView.css'
@@ -25,14 +23,14 @@ const METRICS: Record<MetricKey, { label: string; pick: (stats: MonthStats) => n
 const PERIOD_LABEL: Record<Period, string> = { 'this-month': 'This month', 'last-month': 'Last month' }
 const inr = (amount: number) => `₹${Math.round(amount).toLocaleString('en-IN')}`
 
-type ReportsProps = { store: DemoStore; onOpenLead: (lead: Lead) => void; onNavigate: (view: View) => void }
+type ReportsProps = { store: DemoStore; onOpenLead: (lead: Lead) => void }
 
 /**
- * Performance (spec §8.9). Sales/Pre-sales: their own scorecard and rank. Managers: their team's
- * daily summary, leaderboard and table. Owner: everything plus business insights.
+ * Performance (spec §3.14). Sales/Pre-sales: their own scorecard and rank. Managers: their team's
+ * leaderboard and table. Owner: everything plus business insights. (The daily summary and AI digest are on Today.)
  * Monthly figures are generated demo data; today's verified check-ins, pipeline and attendance are live.
  */
-export function ReportsView({ store, onOpenLead, onNavigate }: ReportsProps) {
+export function ReportsView({ store, onOpenLead }: ReportsProps) {
   const [period, setPeriod] = useState<Period>('this-month')
   const [teamFilter, setTeamFilter] = useState<'all' | TeamId>('all')
   const [metric, setMetric] = useState<MetricKey>('commission')
@@ -89,22 +87,6 @@ export function ReportsView({ store, onOpenLead, onNavigate }: ReportsProps) {
       <header className="page-head">
         <div><span className="eyebrow">Manage · {PERIOD_LABEL[period]}</span><h1>{isOwner ? 'Performance & insights' : `${TEAMS.find((team) => team.id === store.viewer.teamId)?.name ?? ''} team performance`}</h1><p>Who’s converting, who needs help, and where the business comes from.</p></div>
       </header>
-      <DailySummary store={store} onNavigate={onNavigate} />
-      <section className="card digest">
-        <header className="card-head"><div><span className="ai-chip"><Icon name="spark" size={12} /> AI weekly digest</span><h2>What needs your attention</h2></div></header>
-        <ul>
-          {weeklyDigest({
-            team: isOwner ? 'The company' : `The ${TEAMS.find((team) => team.id === store.viewer.teamId)?.name ?? ''} team`,
-            pipelineCr: store.activeValueCr,
-            overdue: store.escalations.filter((lead) => lead.overdue).length,
-            unassigned: store.escalations.filter((lead) => lead.ownerId === null).length,
-            stuck: store.leads.filter((lead) => (DAYS_IN_STAGE[lead.id] ?? 0) > STUCK_AFTER_DAYS).length,
-            notCheckedIn: store.members.filter((person) => tracksAttendance(person) && (isOwner || person.teamId === store.viewer.teamId) && store.attendanceCode(person.id, 0) === 'pending').length,
-            topName: ranked[0]?.name,
-            topCommissionL: ranked[0] ? statsFor(ranked[0].id).commissionL : undefined,
-          }).map((line) => <li key={line}>{line}</li>)}
-        </ul>
-      </section>
       {filters}
 
       <div className="reports-grid">
@@ -158,29 +140,6 @@ export function ReportsView({ store, onOpenLead, onNavigate }: ReportsProps) {
         </Dialog>
       )}
     </section>
-  )
-}
-
-/** Live counts a manager wants first thing (spec §8.9 "Manager daily summary"). */
-function DailySummary({ store, onNavigate }: { store: DemoStore; onNavigate: (view: View) => void }) {
-  const inScope = (person: Member) => tracksAttendance(person) && (store.viewerCan('seeAllLeads') || person.teamId === store.viewer.teamId)
-  const notIn = store.members.filter((person) => inScope(person) && store.attendanceCode(person.id, 0) === 'pending').length
-  const waiting = store.leaveRequests.filter((request) => request.status === 'pending' && inScope(store.findMember(request.memberId)!)).length
-    + store.corrections.filter((request) => request.status === 'pending' && inScope(store.findMember(request.memberId)!)).length
-  const items: { label: string; value: number; view: View; tone: 'danger' | 'warning' | 'neutral' }[] = [
-    { label: 'Overdue leads', value: store.escalations.filter((lead) => lead.overdue).length, view: 'escalations', tone: 'danger' },
-    { label: 'Not checked in', value: notIn, view: 'attendance', tone: 'warning' },
-    { label: 'Visits today', value: store.visits.filter((visit) => visit.day === 0).length, view: 'visits', tone: 'neutral' },
-    { label: 'Requests waiting', value: waiting, view: 'attendance', tone: 'warning' },
-  ]
-  return (
-    <div className="daily-summary" aria-label="Today at a glance">
-      {items.map((item) => (
-        <button key={item.label} className={`summary-item ${item.value > 0 ? `tone-${item.tone}` : ''}`} onClick={() => onNavigate(item.view)}>
-          <strong>{item.value}</strong><span>{item.label}</span><Icon name="chevron" size={14} />
-        </button>
-      ))}
-    </div>
   )
 }
 

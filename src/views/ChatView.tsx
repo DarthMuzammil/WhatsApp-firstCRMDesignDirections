@@ -19,6 +19,7 @@ import { AssignDialog } from '../modals/AssignDialog'
 import { EditLeadDialog } from '../modals/EditLeadDialog'
 import { DealDialog, LostDialog } from '../modals/DealDialog'
 import { ShareDialog } from '../modals/ShareDialog'
+import { ReminderDialog } from '../modals/ReminderDialog'
 import { ScheduleVisitDialog } from '../modals/ScheduleVisitDialog'
 import { TemplateDialog } from '../modals/TemplateDialog'
 import { QUALIFICATION_QUESTIONS } from '../data/templates'
@@ -47,10 +48,15 @@ export function ChatView({ lead, store, onBack, onCall, onNavigate, notify }: Ch
   const [scheduling, setScheduling] = useState(false)
   const [dealMode, setDealMode] = useState<'edit' | 'win' | 'lost' | null>(null)
   const [sharing, setSharing] = useState(false)
+  const [reminding, setReminding] = useState(false)
+  // Pre-sales hand a lead they own to Sales (when the company has a separate pre-sales team).
+  const canHandOff = store.settings.separatePresales && store.viewerCan('handToSales') && !store.viewerCan('reassignLeads') && lead.ownerId === store.viewer.id
   const actions: LeadActionHandlers = {
     shareHomes: () => { setDetailsOpen(false); setSharing(true) },
-    // Booked already: go to the visit; otherwise pick a day and time.
-    scheduleVisit: () => (lead.visitScheduled ? onNavigate('visits') : setScheduling(true)),
+    // Booked already: go to the visit; otherwise pick a day and time. Only for people who run visits.
+    scheduleVisit: store.viewerCan('handleVisits') ? () => (lead.visitScheduled ? onNavigate('visits') : setScheduling(true)) : undefined,
+    handToSales: canHandOff ? () => setAssignMode('handoff') : undefined,
+    remind: () => setReminding(true),
   }
   return (
     <div className="chat-layout">
@@ -65,6 +71,7 @@ export function ChatView({ lead, store, onBack, onCall, onNavigate, notify }: Ch
           <div className="lead-detail-sheet-body dialog-scroll"><LeadDetails lead={lead} store={store} actions={actions} onAssign={(mode) => { setDetailsOpen(false); setAssignMode(mode) }} onEdit={() => { setDetailsOpen(false); setEditing(true) }} onDeal={(mode) => { setDetailsOpen(false); setDealMode(mode) }} /></div>
         </Dialog>
       )}
+      {reminding && <ReminderDialog lead={lead} store={store} onClose={() => setReminding(false)} onSaved={(message) => { setReminding(false); notify(message) }} />}
       {sharing && <ShareDialog store={store} lead={lead} onClose={() => setSharing(false)} onSent={(message) => { setSharing(false); notify(message) }} />}
       {(dealMode === 'edit' || dealMode === 'win') && (
         <DealDialog lead={lead} store={store} mode={dealMode} onClose={() => setDealMode(null)} onSaved={(message) => { setDealMode(null); notify(message) }} />
@@ -302,7 +309,11 @@ type LeadDetailsProps = {
 }
 type DetailsTab = 'overview' | 'timeline' | 'notes'
 
-/** Everything about a lead, in three tabs. Rendered in the desktop side panel and in the phone details sheet. */
+/**
+ * Everything about a lead, in three tabs. Rendered in the desktop side panel and in the phone details sheet.
+ * Overview runs from what matters when replying (owner, stage and budget, the shared-lead warning, AI score, deal,
+ * matching homes) to reference details (buyer brief, tags); ownership history is folded away.
+ */
 function LeadDetails({ lead, store, actions, onAssign, onEdit, onDeal }: LeadDetailsProps) {
   const [tab, setTab] = useState<DetailsTab>('overview')
   const notes = store.notesFor(lead.id)
@@ -327,6 +338,8 @@ function LeadOverview({ lead, store, actions, onAssign, onEdit, onDeal }: LeadDe
   const canReassign = store.viewerCan('reassignLeads')
   const canHandOff = store.settings.separatePresales && store.viewerCan('handToSales') && lead.ownerId === store.viewer.id
   const history = store.assignments.filter((entry) => entry.leadId === lead.id)
+  // Who owned the lead before: collapsed by default so the panel opens on the deal, not its paperwork.
+  const [showHistory, setShowHistory] = useState(false)
   return <>
     <div className="lead-owner-card">
       {owner
@@ -341,6 +354,11 @@ function LeadOverview({ lead, store, actions, onAssign, onEdit, onDeal }: LeadDe
       {!canReassign && canHandOff && <button className="btn btn-soft" onClick={() => onAssign('handoff')}><Icon name="arrow" size={16} /> Hand to Sales</button>}
     </div>
     {history.length > 0 && (
+      <button className="owner-history-toggle" aria-expanded={showHistory} onClick={() => setShowHistory(!showHistory)}>
+        Ownership history · {history.length} <Icon name="chevron" size={14} />
+      </button>
+    )}
+    {history.length > 0 && showHistory && (
       <ol className="owner-history" aria-label="Ownership history">
         {history.map((entry, index) => (
           <li key={index}>
@@ -356,11 +374,11 @@ function LeadOverview({ lead, store, actions, onAssign, onEdit, onDeal }: LeadDe
       <HeatBadge temp={lead.temp} />
     </div>
 
-    <AiScore lead={lead} />
-
     {lead.sharedWith ? (
       <p className="shared-lead" role="note"><Icon name="alert" size={16} /><span><strong>Also sent to ~{lead.sharedWith} brokers</strong> by {lead.source}. Call now to be first.</span></p>
     ) : null}
+
+    <AiScore lead={lead} />
 
     <ol className="stage-track" aria-label={`Stage: ${STAGES[lead.stage]}`}>
       {STAGE_SHORT_LABELS.map((label, index) => (
@@ -368,11 +386,15 @@ function LeadOverview({ lead, store, actions, onAssign, onEdit, onDeal }: LeadDe
       ))}
     </ol>
 
+    {/* AI suggestions from the chat: shown up here because they need a decision (Accept / Dismiss). */}
+    <AiSuggestions lead={lead} store={store} />
+
     {(lead.stage >= 3 || lead.closed || store.dealFor(lead.id)) && <DealPanel lead={lead} store={store} onDeal={onDeal} />}
+
+    <LeadMatches lead={lead} store={store} />
 
     <div className="buyer-brief">
       <header><strong>Buyer brief</strong><button className="brief-edit" onClick={onEdit}><Icon name="edit" size={14} /> Edit</button></header>
-      <AiSuggestions lead={lead} store={store} />
       <div><span>Purpose</span><strong>{lead.purpose ?? (lead.moveIn === 'Investment' ? 'Investment' : 'Live-in')}</strong></div>
       <div><span>Localities</span><strong>{(lead.localities ?? [lead.locality]).join(', ')}</strong></div>
       <div><span>Move-in</span><strong>{lead.moveIn}</strong></div>
@@ -383,8 +405,6 @@ function LeadOverview({ lead, store, actions, onAssign, onEdit, onDeal }: LeadDe
 
     <span className="eyebrow lead-detail-label">Tags</span>
     <div className="lead-detail-tags"><LeadTags tags={store.tagsFor(lead.id)} onToggle={(tag) => store.toggleTag(lead.id, tag)} /></div>
-
-    <LeadMatches lead={lead} store={store} />
   </>
 }
 

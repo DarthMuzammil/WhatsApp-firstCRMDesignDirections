@@ -1,0 +1,45 @@
+import { chromium } from 'playwright-core'
+import { BASE_URL, SHOTS } from './helpers.mjs'
+const b = await chromium.launch()
+const ok = (c, m) => console.log(c ? 'PASS' : 'FAIL', m)
+// Follow-ups (spec §3.5): time order, "Remind me" from a chat, Add reminder with a buyer picker, Coming up.
+const errs = []
+let p = await b.newPage({ viewport: { width: 1440, height: 900 } })
+p.on('pageerror', e => errs.push(e.message)); p.on('console', m => m.type() === 'error' && errs.push(m.text()))
+await p.goto(BASE_URL); await p.evaluate(() => localStorage.clear()); await p.reload(); await p.waitForTimeout(800)
+const nav = (l) => p.click(`.sidebar-nav button:has-text("${l}")`)
+const minutes = (t) => { const [, h, m, ap] = /(\d+):(\d+)\s*(AM|PM)/.exec(t); return (Number(h) % 12 + (ap === 'PM' ? 12 : 0)) * 60 + Number(m) }
+await nav('Follow-ups')
+const times = await p.locator('.task > time').allInnerTexts()
+ok(times.length === 8 && times.every((t, i) => i === 0 || minutes(times[i - 1]) <= minutes(t)), `today's follow-ups in time order (${times.join(', ')})`)
+// Remind me from a chat: Call back, in 2 days
+await nav('Today'); await p.click('.lead-row:has-text("Vikram")')
+await p.click('.chat-actions button:has-text("Remind me")')
+ok(await p.locator('.reminder-dialog h2').innerText() === 'Remind me about Vikram', 'Remind me opens for this buyer')
+await p.click('.reminder-presets button:has-text("Call back")')
+ok(await p.locator('.reminder-channel button[aria-pressed="true"]').innerText() === 'Call', 'preset "Call back" picks Call')
+await p.selectOption('.reminder-dialog select >> nth=0', '2'); await p.selectOption('.reminder-dialog select >> nth=1', '4:00 PM')
+await p.click('.reminder-dialog .add-lead-submit'); await p.waitForTimeout(200)
+ok((await p.locator('.toast').innerText()).startsWith('Reminder set ·') && (await p.locator('.toast').innerText()).endsWith('at 4:00 PM'), 'toast confirms the reminder')
+await p.click('.lead-detail button:has-text("Timeline")')
+ok((await p.locator('.lead-timeline li p').first().innerText()).startsWith('Follow-up set: Call back ·'), 'reminder logged on the lead timeline')
+await nav('Follow-ups')
+ok(await p.locator('.followup-upcoming-head').count() === 1 && (await p.locator('.task:has-text("Call back")').innerText()).includes('4:00 PM'), 'Coming up lists the reminder with its day and time')
+ok(await p.locator('.task > time').count() === 9 && (await p.locator('.completion-ring strong').innerText()) === '0/8', 'today’s count is unchanged (reminder is for a later day)')
+// Add reminder (no lead yet): pick a buyer, today
+await p.click('.page-head ~ .followup-layout .btn:has-text("Add reminder")')
+ok(await p.locator('.reminder-dialog label:has-text("Buyer") select').count() === 1, 'Add reminder asks which buyer')
+await p.selectOption('.reminder-dialog label:has-text("Buyer") select', { label: (await p.locator('.reminder-dialog label:has-text("Buyer") option:has-text("Nisha")').innerText()) })
+await p.fill('.reminder-dialog input', 'Send school distances'); await p.selectOption('.reminder-dialog select >> nth=1', '0')
+await p.selectOption('.reminder-dialog select >> nth=2', '8:30 PM'); await p.click('.reminder-dialog .add-lead-submit'); await p.waitForTimeout(200)
+ok((await p.locator('.task').filter({ hasText: 'Send school distances' }).innerText()).includes('Nisha Kulkarni') && (await p.locator('.completion-ring strong').innerText()) === '0/9', 'a reminder for today joins today’s list (0/9)')
+const after = await p.locator('.followup-layout .card > .task > time').allInnerTexts()
+ok(after.indexOf('8:30 PM') === 8, 'today’s list stays in time order (8:30 PM last)')
+await p.screenshot({ path: `${SHOTS}/followups-reminders.png`, fullPage: true })
+// Phone: three buttons fit in the chat bar
+await p.setViewportSize({ width: 390, height: 844 }); await p.waitForTimeout(300)
+await p.click('.mobile-tab-bar button:has-text("Today")'); await p.click('.lead-row:has-text("Ananya")')
+const bar = await p.locator('.chat-actions button').evaluateAll((els) => els.map((el) => { const r = el.getBoundingClientRect(); return [r.left, r.right, r.height] }))
+ok(bar.length === 3 && bar.every(([l, r, h]) => l >= 0 && r <= 390 && h >= 44), 'phone: Share homes · Plan visit · Remind me fit, 44 px tall')
+ok(errs.length === 0, 'no console errors ' + errs.join(' | '))
+await b.close()

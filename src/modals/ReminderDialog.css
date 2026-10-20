@@ -1,0 +1,8 @@
+.reminder-presets { flex-wrap: wrap; overflow: visible; }
+.reminder-channel { display: flex; flex-direction: column; gap: var(--space-2); color: var(--ink-soft); font-size: var(--fs-body-sm); font-weight: 700; }
+.reminder-channel .segmented { align-self: flex-start; }
+
+@media (max-width: 760px) {
+  .reminder-channel .segmented { align-self: stretch; }
+  .reminder-channel .segmented button { flex: 1; padding: 0 var(--space-2); }
+}

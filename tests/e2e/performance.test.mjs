@@ -8,10 +8,14 @@ p.on('pageerror', e => errs.push(e.message)); p.on('console', m => m.type() === 
 await p.goto(BASE_URL); await p.evaluate(() => localStorage.clear()); await p.reload(); await p.waitForTimeout(800)
 const nav = (l) => p.click(`.sidebar-nav button:has-text("${l}")`)
 const viewAs = async (n) => { await p.click('.sidebar-user .account-menu-trigger'); await p.click(`.account-menu-popover button:has-text("${n}")`); await p.waitForTimeout(300) }
+// Team home: the daily summary sits on Today for Managers and the Owner
+const sum = await p.locator('.today-view .summary-item strong').allInnerTexts()
+ok(sum[0] === '4' && sum[2] === '4', `Today: daily summary live: 4 overdue (incl. 1 unassigned), 4 visits today (got ${sum.join(',')})`)
+ok(await p.locator('.today-view .day-focus').count() === 0, 'team home has no personal "Up next" visit card')
+await p.click('.today-view .summary-item:has-text("Overdue leads")'); ok(await p.locator('.escalations-view, h1:has-text("Escalations")').count() >= 1, 'Overdue leads tile opens Escalations')
 await nav('Performance')
 ok((await p.locator('h1').innerText()) === 'Performance & insights', 'owner: "Performance & insights"')
-const sum = await p.locator('.summary-item strong').allInnerTexts()
-ok(sum[0] === '4' && sum[2] === '4', `daily summary live: 4 overdue (incl. 1 unassigned), 4 visits today (got ${sum.join(',')})`)
+ok(await p.locator('.summary-item').count() === 0, 'daily summary is not repeated on Performance')
 ok(await p.locator('.reports-grid .bar-list li').count() === 15, 'leaderboard ranks all 15 salespeople')
 const vals = (await p.locator('.reports-grid .bar-list .bar-track b').allInnerTexts()).map(t => parseFloat(t.replace(/[^\d.]/g, '')))
 ok(vals.every((v, i) => i === 0 || vals[i - 1] >= v), 'ranked high → low by commission')

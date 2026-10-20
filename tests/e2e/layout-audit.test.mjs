@@ -32,11 +32,13 @@ for (const [tag, w, h] of [['desk', 1440, 900], ['tab', 900, 1000], ['mob', 390,
     await p.screenshot({ path: `${out}/${tag}-${name}.png` })
   }
   const nav = async (label) => {
+    // Phones show an open chat full screen: go Back to reach the tab bar.
+    const back = p.locator('.app.is-chat .chat-head button[aria-label="Back"]:visible')
+    if (await back.count()) await back.click()
     const l = p.locator(`.sidebar-nav button:has-text("${label}"):visible, .mobile-tab-bar button:has-text("${label}"):visible`).first()
     if (await l.count()) { await l.click(); return }
     await p.click('.mobile-tab-bar button:has-text("More")'); await p.click(`.more-sheet button:has-text("${label}")`)
   }
-  const L = (o) => tag === 'mob' ? o.m : o.d
   await audit('home')
   await p.locator('.lead-row:has-text("Gaurav")').click(); await audit('chat')
   await p.locator('.quick-replies button').first().click(); await p.locator('.send-button').click()
@@ -48,18 +50,19 @@ for (const [tag, w, h] of [['desk', 1440, 900], ['tab', 900, 1000], ['mob', 390,
   else await p.locator('.pipeline-stage.phone-visible .deal-advance, .deal-advance:visible').first().click()
   await audit('pipeline-moved')
   await nav('Properties'); await audit('properties')
-  await nav(L({ d: 'Follow-ups', m: 'Tasks' })); await p.locator('.task-check').first().click(); await audit('tasks')
+  await nav('Follow-ups'); await p.locator('.task-check').first().click(); await audit('tasks')
   await nav('Calls'); await audit('calls')
   await p.locator('.page-head .btn-primary').click(); await audit('picker')
   await p.locator('.contact-list button').first().click(); await p.waitForTimeout(2600); await audit('call')
   await p.locator('.end-call').click(); await audit('call-ended')
   await p.locator('.call-ended button').click(); await audit('calls-saved')
-  await nav(L({ d: 'Today', m: 'Inbox' }))
+  await nav('Today')
   await p.locator('.sidebar-add:visible, .mobile-add:visible').first().click(); await audit('modal')
   await p.fill('.add-lead input[placeholder="e.g. Priya Menon"]', 'Priya Menon'); await p.fill('.add-lead .phone-input input', '9876543210'); await p.fill('.add-lead input[placeholder="e.g. Koramangala"]', 'Koramangala')
   await p.locator('.add-lead-submit').click(); await audit('modal-saved')
   await p.locator('.add-lead .btn-primary').click(); await audit('home-after')
   await p.locator('.lead-row').first().click(); await audit('chat-newlead')
+  if (tag === 'mob') await p.locator('.chat-head button[aria-label="Back"]').click() // full-screen chat: the account menu is in the top bar
   await p.locator('.account-menu-trigger:visible').first().click(); await audit('menu')
   await p.locator('.account-menu-popover button:has-text("Reset demo data")').click(); await audit('reset-confirm'); await p.locator('.confirm-dialog .btn-danger').click(); await p.waitForTimeout(1500); await audit('after-reset')
   ok(errs.length === 0, `${tag}: no console errors ${errs.join(' | ')}`)

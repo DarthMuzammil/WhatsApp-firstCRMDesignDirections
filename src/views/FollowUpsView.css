@@ -14,6 +14,8 @@
 .task-check > span { width: 22px; height: 22px; border: 1.5px solid var(--border-strong); border-radius: var(--radius-xs); display: grid; place-items: center; color: var(--surface); background: var(--surface); }
 .task-done .task-check > span { border-color: var(--success); background: var(--success); }
 .task > time { width: 66px; flex: 0 0 auto; color: var(--ink-soft); font-size: var(--fs-caption); font-weight: 700; }
+.task > time small { display: block; color: var(--muted); font-size: var(--fs-meta); font-weight: 600; }
+.followup-upcoming-head { border-top: 1px solid var(--border); background: var(--surface-subtle); }
 .task-copy { min-width: 0; flex: 1; padding: 0; border: 0; display: flex; flex-direction: column; gap: var(--space-1); text-align: left; background: transparent; }
 .task-copy strong { font-size: var(--fs-body); }
 .task-copy span { overflow: hidden; color: var(--muted); font-size: var(--fs-caption); white-space: nowrap; text-overflow: ellipsis; }

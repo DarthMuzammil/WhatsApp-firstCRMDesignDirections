@@ -9,4 +9,8 @@
 @media (max-width: 760px) {
   .app { display: block; padding: 60px 0 calc(68px + env(safe-area-inset-bottom)); }
   .app-main { height: auto; overflow: visible; padding: var(--space-4); }
+  /* An open chat takes the whole screen. */
+  .app.is-chat { padding: 0; }
+  .app.is-chat .mobile-top-bar, .app.is-chat .mobile-tab-bar { display: none; }
+  .app.is-chat .app-main { padding: 0; }
 }

@@ -7,7 +7,7 @@ import { Avatar } from './Avatar'
 import { Dialog } from './Dialog'
 import { Icon } from './Icon'
 import { NotificationBell } from './NotificationBell'
-import { PHONE_TAB_VIEWS, navItemsFor, type NavItem, type View } from './navigation'
+import { navItemsFor, phoneTabViews, type NavItem, type View } from './navigation'
 import { APP_NAME, BROKERAGE } from '../data/brand'
 import './AppNavigation.css'
 
@@ -107,8 +107,10 @@ export function MobileTopBar({ store, onNavigate, onAddLead, onSimulateLead, onS
 export function MobileTabBar({ store, view, onNavigate }: NavProps) {
   const [moreOpen, setMoreOpen] = useState(false)
   const items = navItemsFor(store.viewerCan)
-  const tabs = items.filter((item) => PHONE_TAB_VIEWS.includes(item.view))
-  const moreItems = items.filter((item) => !PHONE_TAB_VIEWS.includes(item.view))
+  const tabViews = phoneTabViews(items)
+  // Tabs in preference order (Today, Visits, Pipeline, Follow-ups, Calls), then More for the rest.
+  const tabs = tabViews.map((tabView) => items.find((item) => item.view === tabView)!)
+  const moreItems = items.filter((item) => !tabViews.includes(item.view))
   const moreActive = moreItems.some((item) => item.view === view)
   const moreHasAlert = moreItems.some((item) => badgeFor(item, store)?.tone === 'danger')
 
@@ -119,7 +121,7 @@ export function MobileTabBar({ store, view, onNavigate }: NavProps) {
         return (
           <button key={item.view} className={item.view === view ? 'active' : ''} aria-current={item.view === view ? 'page' : undefined} onClick={() => onNavigate(item.view)}>
             <span className="tab-icon"><Icon name={item.icon} />{badge && item.view === 'today' && <b className="count-badge">{badge.count}</b>}</span>
-            <span>{item.shortLabel}</span>
+            <span>{item.label}</span>
           </button>
         )
       })}

@@ -14,7 +14,7 @@ ok(await rows() === 12, `owner sees all 12 leads (got ${await rows()})`)
 ok((await p.locator('h1').innerText()) === 'Your team today', 'owner title is "Your team today"')
 ok(await p.locator('.sidebar-group-label').count() === 1 && await p.locator('.sidebar-nav button:has-text("Settings")').count() === 1, 'owner sees Manage group incl. Settings')
 ok((await p.locator('.sidebar-nav button:has-text("Escalations") .count-badge').innerText()) === '5', 'escalations badge = 5 (2 unassigned + 3 overdue)')
-ok(await p.locator('.lead-row:has-text("Farhan") .lead-flag.warning').count() === 1, 'unassigned flag on Farhan')
+ok(await p.locator('.lead-row:has-text("Farhan") .lead-unassigned').count() === 1, 'Unassigned shown on Farhan')
 ok(await p.locator('.lead-row:has-text("Deepak") .lead-flag.danger').count() === 1, 'overdue flag on Deepak')
 ok((await p.locator('.lead-row:has-text("Ananya") .lead-owner').innerText()) === 'Priya N.', 'owner label "Priya N." on Ananya')
 // Escalations: assign Farhan
@@ -24,6 +24,8 @@ ok((await p.locator('.sidebar-nav button:has-text("Escalations") .count-badge').
 // Lead details: owner card + history + full phone for owner
 await p.click('.sidebar-nav button:has-text("Today")'); await p.click('.lead-row:has-text("Farhan")')
 ok((await p.locator('.lead-detail .lead-owner-card strong').innerText()) === 'Aditya Rao', 'Farhan now owned by Aditya')
+ok(await p.locator('.lead-detail .owner-history').count() === 0 && (await p.locator('.lead-detail .owner-history-toggle').innerText()).includes('Ownership history · 1'), 'ownership history folded: "Ownership history · 1"')
+await p.click('.lead-detail .owner-history-toggle')
 ok(await p.locator('.lead-detail .owner-history li').count() === 1, 'assignment history shows 1 entry')
 ok((await p.locator('.lead-detail .buyer-brief div:has-text("Phone") strong').innerText()).includes('97390 22814'), 'owner sees full phone number')
 // Team: deactivate Aditya -> leads move to Divya
@@ -46,7 +48,12 @@ ok(await p.locator('.lead-detail .lead-owner-card .btn').count() === 0, 'sales c
 // Pre-sales Kiran: hand off Sana
 await viewAs('Kiran Patel'); await p.waitForTimeout(300)
 ok(await rows() === 2, `pre-sales sees own 2 leads (got ${await rows()})`)
-await p.click('.lead-row:has-text("Sana")'); await p.click('.lead-detail .lead-owner-card .btn:has-text("Hand to Sales")')
+ok(await p.locator('.sidebar-nav button:has-text("Visits")').count() === 0, 'pre-sales: no Visits screen (they don’t run visits)')
+ok((await p.locator('.day-focus h2').innerText()) === 'Call Pooja' && await p.locator('.day-focus .btn:has-text("Call now")').count() === 1, 'pre-sales Today: up next is the buyer waiting longest ("Call Pooja")')
+ok((await p.locator('.day-stat.cool').innerText()).includes('2 to qualify'), 'pre-sales Today: "Your queue" counts leads to qualify')
+await p.click('.lead-row:has-text("Sana")')
+ok((await p.locator('.chat-actions button').allInnerTexts()).join('|') === 'Share homes|Hand to Sales|Remind me', 'pre-sales chat bar: Share homes · Hand to Sales · Remind me')
+await p.click('.chat-actions button:has-text("Hand to Sales")')
 await p.click('.assign-list button:has-text("Sneha Pillai")'); await p.click('.assign-confirm'); await p.waitForTimeout(400)
 ok(await p.locator('.chat-layout').count() === 0 && await rows() === 1, 'after hand-off Sana leaves Kiran\'s view and chat closes')
 // Owner toggles separate pre-sales off -> Kiran has no hand-off button
@@ -54,6 +61,7 @@ await viewAs('Arjun Khanna'); await nav('Settings'); await p.click('button.setti
 ok(await p.locator('button.setting-row:has-text("Separate pre-sales")').getAttribute('aria-checked') === 'false', 'separate pre-sales switched off')
 await viewAs('Kiran Patel'); await p.click('.lead-row:has-text("Pooja")')
 ok(await p.locator('.lead-owner-card .btn').count() === 0, 'no Hand to Sales when pre-sales is off')
+ok(await p.locator('.chat-actions button:has-text("Hand to Sales")').count() === 0, 'no Hand to Sales in the chat bar either')
 // Switching role while on Settings falls back
 await viewAs('Arjun Khanna'); await nav('Settings'); await viewAs('Priya Nair')
 ok(await p.locator('.today-view').count() === 1, 'non-owner on Settings falls back to Today')
@@ -72,7 +80,7 @@ const items = await p.locator('.more-sheet button').allInnerTexts()
 ok(items.length === 9, `phone More sheet has Properties, Calls, Attendance, Performance, Escalations, Lead sources, Team, Settings, Audit log (${items.map(t => t.split('\n')[0]).join(', ')})`)
 await p.screenshot({ path: `${SHOTS}/m1-mob-more.png` })
 await p.click('.more-sheet button:has-text("Escalations")'); await p.waitForTimeout(300); await p.screenshot({ path: `${SHOTS}/m1-mob-escalations.png`, fullPage: true })
-await p.click('.mobile-tab-bar button:has-text("Inbox")'); await p.click('.lead-row:has-text("Ananya")'); await p.click('.chat-details-button'); await p.waitForTimeout(600)
+await p.click('.mobile-tab-bar button:has-text("Today")'); await p.click('.lead-row:has-text("Ananya")'); await p.click('.chat-details-button'); await p.waitForTimeout(600)
 await p.screenshot({ path: `${SHOTS}/m1-mob-details.png` })
 console.log('errors:', errs.length ? errs : 'none')
 await b.close()

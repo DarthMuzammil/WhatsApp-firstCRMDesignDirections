@@ -36,7 +36,7 @@ ok((await p.locator('.leave-requests .request-row:has-text("Priya Nair")').inner
 await nav('Today'); ok(await p.locator('.lead-row:has-text("Ananya") .lead-owner').innerText() === 'Priya N.', 'future leave: Ananya stays with Priya until it starts')
 await nav('Attendance'); await tab('Requests'); await p.click('.leave-requests .request-row:has-text("Priya Nair") .btn:has-text("Start cover now")'); await p.waitForTimeout(300)
 await nav('Today'); ok(await p.locator('.lead-row:has-text("Ananya") .lead-owner').innerText() === 'Divya I.', 'Start cover now (demo): Ananya moves to Divya')
-await p.click('.lead-row:has-text("Ananya")')
+await p.click('.lead-row:has-text("Ananya")'); await p.click('.lead-detail .owner-history-toggle')
 ok((await p.locator('.lead-detail .owner-history li').first().innerText()).includes('Leave cover'), 'ownership history says "Leave cover"')
 await nav('Visits'); ok((await p.locator('.visit-card:has-text("Ananya") .visit-agent').innerText()).includes('Priya'), 'today’s visit (outside leave dates) stays with Priya')
 // Return leads

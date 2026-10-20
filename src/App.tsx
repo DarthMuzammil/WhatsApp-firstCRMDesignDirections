@@ -84,21 +84,22 @@ export default function App() {
     setCallingLeadId(lead.id)
   }
 
+  // Phones show an open chat full screen, like WhatsApp: no top bar or tab bar (Back returns).
   return (
-    <div className="app">
+    <div className={`app ${view === 'chat' ? 'is-chat' : ''}`}>
       <Sidebar store={store} view={navView} onNavigate={navigate} onAddLead={() => setAddLeadOpen(true)} onSimulateLead={simulateLead} onStartDemo={() => setDemoOpen(true)} onOpenLead={showLead} />
       <MobileTopBar store={store} onNavigate={navigate} onAddLead={() => setAddLeadOpen(true)} onSimulateLead={simulateLead} onStartDemo={() => setDemoOpen(true)} onOpenLead={showLead} />
 
       <main className="app-main" ref={mainRef}>
-        {view === 'today' && <TodayView store={store} onOpenLead={showLead} onNavigate={navigate} notify={notify} />}
+        {view === 'today' && <TodayView store={store} onOpenLead={showLead} onNavigate={navigate} onCall={startCall} notify={notify} />}
         {view === 'chat' && openLead && <ChatView key={openLead.id} lead={openLead} store={store} onBack={() => setView(chatOrigin)} onCall={startCall} onNavigate={navigate} notify={notify} />}
         {view === 'visits' && <VisitsView store={store} onOpenLead={showLead} notify={notify} />}
         {view === 'pipeline' && <PipelineView store={store} onOpenLead={showLead} notify={notify} />}
         {view === 'properties' && <PropertiesView store={store} notify={notify} />}
-        {view === 'tasks' && <FollowUpsView store={store} onOpenLead={showLead} onCall={startCall} />}
+        {view === 'tasks' && <FollowUpsView store={store} onOpenLead={showLead} onCall={startCall} notify={notify} />}
         {view === 'calls' && <CallsView store={store} onOpenLead={showLead} onNewCall={() => setCallPickerOpen(true)} />}
         {view === 'attendance' && <AttendanceView store={store} notify={notify} />}
-        {view === 'reports' && <ReportsView store={store} onOpenLead={showLead} onNavigate={navigate} />}
+        {view === 'reports' && <ReportsView store={store} onOpenLead={showLead} />}
         {view === 'escalations' && <EscalationsView store={store} onOpenLead={showLead} notify={notify} />}
         {view === 'sources' && <LeadSourcesView store={store} onSimulate={simulateLead} />}
         {view === 'team' && <TeamView store={store} notify={notify} />}
