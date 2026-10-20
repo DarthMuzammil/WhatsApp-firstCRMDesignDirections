@@ -1,6 +1,6 @@
 # Daira: Product Spec (living document)
 
-> **What this is:** the single source of truth for what the prototype does *right now*: screens, workflows and rules. It's not a plan. Plans and ideas go in the Backlog section at the end.
+> **What this is:** the single source of truth for what the prototype does *right now* (§2–§7) and for the approved plan (§8). §8 is a plan, not a description of the app: when a planned item ships, move it into §2–§7 and mark it built.
 > **Who updates it:** whoever changes the app (person or AI) updates this file in the same commit as any feature, workflow, data or UI change (see `AGENTS.md`). If the code and this doc disagree, that's a bug in one of them.
 >
 > **Status labels:** ✅ Works (interactive, state changes) · 🎭 Simulated (looks real, but scripted or fixed) · 🧱 Static (hard-coded display only)
@@ -8,9 +8,11 @@
 ---
 
 ## 1. Product in one paragraph
-Daira is a WhatsApp-first CRM for independent real estate brokers and small brokerages (2–5 people) in India, starting with Bengaluru. The broker works from their phone: leads arrive, conversations happen on WhatsApp, matching homes get shared, visits are planned and follow-ups are kept. All of it happens in one place instead of across WhatsApp, Excel and a paper diary. This repo is a **UI-only prototype** for customer demos. There is no backend; data is seeded in code and changes are saved in the browser's localStorage.
+Daira is a WhatsApp-first CRM for **real estate brokerages of 20–25 people** in India, starting with Bengaluru: an owner, team managers, field agents and (in some companies) separate telecallers. Agents work from their phones: leads arrive, conversations happen on WhatsApp, matching homes get shared, visits are planned and verified, and follow-ups are kept. Managers and owners see the team: who is handling which lead, who turned up, who is performing. All of it happens in one place instead of across WhatsApp, Excel and a paper diary. This repo is a **UI-only prototype** for customer demos. There is no backend; data is seeded in code, changes are saved in the browser's localStorage, and anything a backend would do (portal sync, WhatsApp delivery, calling, GPS, AI) is **simulated with scripted data**.
 
-**Persona in the prototype:** Arjun Khanna, independent broker, Indiranagar.
+**Persona in the prototype today:** Arjun Khanna, broker, Indiranagar (single-user view). §8 M1 adds the team, roles and a "View as" role switcher.
+
+> **Positioning note:** the research PRD targeted solo brokers and 2–5 person shops. At 20–25 seats Daira competes directly with Leadrat and LeadSquared, so per-seat pricing needs revisiting. The edge remains: phone-first for agents in the field, WhatsApp-native, verified visits, and leave-aware lead handover.
 
 **Differentiators the product must make obvious** (from the research PRD):
 1. Speed to lead: instant WhatsApp reply and qualification for portal leads.
@@ -19,7 +21,7 @@ Daira is a WhatsApp-first CRM for independent real estate brokers and small brok
 4. A "Today" view of the broker's day: visits, follow-ups, cold leads.
 5. Mobile-first and offline-tolerant, with simple INR pricing.
 
-> Differentiators 1, 2 and 5 are **not in the UI yet**, and 3 and 4 are partial. See the Backlog.
+> Differentiators 1, 2 and 5 are **not in the UI yet**, and 3 and 4 are partial. See §8 (Planned modules).
 
 ---
 
@@ -153,20 +155,154 @@ See `AGENTS.md` for conventions. Each component has a matching `.css` file next 
 - The "Visits planned · Next 7 days" caption is not computed.
 - Photos need an internet connection.
 
-## 8. Backlog (not built)
-Ordered by demo impact. Move items into §3 when they ship.
-1. **Demo mode:** a "Trigger new lead" button that simulates a 99acres lead → automatic WhatsApp reply in seconds → qualification chat that fills the lead card live.
-2. **Shared/duplicate lead badge:** "Also sent to ~6 brokers · call now", and merging leads with the same phone number.
-3. **Rule-based matching:** match BHK / locality / budget with reasons, select several homes, preview the WhatsApp message, share, then "Viewed by …".
-4. **Leads going cold** on Today (no contact in more than 3 days).
-5. Lead source capture (portals, Facebook ads) and a sources view.
-6. Offline/sync indicator, WhatsApp template and consent (DPDP) screens, OTP signup and onboarding, plan/pricing screen.
-7. Pipeline: Won/Lost stages, move back, drag-and-drop on desktop.
+## 8. Planned modules (approved, not built)
+Everything here is **UI only**: each item is a screen or flow driven by seed data and scripted events. Each module notes what it simulates. When a module ships, move it into §2–§7 and add a changelog line.
+
+### 8.0 Ground rules
+- **Simulate, don't integrate.** Portal leads, WhatsApp delivery, AI output, call bridging and GPS readings are scripted. Screens must look real but never claim a live integration exists.
+- **Location in a web app: what we can and can't promise** (write the UI and sales copy within these limits):
+  - Location is read **once, at the moment the user taps** "Left office", "Check in" or "Check out". There is **no background tracking, no live map and no route history**; a web page cannot track a phone that isn't showing it.
+  - The browser asks for permission once. Phone accuracy is typically 10–50 m; laptops are unreliable, so **check-ins are phone-only**.
+  - **Check-in rule:** refused if the agent is more than **200 m** (owner can change this) from the client/property address or office. Message: "You're 1.4 km from The Courtyard House. Move closer to check in."
+  - Fake-GPS apps can't be fully blocked. Copy says **"verified location"**, never "proof".
+  - **Demo:** a hidden "Pretend location" control (At office / Near client / Far away) shows both approved and refused paths.
+- **Phone masking everywhere:** agents never see a buyer's or property owner's full number (`+91 98XXX XX018`). Calls go through the app (§8.15), and WhatsApp goes through the shared business number in the app.
+
+### 8.1 M1 · Team, roles and permissions (foundation)
+- **Roles are permission bundles, and one person can hold several:**
+  - **Owner:** everything, including settings, billing, audit log and exports.
+  - **Manager:** their team's leads, people, attendance, leave approvals and reports; reassigns leads; sees full phone numbers.
+  - **Sales (field agent):** only their own leads, visits and tasks; masked numbers.
+  - **Pre-sales (telecaller):** the qualification queue; hands qualified leads to Sales; masked numbers.
+- **Company setting "Separate pre-sales team":**
+  - **On:** new leads go to Pre-sales first, then to Sales.
+  - **Off:** Sales and Pre-sales are the same people, and the hand-off step is hidden.
+- **Permissions matrix** screen (Owner): view / edit / reassign / export / delete / see full numbers, per role.
+- **Team** screen: name, roles, team, status (Active / On leave / Deactivated), invite, deactivate. Deactivating someone forces reassignment of their leads first.
+- **Demo "View as"** switcher in the account menu: Owner / Manager / Sales / Pre-sales. Nav, data visibility and number masking change to match.
+- **Seed data:** about 22 people. Owner Arjun Khanna; 3 managers (Indiranagar, Whitefield, HSR teams); about 15 Sales; 3 Pre-sales.
+
+### 8.2 M2 · Lead assignment and routing
+- **Owner** on every lead; **Reassign** with a reason; history on the lead timeline ("Reassigned from Rahul to Priya by Neha · Leave cover").
+- **Routing rules** screen (simulated): round-robin, by locality, by source, Pre-sales first.
+- **Response-time alert:** untouched for more than 15 min → red "Overdue" badge, and the lead appears in the manager's **Escalations** list.
+- **Unassigned queue** for managers.
+
+### 8.3 M3 · Lead arrival
+- **Lead sources** screen: 99acres, MagicBricks, Housing, Facebook ads, WhatsApp, Walk-in, Referral. Each shows "Connected" status 🎭, leads this week, average response time and **cost per lead** (entered manually).
+- **Incoming-lead banner** that drops a new lead into the inbox and assigns it according to routing (🎭).
+- **Source filter** in the inbox.
+
+### 8.4 M4 · Chat and auto-reply
+- An **"Automatic"** tag on the auto-reply sent seconds after the enquiry.
+- **Template picker** sheet ("Welcome", "Share shortlist", "Visit reminder", "Follow-up") with fill-in fields.
+- **Qualification flow:** questions and answers in the thread; the buyer brief fills in beside it as answers arrive.
+- **Auto-reply settings** (Owner/Manager): on/off, message, delay, working hours.
+- **24-hour window** hint: "Outside 24h · use a template".
+
+### 8.5 M5 · Lead record
+- **Editable profile** with structured fields: BHK, budget min–max, localities, property type, move-in date, purpose (live-in / investment).
+- **Notes** and **tags**.
+- **One activity timeline:** enquiry → auto-reply → assignment → calls → visits (with check-in status) → stage changes → reassignments.
+- **Duplicate alert** when adding an existing phone number: "Already in your inbox as Ananya Rao (owner: Priya) · Open / Merge".
+- **Shared-lead badge:** "Also sent to ~6 brokers · call now" (🎭).
+
+### 8.6 M6 · Visits and field check-ins
+- **Schedule visit:** date/time picker, property, agent (defaults to the lead owner), and a **visit card** posted in the chat (🎭 sent).
+- **Agent's visit flow (phone).** Each step takes one location reading, under the §8.0 limits:
+  1. **Left office:** recorded with time and place.
+  2. **Check in:** allowed only within 200 m of the visit address; otherwise refused with the distance.
+  3. **Check out:** then a required **visit outcome**: liked / not interested / wants another visit, feedback, next step.
+- **Manager visit log:** each visit is Planned / Left office / ✅ Verified check-in / ⚠️ Check-in refused (with distance and attempts) / No-show, with timestamps.
+- **Visit reminder** preview for the buyer (🎭).
+
+### 8.7 M7 · Attendance
+- **Office check-in/out:** allowed only within 200 m of a registered office.
+- **Field day:** an agent who starts the day in the field taps "Start field day". They count as present from their first verified client check-in.
+- **Attendance register** (Manager/Owner): day and month grid with Present / Late / Field / Absent / On leave, and late marks counted against a grace period.
+- **Correction request** ("Forgot to check in") → manager approves or rejects; the history is kept.
+- **Settings:** offices with address and radius, working hours, grace period.
+
+### 8.8 M8 · Leave management
+- **Apply:** type (casual / sick / earned), dates, reason → shown to the manager.
+- **Approve with cover:** before approving, the manager picks a **cover agent**. For the leave dates, the absent agent's leads, visits and tasks move to the cover (with a timeline note), and **return automatically** afterwards.
+- **Team calendar** showing leave, holidays and visits; **leave balances**; company **holiday list**.
+- Out of scope: payroll, salary, statutory HR.
+
+### 8.9 M9 · Performance and reports
+- **Leaderboard** (Manager/Owner; Sales sees their own rank only):
+  - deals closed, commission earned
+  - verified visits
+  - median first-response time
+  - follow-ups done on time
+  - lead → visit and visit → deal conversion
+
+  Filter by month or team.
+- **Agent scorecard:** monthly targets vs. actual (targets set by the manager), personal funnel, attendance and check-in record, trend vs. last month.
+- **Owner insights:**
+  - funnel and **cost per deal** by source
+  - response-time distribution
+  - lead ageing (more than 7 days in one stage)
+  - lost-deal reasons
+  - most shared and most visited properties
+  - team-vs-team comparison
+  - weighted pipeline forecast
+- **Manager daily summary** card: "3 overdue leads · 2 not checked in · 5 visits today · 1 leave request".
+
+### 8.10 M10 · Deal closing
+- **Won/Lost** stages (lost needs a reason); **move back** a stage; desktop drag-and-drop.
+- **Offer tracker:** asked / offered / agreed price, token amount, date.
+- **Document checklist:** KYC, token receipt, agreement.
+- **Commission split** between people (e.g. Pre-sales 10% / Sales 90%), feeding the leaderboard.
+
+### 8.11 M11 · Inventory
+- **Add/edit property**, availability (Available / On hold / Sold), listing agent, **owner contact** (masked from Sales).
+- **Matches for this lead** with reasons ("In budget · 3 BHK · Indiranagar"); pick several → **WhatsApp preview** → sent (🎭) → "Viewed" (🎭).
+
+### 8.12 M12 · Notifications and audit
+- **Notifications centre:** lead assigned, overdue, check-in refused, leave request or decision, reassignment.
+- **Audit log** (Owner): exports, reassignments, full-number views, permission changes, deactivations.
+
+### 8.13 M13 · AI assist (targeted, every output reviewed by a human)
+- **Qualification extraction:** fills the buyer brief from the WhatsApp conversation. Fields are marked "Suggested" until confirmed.
+- **Reply drafts** in English, Hindi or Kannada (including mixed); the agent edits and sends, and **nothing is sent automatically**.
+- **Call summary:** after a recorded call, shows a summary, next step and suggested brief updates.
+- **Lead score with reasons:** "Hot: budget confirmed, visit requested, replied in 2 min".
+- **Manager weekly digest:** a plain-language summary of the reports ("Whitefield team response time slipped 40%; 6 leads stuck in Qualified").
+- **Not planned:** a "chat with your CRM" assistant, AI auto-sending, AI-written listing descriptions.
+- All AI output is 🎭 (fixed demo text) in the prototype.
+
+### 8.14 Navigation by role
+- **Sales (phone first):** Today · Leads · Visits · Properties · More (calls, attendance, leave, my performance).
+- **Pre-sales:** Queue · Leads · Calls · More.
+- **Manager:** adds Team, Attendance & leave, Reports, Escalations.
+- **Owner:** adds Settings (roles, offices, sources, templates, routing, auto-reply) and the Audit log.
+- The desktop sidebar groups items under **Work** and **Manage**.
+
+### 8.15 Backend notes for later (not part of the UI build)
+- **Masked calling (India).** Click-to-call through a cloud-telephony provider such as Exotel, Knowlarity, MyOperator or Ozonetel. The provider rings the agent's phone, then connects the buyer, who sees the company's virtual number. The agent never sees the buyer's number.
+  - **KYC** needs a registered business (company PAN, GST / MSME / incorporation certificate, address proof, authorised signatory); some providers accept proprietorships with Udyam/shop licence.
+  - **Activation** is typically 1–3 business days after KYC (Exotel asks customers to escalate after 24 working hours).
+  - In-browser (VoIP) calling needs extra paperwork and per-city KYC, so start with the phone bridge.
+  - Promotional cold calls must use the 140 series; recording needs disclosure under the DPDP Act. Confirm with the provider and a lawyer.
+  - **Decision for later:** Daira holds one telephony account for all customers (Daira does their KYC) or each brokerage connects its own account (simpler to start).
+- **WhatsApp:** WhatsApp Business API through a provider; Meta business verification; templates must be approved before use.
+- **AI:** transcription and LLM costs are per call or message; buyer data falls under the DPDP Act.
+
+### 8.16 Build order (UI)
+1. M1 + M2: roles, team, "View as", owner and reassignment.
+2. M5 + M3: lead record, lead arrival.
+3. M6 + M7 + M8: visits with check-in, attendance, leave with cover.
+4. M9: reports and leaderboard (needs the realistic team data from steps 1–3).
+5. M4, M13: chat automation and AI assist.
+6. M10, M11, M12: closing, inventory, notifications and audit.
+7. **Demo mode:** a scripted run across all of the above (new 99acres lead → auto-reply → AI-filled brief → assigned → visit with verified check-in → won → leaderboard moves).
 
 ---
 
 ## 9. Changelog
 Newest first. One line per change: date, what changed, which section was updated.
+- **2026-10-20:** Product reframed for brokerages of 20–25 people (§1). Backlog replaced by the approved plan (§8): roles with optional separate pre-sales, phone masking, routing, lead arrival, chat automation, lead record, verified visit check-ins within web-app limits (200 m, no live tracking), attendance, leave with cover agent, performance reports, deal closing, inventory, notifications and audit, targeted AI assist, backend notes on Indian calling providers, and build order.
 - **2026-10-20:** Design-system pass: all colours, spacing, radius, shadows and font sizes now come from tokens in `src/index.css` (161 scattered colours → one named set); text colours darkened to pass WCAG AA; shared `Dialog`, `HeatBadge`, `LeadActions`, `.chip`, `.count-badge`, `.status-dot`, `.icon-badge` replace duplicates. UX fixes: lead details sheet on phones, Back returns to the originating screen, reset asks for confirmation, "Up next" follows booked visits, dialog focus handling, no sticky hover on touch. Updated §2, §3.1, §3.2, §3.6, §5, §6, §7.
 - **2026-10-20:** Spec rewritten to match commit `eb13612` (UI polish and module split): readable type scale, phone pipeline tabs, per-lead chat details, live numbers, saved messages, reset demo data, new code map. All sections updated.
 - **2026-10-20:** Spec created from the Figma Make export (commit `0e43a34`).
