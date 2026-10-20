@@ -38,7 +38,7 @@ export const SEED_VISITS: Visit[] = [
   { id: 1, leadId: 1, propertyId: 1, agentId: 'm-priya', day: 0, time: '11:30 AM', status: 'planned', steps: [] },
   { id: 2, leadId: 5, propertyId: 2, agentId: 'm-ritu', day: 0, time: '4:00 PM', status: 'planned', steps: [] },
   {
-    id: 3, leadId: 8, propertyId: 2, agentId: 'm-manoj', day: 0, time: '9:30 AM', status: 'completed',
+    id: 3, leadId: 8, propertyId: 4, agentId: 'm-manoj', day: 0, time: '9:30 AM', status: 'completed',
     steps: [
       { kind: 'left-office', at: '9:02 AM', distanceM: 35, accuracyM: 18 },
       { kind: 'check-in', at: '9:34 AM', distanceM: 45, accuracyM: 12 },

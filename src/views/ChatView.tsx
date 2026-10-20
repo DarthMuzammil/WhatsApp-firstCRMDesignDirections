@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { STAGES, STAGE_SHORT_LABELS, firstName, relativeMinutes, type Lead } from '../data/demo'
-import { DOC_LABELS, type DealDocs } from '../data/deals'
+import { DOC_LABELS, OFFER_BY_LABELS, staleOfferDays, type DealDocs } from '../data/deals'
 import { roleSummary, shortName } from '../data/team'
 import { Avatar, LeadAvatar } from '../components/Avatar'
 import { Dialog } from '../components/Dialog'
@@ -11,6 +11,7 @@ import { LeadNotes } from '../components/LeadNotes'
 import { LeadTags } from '../components/LeadTags'
 import { LeadTimeline } from '../components/LeadTimeline'
 import { PropertyCard } from '../components/PropertyCard'
+import { dayLabel, onDayLabel } from '../lib/format'
 import { areaLabel, bedroomsLabel, priceLabel } from '../data/inventory'
 import type { View } from '../components/navigation'
 import { AssignDialog } from '../modals/AssignDialog'
@@ -418,6 +419,7 @@ function AiSuggestions({ lead, store }: { lead: Lead; store: DemoStore }) {
 /** Offer tracker, documents and commission split for a lead in negotiation or closed (spec §8.10). */
 function DealPanel({ lead, store, onDeal }: { lead: Lead; store: DemoStore; onDeal: (mode: 'edit' | 'win' | 'lost') => void }) {
   const deal = store.dealFor(lead.id)
+  const staleDays = staleOfferDays(deal)
   const crore = (value?: number) => (value ? `₹${value} Cr` : '—')
   return (
     <div className="deal-panel">
@@ -428,9 +430,17 @@ function DealPanel({ lead, store, onDeal }: { lead: Lead; store: DemoStore; onDe
       </header>
       {deal ? <>
         <div><span>Asking</span><strong>{crore(deal.askedCr)}</strong></div>
-        <div><span>Buyer’s offer</span><strong>{crore(deal.offeredCr)}</strong></div>
+        {deal.offers.length > 0 && (
+          <ol className="deal-offers" aria-label="Offer history">
+            {[...deal.offers].reverse().map((offer) => (
+              <li key={offer.id}><span className={`offer-dot ${offer.by}`} />{OFFER_BY_LABELS[offer.by]} <strong>₹{offer.amountCr} Cr</strong><small>{dayLabel(offer.day)}</small></li>
+            ))}
+          </ol>
+        )}
+        {!lead.closed && staleDays !== null && <p className="deal-stale"><Icon name="clock" size={14} /> No new offer in {staleDays} days</p>}
         <div><span>Agreed</span><strong>{crore(deal.agreedCr)}</strong></div>
-        <div><span>Token</span><strong>{deal.tokenL ? `₹${deal.tokenL} L` : '—'}</strong></div>
+        <div><span>Token</span><strong>{deal.tokenL ? `₹${deal.tokenL} L${deal.tokenDay !== undefined ? ` · paid ${onDayLabel(deal.tokenDay)}` : ''}` : '—'}</strong></div>
+        {deal.agreementDay !== undefined && <div><span>Agreement by</span><strong>{dayLabel(deal.agreementDay)}</strong></div>}
         <div><span>Commission split</span><strong>{deal.split.map((share) => `${shortName(store.findMember(share.memberId)?.name ?? '')} ${share.pct}%`).join(' · ')}</strong></div>
         <ul className="deal-docs" aria-label="Documents">
           {(Object.keys(DOC_LABELS) as (keyof DealDocs)[]).map((doc) => (

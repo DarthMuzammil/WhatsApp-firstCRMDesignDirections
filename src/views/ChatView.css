@@ -58,6 +58,14 @@
 .deal-panel > div { padding: var(--space-2) 0; border-top: 1px solid var(--border-soft); display: flex; justify-content: space-between; gap: var(--space-3); font-size: var(--fs-caption); }
 .deal-panel > div span { color: var(--muted); }
 .deal-panel > div strong { text-align: right; }
+.deal-panel .deal-offers { margin: 0; padding: var(--space-2) 0; border-top: 1px solid var(--border-soft); display: flex; flex-direction: column; gap: var(--space-2); list-style: none; }
+.deal-offers li { display: flex; align-items: center; gap: var(--space-2); color: var(--ink-soft); font-size: var(--fs-caption); }
+.deal-offers strong { color: var(--ink); }
+.deal-offers small { margin-left: auto; color: var(--muted); font-size: var(--fs-caption); white-space: nowrap; }
+.offer-dot { width: 8px; height: 8px; flex: 0 0 auto; border-radius: 50%; }
+.offer-dot.buyer { background: var(--primary); }
+.offer-dot.owner { background: var(--warning-ink); }
+.deal-stale { margin-bottom: var(--space-2); padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); display: flex; align-items: center; gap: var(--space-2); color: var(--warning-ink); background: var(--warning-soft); font-size: var(--fs-caption); font-weight: 700; }
 .deal-status { padding: var(--space-half) var(--space-2); border-radius: var(--radius-pill); font-size: var(--fs-meta); font-weight: 800; }
 .deal-status.won { color: var(--success-ink); background: var(--success-soft); }
 .deal-status.lost { color: var(--ink-soft); background: var(--surface-sunken); }

@@ -4,7 +4,8 @@ import { shortName } from '../data/team'
 import { LeadAvatar } from '../components/Avatar'
 import { HeatBadge } from '../components/HeatBadge'
 import { Icon } from '../components/Icon'
-import { formatCrore, formatLakhFromCrore } from '../lib/format'
+import { latestOffer, staleOfferDays } from '../data/deals'
+import { dayLabel, formatCrore, formatLakhFromCrore } from '../lib/format'
 import { DealDialog, LostDialog } from '../modals/DealDialog'
 import type { DemoStore } from '../state/useDemoStore'
 import './PipelineView.css'
@@ -89,6 +90,8 @@ export function PipelineView({ store, onOpenLead, notify }: { store: DemoStore; 
               <div className="pipeline-cards">
                 {columnLeads.map((lead) => {
                   const deal = store.dealFor(lead.id)
+                  const offer = latestOffer(deal, 'buyer')
+                  const staleDays = staleOfferDays(deal)
                   return (
                     <article
                       key={lead.id}
@@ -107,7 +110,8 @@ export function PipelineView({ store, onOpenLead, notify }: { store: DemoStore; 
                           {lead.closed.result === 'won' ? `Won${deal?.agreedCr ? ` at ₹${deal.agreedCr} Cr` : ''}` : `Lost · ${lead.closed.reason}`}
                         </p>
                       ) : <>
-                        <div className="deal-budget"><span>{deal?.offeredCr ? 'Offer' : 'Budget'}</span><strong>{deal?.offeredCr ? `₹${deal.offeredCr} Cr` : lead.budget}</strong></div>
+                        <div className="deal-budget"><span>{offer ? `Offer · ${dayLabel(offer.day)}` : 'Budget'}</span><strong>{offer ? `₹${offer.amountCr} Cr` : lead.budget}</strong></div>
+                        {staleDays !== null && <span className="lead-flag warning deal-stale-flag">No new offer in {staleDays} days</span>}
                         <p className="deal-message"><Icon name="whatsapp" size={14} />{lead.message}</p>
                       </>}
                       <footer>

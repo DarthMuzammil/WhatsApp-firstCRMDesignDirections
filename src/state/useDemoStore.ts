@@ -9,7 +9,7 @@ import { INCOMING_LEAD_TEMPLATES, LEAD_SOURCES, findSource } from '../data/sourc
 import { DEFAULT_VIEWER_ID, ROLE_LABELS, SEED_MEMBERS, TEAMS, shortName, type Member, type MemberStatus, type TeamId } from '../data/team'
 import { SEED_AUDIT, SEED_NOTIFICATIONS, type AppNotification, type AuditEntry, type AuditKind, type NotificationKind, type NotificationView } from '../data/notifications'
 import { MAX_ACCURACY_M, OFFICES, SEED_VISITS, formatDistance, slotMinutes, type Office, type Visit, type VisitOutcome } from '../data/visits'
-import { DOC_LABELS, SEED_DEALS, type Closure, type Deal } from '../data/deals'
+import { DOC_LABELS, OFFER_BY_LABELS, SEED_DEALS, type Closure, type Deal } from '../data/deals'
 import { SEED_PROPERTIES, matchesForLead, priceLabel, type Property } from '../data/inventory'
 import { DEFAULT_AUTO_REPLY, SERVICE_WINDOW_MINUTES } from '../data/templates'
 import { callSummary } from '../lib/ai'
@@ -465,9 +465,13 @@ export function useDemoStore() {
       return findMember(ownerId)
     },
     reassignLead: (leadId: number, toId: string, reason: string) => assign(leadId, toId, reason),
+    /** Saves the deal; each newly logged offer gets its own timeline entry with its date. */
     updateDeal: (leadId: number, deal: Deal) => {
+      const knownIds = new Set((deals[leadId]?.offers ?? []).map((offer) => offer.id))
       setDeals((current) => ({ ...current, [leadId]: deal }))
-      log(leadId, 'stage', `Deal updated${deal.agreedCr ? `: agreed ₹${deal.agreedCr} Cr` : deal.offeredCr ? `: offer ₹${deal.offeredCr} Cr` : ''}`)
+      deal.offers.filter((offer) => !knownIds.has(offer.id))
+        .forEach((offer) => log(leadId, 'stage', `${OFFER_BY_LABELS[offer.by]} ₹${offer.amountCr} Cr${offer.day === 0 ? '' : ` (dated ${dayLabel(offer.day)})`}`))
+      log(leadId, 'stage', `Deal updated${deal.agreedCr ? `: agreed ₹${deal.agreedCr} Cr` : ''}${deal.agreementDay !== undefined ? ` · agreement by ${dayLabel(deal.agreementDay)}` : ''}`)
     },
     toggleDealDoc: (leadId: number, doc: keyof Deal['docs']) => {
       const deal = deals[leadId]

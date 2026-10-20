@@ -133,12 +133,16 @@ export function DemoGuide({ store, onSimulate, onOpenLead, onNavigate, notify, o
     },
     {
       title: 'Negotiate and win',
-      say: `Offer, token, documents and commission split live on the deal. ${agentName} marks it won at ₹${agreedCr} Cr; the manager and Owner are notified.`,
+      say: `The buyer offers, the owner counters, and every offer is kept with its date, along with the token, documents and commission split. ${agentName} marks it won at ₹${agreedCr} Cr; the manager and Owner are notified.`,
       action: 'Mark the deal won',
       run: () => {
         if (!leadId || !property || !agent) return
         store.setStage(leadId, 3)
-        store.updateDeal(leadId, { askedCr: property.priceCr, offeredCr: agreedCr, agreedCr, tokenL: 5, docs: { kyc: true, token: true, agreement: false }, split: [{ memberId: agent.id, pct: 100 }] })
+        store.updateDeal(leadId, {
+          askedCr: property.priceCr, agreedCr, tokenL: 5, tokenDay: 0, agreementDay: 14,
+          offers: [{ id: Date.now(), by: 'buyer', amountCr: Math.round(property.priceCr * 0.94 * 100) / 100, day: 0 }, { id: Date.now() + 1, by: 'owner', amountCr: agreedCr, day: 0 }],
+          docs: { kyc: true, token: true, agreement: false }, split: [{ memberId: agent.id, pct: 100 }],
+        })
         store.closeLead(leadId, { result: 'won' }, agreedCr)
         onNavigate('pipeline')
         notify(`${lead?.name} won at ₹${agreedCr} Cr`)

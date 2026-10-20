@@ -1,9 +1,10 @@
 import { useState, type FormEvent } from 'react'
 import type { Lead } from '../data/demo'
-import { LOST_REASON_OPTIONS, type Deal, type SplitShare } from '../data/deals'
+import { LOST_REASON_OPTIONS, OFFER_BY_LABELS, latestOffer, type Deal, type Offer, type OfferBy, type SplitShare } from '../data/deals'
 import { shortName } from '../data/team'
 import { Dialog } from '../components/Dialog'
 import { Icon } from '../components/Icon'
+import { dayLabel } from '../lib/format'
 import type { DemoStore } from '../state/useDemoStore'
 import './DealDialog.css'
 
@@ -23,20 +24,42 @@ export function DealDialog({ lead, store, mode, onClose, onSaved }: { lead: Lead
   const existing = store.dealFor(lead.id)
   const asking = existing?.askedCr ?? store.bestMatch(lead).priceCr
   const [asked, setAsked] = useState(String(asking))
-  const [offered, setOffered] = useState(existing?.offeredCr !== undefined ? String(existing.offeredCr) : '')
-  const [agreed, setAgreed] = useState(existing?.agreedCr !== undefined ? String(existing.agreedCr) : mode === 'win' && existing?.offeredCr ? String(existing.offeredCr) : '')
+  const [offers, setOffers] = useState<Offer[]>(existing?.offers ?? [])
+  // The "Log an offer" row. A filled-in amount is included on Save even without pressing Add.
+  const [newBy, setNewBy] = useState<OfferBy>('buyer')
+  const [newAmount, setNewAmount] = useState('')
+  const [newDay, setNewDay] = useState(0)
+  const lastBuyerOffer = latestOffer(existing, 'buyer')
+  const [agreed, setAgreed] = useState(existing?.agreedCr !== undefined ? String(existing.agreedCr) : mode === 'win' && lastBuyerOffer ? String(lastBuyerOffer.amountCr) : '')
   const [token, setToken] = useState(existing?.tokenL !== undefined ? String(existing.tokenL) : '')
+  const [tokenDay, setTokenDay] = useState(existing?.tokenDay ?? 0)
+  const [agreementDay, setAgreementDay] = useState<number | null>(existing?.agreementDay ?? null)
   const [split, setSplit] = useState<SplitShare[]>(existing?.split ?? defaultSplit(lead, store))
   const total = split.reduce((sum, share) => sum + share.pct, 0)
   const people = store.members.filter((person) => person.status !== 'deactivated' && (person.roles.includes('sales') || person.roles.includes('presales')))
   const error = total !== 100 ? `Commission split adds up to ${total}%. It must be 100%.`
     : mode === 'win' && !(Number(agreed) > 0) ? 'Enter the agreed price to mark the deal won.'
-      : ''
+      : newAmount !== '' && !(Number(newAmount) > 0) ? 'Enter the offer amount in ₹ crore, or clear it.'
+        : ''
+
+  const pendingOffer = (): Offer | null => (Number(newAmount) > 0 ? { id: Date.now(), by: newBy, amountCr: Number(newAmount), day: newDay } : null)
+  function addOffer() {
+    const offer = pendingOffer()
+    if (!offer) return
+    setOffers([...offers, offer].sort((a, b) => a.day - b.day))
+    setNewAmount('')
+  }
 
   function submit(event: FormEvent) {
     event.preventDefault()
     if (error) return
-    const deal: Deal = { askedCr: Number(asked) || asking, offeredCr: num(offered), agreedCr: num(agreed), tokenL: num(token), docs: existing?.docs ?? { kyc: false, token: false, agreement: false }, split }
+    const pending = pendingOffer()
+    const deal: Deal = {
+      askedCr: Number(asked) || asking,
+      offers: pending ? [...offers, pending].sort((a, b) => a.day - b.day) : offers,
+      agreedCr: num(agreed), tokenL: num(token), tokenDay: num(token) ? tokenDay : undefined, agreementDay: agreementDay ?? undefined,
+      docs: existing?.docs ?? { kyc: false, token: false, agreement: false }, split,
+    }
     store.updateDeal(lead.id, deal)
     if (mode === 'win') {
       store.closeLead(lead.id, { result: 'won' }, deal.agreedCr)
@@ -47,6 +70,7 @@ export function DealDialog({ lead, store, mode, onClose, onSaved }: { lead: Lead
   const money = (label: string, value: string, set: (value: string) => void, unit: string) => (
     <label>{label}<span className="deal-input"><span>₹</span><input inputMode="decimal" value={value} onChange={(event) => set(event.target.value.replace(/[^\d.]/g, ''))} /><span>{unit}</span></span></label>
   )
+  const dayOptions = (days: number[]) => days.map((day) => <option key={day} value={day}>{dayLabel(day)}</option>)
 
   return (
     <Dialog label={mode === 'win' ? `Mark ${lead.name} won` : `Deal for ${lead.name}`} onClose={onClose} className="add-lead deal-dialog">
@@ -55,13 +79,37 @@ export function DealDialog({ lead, store, mode, onClose, onSaved }: { lead: Lead
       <h2>{lead.name}</h2>
       <p className="add-lead-intro">{lead.need} · {store.bestMatch(lead).name}</p>
       <form onSubmit={submit}>
-        <div className="form-row">
-          {money('Asking price', asked, setAsked, 'Cr')}
-          {money('Buyer’s offer', offered, setOffered, 'Cr')}
-        </div>
+        {money('Asking price', asked, setAsked, 'Cr')}
+        <fieldset className="offers">
+          <legend>Offers</legend>
+          {offers.length > 0 && (
+            <ol className="offer-list">
+              {[...offers].reverse().map((offer) => (
+                <li key={offer.id}>
+                  <span className={`offer-by ${offer.by}`}>{offer.by === 'buyer' ? 'Buyer' : 'Owner'}</span>
+                  <strong>₹{offer.amountCr} Cr</strong>
+                  <small>{dayLabel(offer.day)}</small>
+                  <button type="button" className="icon-button" aria-label={`Remove ${OFFER_BY_LABELS[offer.by].toLowerCase()} ₹${offer.amountCr} Cr`} onClick={() => setOffers(offers.filter((item) => item.id !== offer.id))}><Icon name="close" size={14} /></button>
+                </li>
+              ))}
+            </ol>
+          )}
+          <div className="offer-new">
+            <div className="segmented" role="radiogroup" aria-label="Who made the offer">
+              {(['buyer', 'owner'] as OfferBy[]).map((by) => <button type="button" key={by} role="radio" aria-checked={newBy === by} className={newBy === by ? 'active' : ''} onClick={() => setNewBy(by)}>{by === 'buyer' ? 'Buyer offer' : 'Owner counter'}</button>)}
+            </div>
+            <span className="deal-input"><span>₹</span><input inputMode="decimal" value={newAmount} onChange={(event) => setNewAmount(event.target.value.replace(/[^\d.]/g, ''))} aria-label="Offer amount" placeholder="Amount" /><span>Cr</span></span>
+            <select value={newDay} onChange={(event) => setNewDay(Number(event.target.value))} aria-label="Offer date">{dayOptions(Array.from({ length: 15 }, (_, index) => -index))}</select>
+            <button type="button" className="btn btn-soft" disabled={!(Number(newAmount) > 0)} onClick={addOffer}><Icon name="plus" size={16} /> Add</button>
+          </div>
+        </fieldset>
         <div className="form-row">
           {money(mode === 'win' ? 'Agreed price *' : 'Agreed price', agreed, setAgreed, 'Cr')}
+          <label>Agreement by<select value={agreementDay ?? ''} onChange={(event) => setAgreementDay(event.target.value === '' ? null : Number(event.target.value))}><option value="">Not set</option>{dayOptions(Array.from({ length: 31 }, (_, index) => index))}</select></label>
+        </div>
+        <div className="form-row">
           {money('Token amount', token, setToken, 'L')}
+          {num(token) ? <label>Token paid on<select value={tokenDay} onChange={(event) => setTokenDay(Number(event.target.value))}>{dayOptions(Array.from({ length: 15 }, (_, index) => -index))}</select></label> : <span />}
         </div>
         <fieldset className="split">
           <legend>Commission split</legend>

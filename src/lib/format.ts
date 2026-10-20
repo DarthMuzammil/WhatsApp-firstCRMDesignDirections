@@ -50,6 +50,11 @@ export function dayLabel(offsetDays: number, date = new Date()): string {
   return `${WEEKDAYS[day.getDay()].slice(0, 3)}, ${day.getDate()} ${MONTHS[day.getMonth()].slice(0, 3)}`
 }
 
+/** For use after a verb: "today", "yesterday", "tomorrow" or "on Mon, 12 Oct". */
+export function onDayLabel(offsetDays: number, date = new Date()): string {
+  return Math.abs(offsetDays) <= 1 ? dayLabel(offsetDays, date).toLowerCase() : `on ${dayLabel(offsetDays, date)}`
+}
+
 /** Days from today until the coming Saturday (0 if today is Saturday). */
 export function daysUntilSaturday(date = new Date()): number {
   return (6 - date.getDay() + 7) % 7

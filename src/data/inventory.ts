@@ -76,6 +76,7 @@ export function matchesForLead(lead: Pick<LeadSeed, 'need' | 'budget' | 'localit
   const wantsVilla = /villa/i.test(lead.need)
   const wantedBhk = Number(lead.need.match(/(\d)\s*BHK/i)?.[1] ?? 0)
   const budget = parseBudget(lead.budget)
+  const distanceFromBudget = (property: Property) => (budget ? Math.abs(property.priceCr - (budget.min + budget.max) / 2) : 0)
   return properties
     .filter((property) => property.status !== 'sold')
     .map((property) => {
@@ -93,5 +94,6 @@ export function matchesForLead(lead: Pick<LeadSeed, 'need' | 'budget' | 'localit
       return { property, score, reasons }
     })
     .filter((match) => match.score >= 4)
-    .sort((a, b) => b.score - a.score || a.property.id - b.property.id)
+    // Equal scores: the price closest to the middle of the buyer's budget first.
+    .sort((a, b) => b.score - a.score || distanceFromBudget(a.property) - distanceFromBudget(b.property) || a.property.id - b.property.id)
 }
