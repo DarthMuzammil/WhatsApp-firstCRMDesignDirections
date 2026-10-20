@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { DEMO_METRICS, firstName, matchPropertyForLead, type Lead, type Temperature } from '../data/demo'
+import { DEMO_METRICS, firstName, type Lead, type Temperature } from '../data/demo'
 import { shortName } from '../data/team'
 import { Avatar, LeadAvatar } from '../components/Avatar'
 import { Icon } from '../components/Icon'
@@ -35,7 +35,6 @@ export function TodayView({ store, onOpenLead, onAddLead, onNavigate, notify }: 
   // Managers and the owner see other people's leads, so rows show who owns each one.
   const seesOthers = store.viewerCan('seeTeamLeads')
   const ownerLabel = (lead: Lead) => (lead.ownerId ? shortName(store.findMember(lead.ownerId)?.name ?? '') : null)
-  const nextVisitProperty = nextVisit ? matchPropertyForLead(nextVisit.lead) : undefined
 
   return (
     <section className="today-view">
@@ -57,7 +56,7 @@ export function TodayView({ store, onOpenLead, onAddLead, onNavigate, notify }: 
       )}
 
       <div className="day-cards">
-        {nextVisit && nextVisitProperty ? (
+        {nextVisit ? (
           <article className="day-focus">
             <div className="day-focus-top">
               <span className="day-card-label">Up next · {nextVisit.when}</span>
@@ -65,10 +64,10 @@ export function TodayView({ store, onOpenLead, onAddLead, onNavigate, notify }: 
             </div>
             <div className="day-focus-person">
               <LeadAvatar lead={nextVisit.lead} />
-              <div><h2>Visit with {firstName(nextVisit.lead.name)}</h2><p>{nextVisitProperty.name} · {nextVisitProperty.locality}</p></div>
+              <div><h2>Visit with {firstName(nextVisit.lead.name)}</h2><p>{nextVisit.propertyName} · {nextVisit.lead.locality}</p></div>
             </div>
             <footer>
-              <button className="btn day-focus-secondary" onClick={() => notify(`Directions to ${nextVisitProperty.name} sent to your phone`)}><Icon name="pin" /> Directions</button>
+              <button className="btn day-focus-secondary" onClick={() => notify(`Directions to ${nextVisit.propertyName} sent to your phone`)}><Icon name="pin" /> Directions</button>
               <button className="btn day-focus-primary" onClick={() => onOpenLead(nextVisit.lead)}><Icon name="whatsapp" /> Message</button>
             </footer>
           </article>

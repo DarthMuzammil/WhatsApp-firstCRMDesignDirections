@@ -11,9 +11,9 @@ import { LeadTags } from '../components/LeadTags'
 import { LeadTimeline } from '../components/LeadTimeline'
 import { PropertyCard } from '../components/PropertyCard'
 import type { View } from '../components/navigation'
-import { nextSaturdayLabel } from '../lib/format'
 import { AssignDialog } from '../modals/AssignDialog'
 import { EditLeadDialog } from '../modals/EditLeadDialog'
+import { ScheduleVisitDialog } from '../modals/ScheduleVisitDialog'
 import type { DemoStore } from '../state/useDemoStore'
 import './ChatView.css'
 
@@ -35,15 +35,14 @@ export function ChatView({ lead, store, onBack, onCall, onNavigate, notify }: Ch
   const [detailsOpen, setDetailsOpen] = useState(false)
   const [assignMode, setAssignMode] = useState<'reassign' | 'handoff' | null>(null)
   const [editing, setEditing] = useState(false)
+  const [scheduling, setScheduling] = useState(false)
   const actions: LeadActionHandlers = {
     shareShortlist: () => {
       store.sendMessage(lead.id, `Sharing 3 homes that match your brief for a ${lead.need}. Let me know which ones you’d like to see.`)
       notify('Property shortlist shared on WhatsApp')
     },
-    scheduleVisit: () => {
-      store.scheduleVisit(lead.id)
-      notify(`Visit booked for ${nextSaturdayLabel()} at 11:30 AM`)
-    },
+    // Booked already: go to the visit; otherwise pick a day and time.
+    scheduleVisit: () => (lead.visitScheduled ? onNavigate('visits') : setScheduling(true)),
     showMatches: () => onNavigate('properties'),
   }
   return (
@@ -58,6 +57,18 @@ export function ChatView({ lead, store, onBack, onCall, onNavigate, notify }: Ch
           </header>
           <div className="lead-detail-sheet-body dialog-scroll"><LeadDetails lead={lead} store={store} actions={actions} onAssign={(mode) => { setDetailsOpen(false); setAssignMode(mode) }} onEdit={() => { setDetailsOpen(false); setEditing(true) }} /></div>
         </Dialog>
+      )}
+      {scheduling && (
+        <ScheduleVisitDialog
+          lead={lead}
+          store={store}
+          onBooked={(confirmation) => {
+            setScheduling(false)
+            if (confirmation) store.sendMessage(lead.id, confirmation)
+            notify('Visit booked · confirmation sent on WhatsApp')
+          }}
+          onClose={() => setScheduling(false)}
+        />
       )}
       {editing && (
         <EditLeadDialog
@@ -151,7 +162,7 @@ function ChatPanel({ lead, store, actions, onBack, onCall, onShowDetails }: Chat
         <p><strong>Brief</strong> {lead.need} · {lead.budget} · {lead.moveIn}</p>
       </div>
 
-      <div className="chat-mobile-actions"><LeadActions lead={lead} actions={actions} layout="bar" /></div>
+      <div className="chat-mobile-actions"><LeadActions lead={lead} actions={actions} layout="bar" visitLabel={store.upcomingVisits.find((visit) => visit.leadId === lead.id)?.when} /></div>
 
       <div className="messages" ref={messagesRef}>
         <span className="day-label">Today</span>
@@ -279,7 +290,7 @@ function LeadOverview({ lead, store, actions, onAssign, onEdit }: LeadDetailsPro
     <span className="eyebrow lead-detail-label">Top property match</span>
     <PropertyCard property={property} layout="stacked" />
 
-    <div className="lead-detail-actions"><LeadActions lead={lead} actions={actions} layout="cards" /></div>
+    <div className="lead-detail-actions"><LeadActions lead={lead} actions={actions} layout="cards" visitLabel={store.upcomingVisits.find((visit) => visit.leadId === lead.id)?.when} /></div>
     <button className="btn btn-primary btn-block" onClick={actions.showMatches}>See all property matches <Icon name="arrow" size={16} /></button>
   </>
 }

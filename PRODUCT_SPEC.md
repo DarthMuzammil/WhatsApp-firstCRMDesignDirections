@@ -31,13 +31,13 @@ Layouts: **phone** ≤ 760px, **tablet** 761–1100px, **desktop** > 1100px. Eve
 | Area | Desktop / tablet | Phone |
 |---|---|---|
 | Brand + status | Sidebar with Daira logo (tap → Today) | Top bar: logo, "● WhatsApp connected" 🧱, viewer's avatar (account menu), **+** add lead |
-| Main nav | Sidebar **Work** group: **Today** (unread badge), **Pipeline**, **Properties**, **Follow-ups** (tasks-left badge), **Calls**. **Manage** group, by permission: **Escalations** (red count; Manager/Owner), **Lead sources** (Manager/Owner), **Team** (Manager/Owner), **Settings** (Owner) | Bottom tabs: **Inbox** (unread badge), **Pipeline**, **Homes**, **Tasks**, **More**. **More** opens a sheet with Calls plus the Manage screens the viewer may use (a red "!" on More when escalations are waiting) |
+| Main nav | Sidebar **Work** group: **Today** (unread badge), **Visits**, **Pipeline**, **Properties**, **Follow-ups** (tasks-left badge), **Calls**. **Manage** group, by permission: **Escalations** (red count; Manager/Owner), **Lead sources** (Manager/Owner), **Team** (Manager/Owner), **Settings** (Owner) | Bottom tabs: **Inbox** (unread badge), **Visits**, **Pipeline**, **Tasks**, **More**. **More** opens a sheet with Properties, Calls, plus the Manage screens the viewer may use (a red "!" on More when escalations are waiting) |
 | Progress card | "Today's progress" ✅: buyers awaiting a reply · follow-ups left, with a progress bar of completed tasks. Says "You're all caught up" only when both are zero. | — |
 | User card | Viewer's name and role ("Sales · Indiranagar") | — |
 | Account menu | "⋯" next to the user card (opens upwards, beside the sidebar) | Viewer's avatar |
 | Account menu contents | **Demo · View as** ✅: Arjun Khanna (Owner), Neha Kapoor (Manager · Indiranagar), Priya Nair (Sales · Indiranagar), Kiran Patel (Pre-sales). Then **Simulate incoming lead** ✅ (§3.11) and **Reset demo data** ✅ (asks to confirm first) | same |
 
-⚠️ Names differ between desktop and phone (Today/Inbox, Properties/Homes, Follow-ups/Tasks). Pick one set.
+⚠️ Names differ between desktop and phone (Today/Inbox, Follow-ups/Tasks). Pick one set.
 
 While a chat is open, the nav keeps the screen it was opened from highlighted. If switching "View as" hides the open lead or screen, the app falls back to that screen or to Today.
 
@@ -50,7 +50,7 @@ Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with
 ### 3.1 Today (home / inbox)
 - Header: today's real date ✅; title "Your day, at a glance" (Sales/Pre-sales) or "Your team today" (Manager/Owner); search toggle ✅; **Add lead** ✅ (desktop/tablet; phones use the top-bar **+**).
 - Every number and list on this screen covers only the leads the viewer may see (§3.8).
-- **Up next card** ✅: the next visit on the calendar. The demo starts with Ananya's visit ("Today · 11:30 AM · The Courtyard House") 🎭. Every visit booked in the demo is added after it (coming Saturday, 11:30 AM), and the card shows "+N more visits booked". With no visits it says "No visits booked". **Directions** shows a toast ("Directions to … sent to your phone") 🎭. **Message** opens that lead's chat ✅.
+- **Up next card** ✅: the soonest open visit (planned, on the way or checked in) among the viewer's visits (§3.12), with "+N more visits booked". With none it says "No visits booked". **Directions** shows a toast ("Directions to … sent to your phone") 🎭. **Message** opens that lead's chat ✅.
 - **Follow-up rate 82%** 🧱 (with three lead avatars). **Active value** ✅ = sum of budget midpoints of the leads the viewer sees (Owner with seed data: ₹27.4 Cr), with the open-lead count.
 - **Lead inbox** ✅: filter *All / Hot / Warm / New*, a **source** dropdown (All sources + every source in the viewer's leads), plus search by name, requirement or locality. Subtitle counts conversations awaiting a reply. Each row: avatar (green dot if online), name, time since the last message, requirement · budget, last message, unread count, intent tag, red **Overdue** flag (unread for more than 15 min), red-outlined **Shared ×N** flag (portal lead also sent to ~N other brokers), and "via <source>". Managers and the Owner also see the **owner** ("Priya N.") or a yellow **Unassigned** flag. Tapping a row opens the chat and **marks it read** ✅. Empty state when nothing matches.
 - **Due today** ✅: up to 4 remaining follow-ups (time, title, lead). Tapping one, or **Open follow-ups**, goes to Follow-ups.
@@ -62,7 +62,7 @@ Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with
 - **Brief strip:** requirement · budget · move-in timing (per lead).
 - **Phone-only action buttons:**
   - **Shortlist** ✅ posts a "Sharing 3 homes…" message into the chat and shows a toast.
-  - **Plan visit** ✅ books the visit (see Schedule visit below) and changes to "Visit booked".
+  - **Plan visit** ✅ opens Schedule visit (below); once booked it reads "Visit booked" and opens Visits.
   - **Matches** opens Properties.
 - Messages 🎭: the lead's own opening enquiry, a scripted reply with the lead's budget, the matched property card, and the lead's latest message. Leads added in the demo start with an empty chat and a "Lead captured just now" note. Leads that **arrived from a source in the demo** show only the buyer's enquiry ("Just now").
 - Quick replies ✅ fill the composer: "Suggest a time", "Share location" (or "Send a welcome message" for added and newly arrived leads). The **+** menu offers *Property* (fills the matched property's details) and *Location*.
@@ -84,7 +84,7 @@ Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with
 - **Tags** ✅: applied tags as removable chips; **+ Tag** shows suggestions (First-time buyer, Loan needed, NRI, Investor, Urgent, Price sensitive, Repeat client) and a custom-tag field (Enter to add).
 - **Top property match** ✅: the first listing in the lead's locality, otherwise the first with the same BHK, otherwise the first listing. Budget is not used yet.
 - **Share shortlist** ✅ posts the shortlist message into the chat and shows a toast.
-- **Schedule visit** ✅ books the coming Saturday at 11:30 AM (no picker) and moves the lead to *Visit planned*. A lead already in *Negotiation* stays there.
+- **Schedule visit** ✅ opens a dialog: property (matched one preselected), day (Today … 6 days ahead; defaults to the coming Saturday), time slot, and agent (the lead owner; only Managers/Owner can change it). Booking posts a WhatsApp confirmation in the chat ("Visit confirmed: The Courtyard House, Indiranagar, Tomorrow at 3:00 PM…") 🎭, moves the lead to *Visit planned* (never backwards), and logs it. When a visit is booked the button reads "Visit booked · Tomorrow · 3:00 PM" and opens Visits.
 - **See all property matches** opens Properties.
 
 *Timeline tab* ✅: everything on the lead, newest first. Demo actions are logged as they happen (with who did it): messages sent, assignments, stage moves, visits booked, calls saved, notes, tag changes, brief edits, merged enquiries. Below them, events implied by the seed data: the buyer's latest message, seeded call recordings, the seeded visit, "Assigned to … by routing", and "First enquiry via <source>" last.
@@ -149,7 +149,19 @@ Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with
 ### 3.10 Settings (M1/M2, Owner only)
 - **Separate pre-sales team** ✅ on/off (the whole row is the switch). On: new leads route to Pre-sales first and they get **Hand to Sales**. Off: Sales handle leads end to end; hand-off is hidden and Pre-sales are left out of routing and pickers.
 - **Lead routing** ✅: Round-robin (fewest open leads) / By locality (team covering the buyer's area) / By source (team chosen per source on Lead sources, §3.11). Within the team, whoever has the fewest open leads.
+- **Field check-ins** ✅: check-in radius 100 / 200 / 300 / 500 m (default 200), and the three offices with addresses.
 - **Roles and permissions** table 🧱 (read-only; custom roles later).
+
+### 3.12 Visits and field check-ins (M6)
+- **Visits screen** (everyone): "Your visits" (Sales/Pre-sales) or "Team visits" (Manager/Owner, for the leads they can see). Stat strip: visits today (completed count), verified check-ins today, refused attempts today (and yesterday's no-shows). Sections: **Today**, **Upcoming**, **Earlier**.
+- **Each visit:** time and day, buyer (tap → chat), property and locality, agent, status (Planned / On the way / Checked in / Completed / No-show), each recorded step (Left office · time, or "Left 1.2 km from Whitefield office"; ✅ Verified check-in · time · distance; ⚠️ Check-in refused · time · distance or accuracy; Checked out), the outcome, and the result of the last tap.
+- **Agent flow** (only the visit's agent, only on the day):
+  - **Left office** is always recorded, with a note if the reading was more than the radius from the agent's office.
+  - **Check in** is allowed straight from Planned or after Left office. It is **refused** when the reading is more than the radius (default 200 m) from the property, or less accurate than 100 m, with a message: "You're 1.4 km from The Courtyard House. Move closer to check in." The refused attempt is kept on the log.
+  - **Check out** (only after a verified check-in) opens a **required outcome form** that can't be dismissed: Liked it / Wants another visit / Not interested, buyer feedback, next step.
+  - Every step goes on the lead's timeline.
+- **Where is this phone? (Demo)** control: At office / Near client (~60 m) / Far away (~1.4 km) give scripted readings 🎭. **This device** uses the browser's real location (asks permission once) ✅. The panel states the limits: read once when you tap, no live tracking, refused beyond the radius.
+- **Seed visits:** Ananya (Priya, today 11:30, planned), Deepak (Ritu, today 4:00 PM, planned), Lavanya (Manoj, today 9:30, completed with outcome), Rohan & Meera (Vivek, today 10:00, checked in after one refused attempt), Nisha (Rohit, tomorrow 10:30), Vikram (Sneha, yesterday, no-show).
 
 ### 3.11 Lead sources and arrivals (M3)
 - **Lead sources screen** (Manager/Owner; editable by the Owner only):
@@ -185,12 +197,13 @@ Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with
 
   Each lead also has a phone number, minutes since the last message, move-in timing, must-haves, opening enquiry and latest message. Portal leads carry a "shared with ~N brokers" figure 🎭: Ananya 6, Deepak 5, Farhan 4, Gaurav 3, Ishita 6. Vikram and Sanjay are marked Investment. The Owner's totals with this data: active value ₹27.4 Cr across 12 leads.
 - **Properties (3):** The Courtyard House (Indiranagar, 3 BHK, ₹2.65 Cr) · Windermere Residences (Whitefield, 4 BHK, ₹3.40 Cr) · Lakeview Terraces (HSR Layout, 2 BHK, ₹1.48 Cr). Photos load from Unsplash, so the demo needs internet.
+- **Visits and offices (`visits.ts`):** 6 seed visits (§3.12); offices in Indiranagar (HQ), Whitefield and HSR Layout with coordinates. Properties also carry coordinates.
 - **Lead sources (8, `sources.ts`)** with weekly leads, first-reply minutes, default cost per lead (₹450 / 400 / 350 / 180 / 0…) and default team; plus the pool of 6 buyers used for simulated arrivals.
 - **Tasks (8)** and **recordings (5)** linked to the leads above, plus the one optional "Add reminder" task (attached to the viewer's first lead).
 - **Fixed demo numbers** (`DEMO_METRICS`): follow-up rate 82% (+12%), weekly chart values, 18 calls this week (2h 14m), 72% answer rate (+8%).
 
 ## 5. Saved in the browser (localStorage)
-All keys use the prefix `daira:v3:`: `viewer`, `settings`, `added-members`, `member-status`, `added-leads`, `owners`, `assignments`, `lead-edits`, `notes`, `tags`, `activity`, `source-settings`, `arrivals`, `stages`, `visits`, `read-leads`, `sent-messages`, `tasks`, `completed-tasks`, `recordings`, `saved-properties`.
+All keys use the prefix `daira:v4:`: `viewer`, `settings`, `pretend-location`, `added-members`, `member-status`, `added-leads`, `owners`, `assignments`, `lead-edits`, `notes`, `tags`, `activity`, `source-settings`, `arrivals`, `stages`, `visits` (visit records with steps and outcomes), `read-leads`, `sent-messages`, `tasks`, `completed-tasks`, `recordings`, `saved-properties`.
 **Reset demo data** (account menu → confirm) deletes these, plus any older `daira:*` / `daira-*` keys, and reloads the page. Run it before every client demo.
 
 ## 6. Code map
@@ -199,11 +212,12 @@ See `AGENTS.md` for conventions. Each component has a matching `.css` file next 
 - `src/data/demo.ts`: lead/property/task types and seed data, stages, response SLA, commission settings, property matching.
 - `src/data/team.ts`: people, teams, roles, "View as" personas.
 - `src/data/sources.ts`: lead sources and the simulated-arrival buyer pool.
+- `src/data/visits.ts`: visit model, seed visits, offices, time slots, check-in limits.
 - `src/state/useDemoStore.ts`: all saved state, the viewer, visibility filtering, routing, activity log and timeline, duplicate lookup, derived numbers and actions.
-- `src/lib/`: `permissions.ts` (role → permissions, who sees which lead), `storage.ts` (localStorage), `format.ts` (dates, money, durations, phone masking), `useEscapeKey.ts`.
+- `src/lib/`: `location.ts` (one-off location readings: demo readings, the browser's real location, distance), `permissions.ts` (role → permissions, who sees which lead), `storage.ts` (localStorage), `format.ts` (dates, money, durations, phone masking), `useEscapeKey.ts`.
 - `src/components/`: `AppNavigation` (sidebar with Work/Manage groups, phone top bar, tab bar with More sheet), `navigation.ts` (items with required permission), `Dialog` (the one modal / sheet / full-screen shell), `AccountMenu`, `Avatar`, `HeatBadge`, `LeadActions`, `LeadRow`, `LeadTimeline`, `LeadNotes`, `LeadTags`, `IncomingLeadBanner`, `PropertyCard`, `Toast`, `Icon`.
-- `src/views/`: `TodayView`, `ChatView` (chat + lead panel), `PipelineView`, `PropertiesView`, `FollowUpsView`, `CallsView`, `EscalationsView`, `LeadSourcesView`, `TeamView` (with invite dialog), `SettingsView`.
-- `src/modals/`: `AddLeadModal` (with duplicate check), `EditLeadDialog` (structured buyer brief), `AssignDialog` (people picker for assign / reassign / hand-off / deactivate), `CallPicker`, `CallModal`.
+- `src/views/`: `TodayView`, `ChatView` (chat + lead panel), `PipelineView`, `PropertiesView`, `FollowUpsView`, `CallsView`, `VisitsView` (with the visit outcome form), `EscalationsView`, `LeadSourcesView`, `TeamView` (with invite dialog), `SettingsView`.
+- `src/modals/`: `AddLeadModal` (with duplicate check), `EditLeadDialog` (structured buyer brief), `ScheduleVisitDialog`, `AssignDialog` (people picker for assign / reassign / hand-off / deactivate), `CallPicker`, `CallModal`.
 - `src/index.css`: the only place raw colours are defined. Design tokens (colour, 4px spacing scale, radius, shadow, `--fs-*` type sizes, `--tap`) and shared classes (`.btn`, `.card`, `.chip`, `.count-badge`, `.status-dot`, `.icon-badge`, `.is-done` and more).
 
 ---
@@ -217,6 +231,7 @@ See `AGENTS.md` for conventions. Each component has a matching `.css` file next 
 - On desktop, Add lead is only on Today.
 - Sent messages show "Now" forever; lead times ("2m", "18m") and message timestamps are fixed seed values, so "Overdue" never appears or clears on its own.
 - The permissions table can't be edited.
+- Visit step times use the real clock, but visit days are relative to today, so the demo always looks like "today". Nothing marks a visit as a no-show automatically, and visits can't be rescheduled or cancelled yet.
 - Lead-source weekly figures and first-reply times are fixed; connecting a source is a toggle, not a real login. Simulated buyers repeat after 6 arrivals.
 - Newly invited people can't log in (there is no login); they only appear in Team and pickers.
 - Activity logged in the demo always says "Just now"; seeded timeline entries use fixed labels ("Earlier", "On arrival").
@@ -276,7 +291,7 @@ Everything here is **UI only**: each item is a screen or flow driven by seed dat
 - **Duplicate alert** when adding an existing phone number: "Already in your inbox as Ananya Rao (owner: Priya) · Open / Merge".
 - **Shared-lead badge:** "Also sent to ~6 brokers · call now" (🎭).
 
-### 8.6 M6 · Visits and field check-ins
+### 8.6 M6 · Visits and field check-ins — ✅ built (§3.2 Schedule visit, §3.12, §3.10 radius)
 - **Schedule visit:** date/time picker, property, agent (defaults to the lead owner), and a **visit card** posted in the chat (🎭 sent).
 - **Agent's visit flow (phone).** Each step takes one location reading, under the §8.0 limits:
   1. **Left office:** recorded with time and place.
@@ -371,6 +386,7 @@ Everything here is **UI only**: each item is a screen or flow driven by seed dat
 
 ## 9. Changelog
 Newest first. One line per change: date, what changed, which section was updated.
+- **2026-10-20:** Built M6: Visits screen (agent flow Left office → Check in → Check out → required outcome; manager visit log), check-ins refused beyond the radius or when imprecise, demo location control plus real browser location, Schedule visit dialog with WhatsApp confirmation, check-in radius setting, Visits phone tab (Properties moves to More). Storage bumped to v4. Updated §2, §3.1, §3.2, §3.10, §3.12, §4–§7, §8.6.
 - **2026-10-20:** Built M3: Lead sources screen (connected status, weekly leads, first reply, editable cost per lead and team, spend totals), simulated arrivals with a New lead banner and routing (account menu, header or per source), "By source" routing now real, inbox source filter, fresh-enquiry chats. Updated §2, §3.1, §3.2, §3.10, §3.11, §4–§7, §8.2, §8.3.
 - **2026-10-20:** Built M5: lead panel tabs (Overview / Timeline / Notes), structured buyer-brief editing with budget validation, tags with suggestions, team notes, activity timeline logged from every lead action, shared-lead warning and "Shared ×N" flag, duplicate-number check with Open / Merge on Add lead. Updated §3.1, §3.2, §3.7, §4–§7, §8.5.
 - **2026-10-20:** Built M1 + M2: 22-person team, roles and permissions, "View as" switcher, role-based lead visibility and phone masking, lead owner card with reassign / hand to Sales and ownership history, Overdue/Unassigned flags, Escalations, Team (invite, deactivate with lead handover), Settings (separate pre-sales, routing, permissions table), Assign-to on Add lead, phone More sheet. Seed data grows to 12 leads. Fixed the desktop account menu opening off-screen. Updated §1–§7, §8.1, §8.2.

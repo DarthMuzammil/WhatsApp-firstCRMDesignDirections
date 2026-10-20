@@ -39,3 +39,24 @@ export function maskPhone(phone: string): string {
   if (digits.length < 10) return phone
   return `+91 ${digits.slice(0, 2)}XXX XX${digits.slice(7)}`
 }
+
+/** Day offset → label: 0 "Today", 1 "Tomorrow", -1 "Yesterday", otherwise "Sat, 24 Oct". */
+export function dayLabel(offsetDays: number, date = new Date()): string {
+  if (offsetDays === 0) return 'Today'
+  if (offsetDays === 1) return 'Tomorrow'
+  if (offsetDays === -1) return 'Yesterday'
+  const day = new Date(date)
+  day.setDate(date.getDate() + offsetDays)
+  return `${WEEKDAYS[day.getDay()].slice(0, 3)}, ${day.getDate()} ${MONTHS[day.getMonth()].slice(0, 3)}`
+}
+
+/** Days from today until the coming Saturday (0 if today is Saturday). */
+export function daysUntilSaturday(date = new Date()): number {
+  return (6 - date.getDay() + 7) % 7
+}
+
+/** Current time as "2:14 PM", for timestamps on demo actions. */
+export function clockLabel(date = new Date()): string {
+  const hours = date.getHours()
+  return `${hours % 12 || 12}:${String(date.getMinutes()).padStart(2, '0')} ${hours < 12 ? 'AM' : 'PM'}`
+}

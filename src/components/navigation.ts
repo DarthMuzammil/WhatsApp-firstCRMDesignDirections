@@ -2,7 +2,7 @@ import type { Permission } from '../lib/permissions'
 import type { IconName } from './Icon'
 
 /** Every screen in the app. `chat` is reached from a lead, not from the nav; while it is open the nav highlights the screen it was opened from. */
-export type View = 'today' | 'chat' | 'pipeline' | 'properties' | 'tasks' | 'calls' | 'escalations' | 'sources' | 'team' | 'settings'
+export type View = 'today' | 'chat' | 'visits' | 'pipeline' | 'properties' | 'tasks' | 'calls' | 'escalations' | 'sources' | 'team' | 'settings'
 
 export type NavItem = {
   view: Exclude<View, 'chat'>
@@ -17,6 +17,7 @@ export type NavItem = {
 /** Nav items shared by the desktop sidebar, the phone tab bar and the phone "More" sheet. */
 export const NAV_ITEMS: NavItem[] = [
   { view: 'today', icon: 'inbox', label: 'Today', shortLabel: 'Inbox', group: 'work' },
+  { view: 'visits', icon: 'pin', label: 'Visits', shortLabel: 'Visits', group: 'work' },
   { view: 'pipeline', icon: 'pipeline', label: 'Pipeline', shortLabel: 'Pipeline', group: 'work' },
   { view: 'properties', icon: 'home', label: 'Properties', shortLabel: 'Homes', group: 'work' },
   { view: 'tasks', icon: 'calendar', label: 'Follow-ups', shortLabel: 'Tasks', group: 'work' },
@@ -27,8 +28,8 @@ export const NAV_ITEMS: NavItem[] = [
   { view: 'settings', icon: 'settings', label: 'Settings', shortLabel: 'Settings', group: 'manage', requires: 'manageSettings' },
 ]
 
-/** Phone tab bar: these four, then "More" for everything else the person can open. */
-export const PHONE_TAB_VIEWS: View[] = ['today', 'pipeline', 'properties', 'tasks']
+/** Phone tab bar: these four (what a field agent uses all day), then "More" for everything else. */
+export const PHONE_TAB_VIEWS: View[] = ['today', 'visits', 'pipeline', 'tasks']
 
 export function navItemsFor(canDo: (permission: Permission) => boolean): NavItem[] {
   return NAV_ITEMS.filter((item) => !item.requires || canDo(item.requires))

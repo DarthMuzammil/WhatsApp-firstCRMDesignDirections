@@ -1,5 +1,4 @@
 import type { Lead } from '../data/demo'
-import { nextSaturdayLabel } from '../lib/format'
 import { Icon, type IconName } from './Icon'
 import './LeadActions.css'
 
@@ -13,13 +12,13 @@ type ActionItem = { key: string; icon: IconName; label: string; shortLabel: stri
  * - `bar`: three compact buttons (phone chat header)
  * - `cards`: two descriptive cards (detail panel; "Matches" has its own full-width button there)
  */
-export function LeadActions({ lead, actions, layout }: { lead: Lead; actions: LeadActionHandlers; layout: 'bar' | 'cards' }) {
+export function LeadActions({ lead, actions, layout, visitLabel }: { lead: Lead; actions: LeadActionHandlers; layout: 'bar' | 'cards'; visitLabel?: string }) {
   const items: ActionItem[] = [
     { key: 'shortlist', icon: 'whatsapp', label: 'Share shortlist', shortLabel: 'Shortlist', detail: 'Send 3 matching homes', onClick: actions.shareShortlist },
     {
       key: 'visit', icon: lead.visitScheduled ? 'check' : 'calendar', done: lead.visitScheduled,
       label: lead.visitScheduled ? 'Visit booked' : 'Schedule visit', shortLabel: lead.visitScheduled ? 'Visit booked' : 'Plan visit',
-      detail: `${nextSaturdayLabel()} · 11:30 AM`, onClick: actions.scheduleVisit,
+      detail: lead.visitScheduled && visitLabel ? visitLabel : 'Pick a day and time', onClick: actions.scheduleVisit,
     },
   ]
   if (layout === 'bar') items.push({ key: 'matches', icon: 'home', label: 'See matches', shortLabel: 'Matches', detail: '', onClick: actions.showMatches })

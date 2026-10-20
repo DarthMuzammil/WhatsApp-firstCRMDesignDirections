@@ -1,11 +1,13 @@
 import { useMemo } from 'react'
 import {
-  COMMISSION_RATE, EXTRA_REMINDER, RESPONSE_SLA_MINUTES, SEED_LEADS, SEED_RECORDINGS, SEED_TASKS, SEED_VISIT, STAGES, STAGE_CLOSE_PROBABILITY,
+  COMMISSION_RATE, EXTRA_REMINDER, PROPERTIES, RESPONSE_SLA_MINUTES, SEED_LEADS, SEED_RECORDINGS, SEED_TASKS, STAGES, STAGE_CLOSE_PROBABILITY,
   phoneKey, relativeMinutes, type Lead, type LeadSeed, type Recording, type Task,
 } from '../data/demo'
 import { INCOMING_LEAD_TEMPLATES, LEAD_SOURCES, findSource } from '../data/sources'
 import { DEFAULT_VIEWER_ID, SEED_MEMBERS, TEAMS, type Member, type MemberStatus, type TeamId } from '../data/team'
-import { formatDuration, maskPhone, nextSaturdayLabel } from '../lib/format'
+import { MAX_ACCURACY_M, OFFICES, SEED_VISITS, formatDistance, slotMinutes, type Office, type Visit, type VisitOutcome } from '../data/visits'
+import { clockLabel, dayLabel, formatDuration, maskPhone } from '../lib/format'
+import { distanceM, type PretendLocation, type Reading } from '../lib/location'
 import { can, canSeeLead, type Permission } from '../lib/permissions'
 import { clearDemoStorage, useLocalState } from '../lib/storage'
 
@@ -14,6 +16,8 @@ export type CompanySettings = {
   /** On: new leads go to Pre-sales first, who hand qualified leads to Sales. Off: Sales handles leads end to end. */
   separatePresales: boolean
   routing: RoutingMode
+  /** Check-ins further than this from the address are refused (spec §8.0). */
+  checkInRadiusM: number
 }
 /** One change of lead owner, shown on the lead's history (spec §8.2). */
 export type Assignment = { leadId: number; fromId: string | null; toId: string; byId: string; reason: string; at: string }
@@ -28,7 +32,27 @@ export type LeadProfileEdit = Pick<LeadSeed, 'need' | 'budget' | 'budgetCr' | 'l
 
 let activitySeq = 0
 
-const DEFAULT_SETTINGS: CompanySettings = { separatePresales: true, routing: 'round-robin' }
+/** A visit still to happen or in progress. */
+function isOpenVisit(visit: Pick<Visit, 'status'>): boolean {
+  return visit.status === 'planned' || visit.status === 'on-the-way' || visit.status === 'checked-in'
+}
+
+/** Timeline entries implied by a seeded visit. */
+function seedVisitEvents(visit: Visit): TimelineEvent[] {
+  const property = PROPERTIES.find((item) => item.id === visit.propertyId)?.name ?? 'the property'
+  const events: TimelineEvent[] = []
+  if (visit.outcome) events.push({ key: `sv-out-${visit.id}`, kind: 'visit', text: `Visit outcome: ${visit.outcome.result} · ${visit.outcome.feedback}`, at: `${dayLabel(visit.day)} · ${visit.steps.at(-1)?.at ?? visit.time}` })
+  const checkIn = visit.steps.find((step) => step.kind === 'check-in')
+  if (checkIn) events.push({ key: `sv-in-${visit.id}`, kind: 'visit', text: `Checked in at ${property} (verified, ${formatDistance(checkIn.distanceM)} away)`, at: `${dayLabel(visit.day)} · ${checkIn.at}` })
+  if (visit.status === 'no-show') events.push({ key: `sv-ns-${visit.id}`, kind: 'visit', text: `No-show: nobody checked in at ${property}`, at: `${dayLabel(visit.day)} · ${visit.time}` })
+  events.push({ key: `sv-${visit.id}`, kind: 'visit', text: `Visit planned at ${property}`, at: `${dayLabel(visit.day)} · ${visit.time}` })
+  return events
+}
+
+const DEFAULT_SETTINGS: CompanySettings = { separatePresales: true, routing: 'round-robin', checkInRadiusM: 200 }
+/** A visit with its lead and property resolved, for screens. */
+export type VisitView = Visit & { lead: Lead; propertyName: string; when: string }
+export type VisitStepResult = { ok: boolean; message: string }
 /** Per-source settings the owner can change on the Lead sources screen (spec §8.3). */
 export type SourceSetting = { connected: boolean; costPerLead: number; teamId: TeamId }
 const DEFAULT_SOURCE_SETTINGS: Record<string, SourceSetting> = Object.fromEntries(
@@ -44,7 +68,10 @@ const DEFAULT_SOURCE_SETTINGS: Record<string, SourceSetting> = Object.fromEntrie
  */
 export function useDemoStore() {
   const [viewerId, setViewerId] = useLocalState<string>('viewer', DEFAULT_VIEWER_ID)
-  const [settings, setSettings] = useLocalState<CompanySettings>('settings', DEFAULT_SETTINGS)
+  const [storedSettings, setSettings] = useLocalState<CompanySettings>('settings', DEFAULT_SETTINGS)
+  const settings: CompanySettings = { ...DEFAULT_SETTINGS, ...storedSettings }
+  const [visits, setVisits] = useLocalState<Visit[]>('visits', SEED_VISITS)
+  const [pretendLocation, setPretendLocation] = useLocalState<PretendLocation>('pretend-location', 'client')
   const [sourceSettings, setSourceSettings] = useLocalState<Record<string, SourceSetting>>('source-settings', DEFAULT_SOURCE_SETTINGS)
   const [arrivals, setArrivals] = useLocalState<number>('arrivals', 0)
   const [addedMembers, setAddedMembers] = useLocalState<Member[]>('added-members', [])
@@ -57,7 +84,6 @@ export function useDemoStore() {
   const [tags, setTags] = useLocalState<Record<number, string[]>>('tags', {})
   const [activity, setActivity] = useLocalState<Activity[]>('activity', [])
   const [stageOverrides, setStageOverrides] = useLocalState<Record<number, number>>('stages', {})
-  const [visitLeadIds, setVisitLeadIds] = useLocalState<number[]>('visits', [])
   const [readLeadIds, setReadLeadIds] = useLocalState<number[]>('read-leads', [])
   const [sentMessages, setSentMessages] = useLocalState<Record<number, string[]>>('sent-messages', {})
   const [tasks, setTasks] = useLocalState<Task[]>('tasks', SEED_TASKS)
@@ -84,11 +110,11 @@ export function useDemoStore() {
         unread,
         ownerId: lead.id in ownerOverrides ? ownerOverrides[lead.id] : lead.ownerId,
         stage: stageOverrides[lead.id] ?? lead.initialStage,
-        visitScheduled: visitLeadIds.includes(lead.id),
+        visitScheduled: visits.some((visit) => visit.leadId === lead.id && isOpenVisit(visit)),
         overdue: unread > 0 && lead.minutesAgo > RESPONSE_SLA_MINUTES,
       }
     }),
-    [addedLeads, leadEdits, ownerOverrides, readLeadIds, stageOverrides, visitLeadIds],
+    [addedLeads, leadEdits, ownerOverrides, readLeadIds, stageOverrides, visits],
   )
   const leads = allLeads.filter((lead) => canSeeLead(viewer, lead.ownerId, members))
   const visibleIds = new Set(leads.map((lead) => lead.id))
@@ -145,7 +171,7 @@ export function useDemoStore() {
       ...(lead.addedInDemo ? [] : [{ key: 'latest', kind: 'message' as const, text: `Buyer messaged: “${lead.message}”`, at: `${relativeMinutes(lead.minutesAgo)} ago` }]),
       ...SEED_RECORDINGS.filter((recording) => recording.leadId === leadId)
         .map((recording) => ({ key: `rec-${recording.id}`, kind: 'call' as const, text: `Call recorded (${formatDuration(recording.duration)}) · ${recording.note}`, at: recording.when })),
-      ...(leadId === SEED_VISIT.leadId ? [{ key: 'seed-visit', kind: 'visit' as const, text: 'Visit planned at The Courtyard House', at: SEED_VISIT.time }] : []),
+      ...SEED_VISITS.filter((visit) => visit.leadId === leadId).flatMap((visit) => seedVisitEvents(visit)),
       ...(seedOwner ? [{ key: 'seed-owner', kind: 'assign' as const, text: `Assigned to ${findMember(seedOwner)?.name} by routing`, at: 'On arrival' }] : []),
       { key: 'enquiry', kind: 'enquiry', text: lead.addedInDemo ? 'Lead captured with Quick capture' : `First enquiry via ${lead.source}`, at: lead.addedInDemo ? 'Today' : 'Earlier' },
     ]
@@ -163,15 +189,23 @@ export function useDemoStore() {
   const escalations = leads.filter((lead) => lead.overdue || lead.ownerId === null)
   const activeValueCr = leads.reduce((sum, lead) => sum + lead.budgetCr, 0)
   const weightedCommissionCr = leads.reduce((sum, lead) => sum + lead.budgetCr * COMMISSION_RATE * STAGE_CLOSE_PROBABILITY[lead.stage], 0)
-  /** Visits in date order: the seeded visit today, then every visit booked in the demo (coming Saturday). */
-  const upcomingVisits: { lead: Lead; when: string }[] = [
-    ...leads.filter((lead) => lead.id === SEED_VISIT.leadId).map((lead) => ({ lead, when: SEED_VISIT.time })),
-    ...visitLeadIds
-      .filter((id) => id !== SEED_VISIT.leadId)
-      .map((id) => findLead(id))
-      .filter((lead): lead is Lead => !!lead)
-      .map((lead) => ({ lead, when: `${nextSaturdayLabel()} · 11:30 AM` })),
-  ]
+  // ---------- Visits (spec §8.6) ----------
+  /** Visits the viewer may see (on visible leads, or their own), soonest first. */
+  const visibleVisits: VisitView[] = visits
+    .map((visit) => {
+      const lead = allLeads.find((item) => item.id === visit.leadId)
+      return lead ? { ...visit, lead, propertyName: PROPERTIES.find((p) => p.id === visit.propertyId)?.name ?? 'Property', when: `${dayLabel(visit.day)} · ${visit.time}` } : null
+    })
+    .filter((visit): visit is VisitView => !!visit && (visibleIds.has(visit.leadId) || visit.agentId === viewer.id))
+    .sort((a, b) => a.day - b.day || slotMinutes(a.time) - slotMinutes(b.time))
+  /** Open visits from today on, soonest first ("Up next" on Today). */
+  const upcomingVisits = visibleVisits.filter((visit) => visit.day >= 0 && isOpenVisit(visit))
+  /** The office a person checks in at: their team's, or HQ. */
+  const officeFor = (person: Member | undefined): Office => OFFICES.find((office) => office.teamId === person?.teamId) ?? OFFICES[0]
+
+  function updateVisit(visitId: number, change: (visit: Visit) => Visit) {
+    setVisits((current) => current.map((visit) => (visit.id === visitId ? change(visit) : visit)))
+  }
 
   return {
     // People & access
@@ -208,6 +242,9 @@ export function useDemoStore() {
     activeValueCr,
     weightedCommissionCr,
     upcomingVisits,
+    visits: visibleVisits,
+    pretendLocation,
+    officeFor,
     extraReminderAdded: tasks.some((task) => task.id === EXTRA_REMINDER.id),
 
     // ---------- Actions ----------
@@ -286,13 +323,62 @@ export function useDemoStore() {
       setStageOverrides((current) => ({ ...current, [leadId]: next }))
       log(leadId, 'stage', `Moved to ${STAGES[next]}`)
     },
-    /** Books the Saturday visit and moves the lead to "Visit planned" unless it is already further along. */
-    scheduleVisit: (leadId: number) => {
+    /** Books a visit and moves the lead to "Visit planned" unless it is already further along. Returns the confirmation text. */
+    scheduleVisit: (leadId: number, plan: { day: number; time: string; propertyId: number; agentId: string }) => {
       const lead = findLead(leadId)
-      if (!lead) return
-      setVisitLeadIds((current) => (current.includes(leadId) ? current : [...current, leadId]))
+      if (!lead) return ''
+      const property = PROPERTIES.find((item) => item.id === plan.propertyId)
+      setVisits((current) => [...current, { id: Date.now(), leadId, ...plan, status: 'planned', steps: [] }])
       setStageOverrides((current) => ({ ...current, [leadId]: Math.max(lead.stage, 2) }))
-      log(leadId, 'visit', `Visit booked for ${nextSaturdayLabel()} · 11:30 AM`)
+      const agent = findMember(plan.agentId)
+      log(leadId, 'visit', `Visit booked: ${property?.name} · ${dayLabel(plan.day)} ${plan.time}${agent ? ` with ${agent.name}` : ''}`)
+      return `Visit confirmed: ${property?.name}, ${property?.locality}, ${dayLabel(plan.day)} at ${plan.time}. I’ll share the location pin before we meet.`
+    },
+    setPretendLocation,
+    /**
+     * One step of the agent's visit flow, from a single location reading (spec §8.6):
+     * "Left office" is recorded wherever it happens; "Check in" is refused beyond the radius or
+     * if the reading is too imprecise; "Check out" needs a verified check-in first.
+     */
+    recordVisitStep: (visitId: number, step: 'left-office' | 'check-in' | 'check-out', reading: Reading): VisitStepResult => {
+      const visit = visits.find((item) => item.id === visitId)
+      const property = PROPERTIES.find((item) => item.id === visit?.propertyId)
+      if (!visit || !property) return { ok: false, message: 'Visit not found.' }
+      const at = clockLabel()
+      const radius = settings.checkInRadiusM
+      if (step === 'left-office') {
+        const office = officeFor(findMember(visit.agentId))
+        const fromOffice = Math.round(distanceM(reading, office))
+        const note = fromOffice <= radius ? undefined : `${formatDistance(fromOffice)} from ${office.name}`
+        updateVisit(visitId, (current) => ({ ...current, status: 'on-the-way', steps: [...current.steps, { kind: 'left-office', at, distanceM: fromOffice, accuracyM: reading.accuracyM, note }] }))
+        log(visit.leadId, 'visit', `Left for the visit at ${at}${note ? ` (${note})` : ' from the office'}`)
+        return { ok: true, message: note ? `Recorded. You were ${note}.` : 'Recorded: left the office.' }
+      }
+      const away = Math.round(distanceM(reading, property))
+      if (step === 'check-in') {
+        const tooVague = reading.accuracyM > MAX_ACCURACY_M
+        if (away > radius || tooVague) {
+          const message = tooVague
+            ? `Your location is only accurate to ${formatDistance(reading.accuracyM)}. Move to an open spot and try again.`
+            : `You’re ${formatDistance(away)} from ${property.name}. Move closer to check in.`
+          updateVisit(visitId, (current) => ({ ...current, steps: [...current.steps, { kind: 'check-in-refused', at, distanceM: away, accuracyM: reading.accuracyM, note: tooVague ? 'Location too imprecise' : 'Too far from the property' }] }))
+          log(visit.leadId, 'visit', `Check-in refused at ${at}: ${tooVague ? 'location too imprecise' : `${formatDistance(away)} from ${property.name}`}`)
+          return { ok: false, message }
+        }
+        updateVisit(visitId, (current) => ({ ...current, status: 'checked-in', steps: [...current.steps, { kind: 'check-in', at, distanceM: away, accuracyM: reading.accuracyM }] }))
+        log(visit.leadId, 'visit', `Checked in at ${property.name} (verified, ${formatDistance(away)} away)`)
+        return { ok: true, message: `Checked in at ${property.name}.` }
+      }
+      if (visit.status !== 'checked-in') return { ok: false, message: 'Check in before checking out.' }
+      updateVisit(visitId, (current) => ({ ...current, steps: [...current.steps, { kind: 'check-out', at, distanceM: away, accuracyM: reading.accuracyM }] }))
+      return { ok: true, message: 'Checked out. Add the visit outcome.' }
+    },
+    /** Required after check-out: what the buyer thought and what happens next. */
+    completeVisit: (visitId: number, outcome: VisitOutcome) => {
+      const visit = visits.find((item) => item.id === visitId)
+      if (!visit) return
+      updateVisit(visitId, (current) => ({ ...current, status: 'completed', outcome }))
+      log(visit.leadId, 'visit', `Visit outcome: ${outcome.result}${outcome.feedback ? ` · ${outcome.feedback}` : ''}${outcome.nextStep ? ` · Next: ${outcome.nextStep}` : ''}`)
     },
     sendMessage: (leadId: number, text: string) => {
       setSentMessages((current) => ({ ...current, [leadId]: [...(current[leadId] ?? []), text] }))

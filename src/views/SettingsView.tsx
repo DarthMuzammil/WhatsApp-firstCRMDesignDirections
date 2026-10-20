@@ -1,4 +1,5 @@
 import { ROLE_LABELS, type Role } from '../data/team'
+import { CHECK_IN_RADIUS_OPTIONS, OFFICES } from '../data/visits'
 import { Icon } from '../components/Icon'
 import { PERMISSION_LABELS, ROLE_PERMISSIONS, type Permission } from '../lib/permissions'
 import type { DemoStore, RoutingMode } from '../state/useDemoStore'
@@ -52,6 +53,21 @@ export function SettingsView({ store, notify }: { store: DemoStore; notify: (mes
           </div>
         </section>
       </div>
+
+      <section className="card settings-section">
+        <header className="card-head"><div><h2>Field check-ins</h2><p>Location is read once, when someone taps Left office, Check in or Check out. There is no live tracking.</p></div></header>
+        <div className="setting-row static">
+          <span><strong>Check-in radius</strong><small>Check-ins further than this from the visit address or office are refused.</small></span>
+          <div className="segmented" role="radiogroup" aria-label="Check-in radius">
+            {CHECK_IN_RADIUS_OPTIONS.map((metres) => (
+              <button key={metres} role="radio" aria-checked={settings.checkInRadiusM === metres} className={settings.checkInRadiusM === metres ? 'active' : ''} onClick={() => { store.updateSettings({ checkInRadiusM: metres }); notify(`Check-in radius set to ${metres} m`) }}>{metres} m</button>
+            ))}
+          </div>
+        </div>
+        <ul className="office-list">
+          {OFFICES.map((office) => <li key={office.name}><Icon name="pin" size={16} /><span><strong>{office.name}</strong><small>{office.address}</small></span></li>)}
+        </ul>
+      </section>
 
       <section className="card settings-section">
         <header className="card-head"><div><h2>Roles and permissions</h2><p>A person can hold more than one role; they get everything each role allows. Custom roles come later.</p></div></header>

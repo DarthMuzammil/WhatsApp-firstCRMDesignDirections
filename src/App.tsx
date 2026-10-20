@@ -18,6 +18,7 @@ import { PropertiesView } from './views/PropertiesView'
 import { SettingsView } from './views/SettingsView'
 import { TeamView } from './views/TeamView'
 import { TodayView } from './views/TodayView'
+import { VisitsView } from './views/VisitsView'
 import './App.css'
 
 /**
@@ -86,6 +87,7 @@ export default function App() {
       <main className="app-main" ref={mainRef}>
         {view === 'today' && <TodayView store={store} onOpenLead={showLead} onAddLead={() => setAddLeadOpen(true)} onNavigate={navigate} notify={notify} />}
         {view === 'chat' && openLead && <ChatView key={openLead.id} lead={openLead} store={store} onBack={() => setView(chatOrigin)} onCall={startCall} onNavigate={navigate} notify={notify} />}
+        {view === 'visits' && <VisitsView store={store} onOpenLead={showLead} notify={notify} />}
         {view === 'pipeline' && <PipelineView store={store} onOpenLead={showLead} notify={notify} />}
         {view === 'properties' && <PropertiesView store={store} notify={notify} />}
         {view === 'tasks' && <FollowUpsView store={store} onOpenLead={showLead} onCall={startCall} />}

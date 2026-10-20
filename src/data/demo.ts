@@ -72,6 +72,9 @@ export type Property = {
   bedrooms: string
   area: string
   image: string
+  /** Address coordinates, used to verify visit check-ins (spec §8.6). */
+  lat: number
+  lng: number
 }
 
 export type TaskChannel = 'WhatsApp' | 'Call' | 'Send details'
@@ -80,9 +83,9 @@ export type Task = { id: number; leadId: number; time: string; title: string; no
 export type Recording = { id: number; leadId: number; when: string; duration: number; note: string }
 
 export const PROPERTIES: Property[] = [
-  { id: 1, name: 'The Courtyard House', locality: 'Indiranagar', city: 'Bengaluru', price: '₹2.65 Cr', bedrooms: '3 BHK', area: '1,865 sq ft', image: 'https://images.unsplash.com/photo-1745301558339-44eb3217d5da?auto=format&fit=crop&w=1200&q=85' },
-  { id: 2, name: 'Windermere Residences', locality: 'Whitefield', city: 'Bengaluru', price: '₹3.40 Cr', bedrooms: '4 BHK', area: '2,840 sq ft', image: 'https://images.unsplash.com/photo-1641356916420-a4b06a824bb7?auto=format&fit=crop&w=1200&q=85' },
-  { id: 3, name: 'Lakeview Terraces', locality: 'HSR Layout', city: 'Bengaluru', price: '₹1.48 Cr', bedrooms: '2 BHK', area: '1,260 sq ft', image: 'https://images.unsplash.com/photo-1686569860484-b0b79f5d7959?auto=format&fit=crop&w=1200&q=85' },
+  { id: 1, name: 'The Courtyard House', locality: 'Indiranagar', city: 'Bengaluru', price: '₹2.65 Cr', bedrooms: '3 BHK', area: '1,865 sq ft', lat: 12.9784, lng: 77.6408, image: 'https://images.unsplash.com/photo-1745301558339-44eb3217d5da?auto=format&fit=crop&w=1200&q=85' },
+  { id: 2, name: 'Windermere Residences', locality: 'Whitefield', city: 'Bengaluru', price: '₹3.40 Cr', bedrooms: '4 BHK', area: '2,840 sq ft', lat: 12.9757, lng: 77.7262, image: 'https://images.unsplash.com/photo-1641356916420-a4b06a824bb7?auto=format&fit=crop&w=1200&q=85' },
+  { id: 3, name: 'Lakeview Terraces', locality: 'HSR Layout', city: 'Bengaluru', price: '₹1.48 Cr', bedrooms: '2 BHK', area: '1,260 sq ft', lat: 12.9081, lng: 77.6476, image: 'https://images.unsplash.com/photo-1686569860484-b0b79f5d7959?auto=format&fit=crop&w=1200&q=85' },
 ]
 
 export const SEED_LEADS: LeadSeed[] = [
@@ -181,9 +184,6 @@ export const SEED_RECORDINGS: Recording[] = [
   { id: 104, leadId: 8, when: 'Today · 10:15 AM', duration: 512, note: 'Owner open to ₹4 Cr if registration is done this month.' },
   { id: 105, leadId: 6, when: 'Yesterday · 6:40 PM', duration: 196, note: 'Explained school distances for the shortlist.' },
 ]
-
-/** The visit already on the broker's calendar when the demo starts. Booked visits are added after it. */
-export const SEED_VISIT = { leadId: 1, time: 'Today · 11:30 AM' }
 
 /** Fixed demo metrics that are not derived from the seed data. */
 export const DEMO_METRICS = {
