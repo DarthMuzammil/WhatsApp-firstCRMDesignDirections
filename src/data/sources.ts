@@ -13,8 +13,6 @@ export type LeadSource = {
   avgResponseMin: number
   defaultCostPerLead: number
   defaultTeamId: TeamId
-  /** Portals sell one enquiry to several brokers; used for the shared-lead badge on simulated arrivals. */
-  sharedWith?: number
   /** Can the demo simulate a lead arriving from here? (Referrals and walk-ins are entered by hand.) */
   canSimulate: boolean
   /** Status for sources captured by hand rather than connected ("Manual capture"). */
@@ -22,9 +20,9 @@ export type LeadSource = {
 }
 
 export const LEAD_SOURCES: LeadSource[] = [
-  { name: '99acres', kind: 'Portal', leadsThisWeek: 38, avgResponseMin: 6, defaultCostPerLead: 450, defaultTeamId: 'indiranagar', sharedWith: 6, canSimulate: true },
-  { name: 'MagicBricks', kind: 'Portal', leadsThisWeek: 27, avgResponseMin: 9, defaultCostPerLead: 400, defaultTeamId: 'hsr', sharedWith: 5, canSimulate: true },
-  { name: 'Housing', kind: 'Portal', leadsThisWeek: 21, avgResponseMin: 11, defaultCostPerLead: 350, defaultTeamId: 'whitefield', sharedWith: 4, canSimulate: true },
+  { name: '99acres', kind: 'Portal', leadsThisWeek: 38, avgResponseMin: 6, defaultCostPerLead: 450, defaultTeamId: 'indiranagar', canSimulate: true },
+  { name: 'MagicBricks', kind: 'Portal', leadsThisWeek: 27, avgResponseMin: 9, defaultCostPerLead: 400, defaultTeamId: 'hsr', canSimulate: true },
+  { name: 'Housing', kind: 'Portal', leadsThisWeek: 21, avgResponseMin: 11, defaultCostPerLead: 350, defaultTeamId: 'whitefield', canSimulate: true },
   { name: 'Facebook ads', kind: 'Ads', leadsThisWeek: 44, avgResponseMin: 14, defaultCostPerLead: 180, defaultTeamId: 'hsr', canSimulate: true },
   { name: 'WhatsApp', kind: 'Messaging', leadsThisWeek: 19, avgResponseMin: 3, defaultCostPerLead: 0, defaultTeamId: 'whitefield', canSimulate: true },
   { name: 'Walk-in', kind: 'Offline', leadsThisWeek: 6, avgResponseMin: 0, defaultCostPerLead: 0, defaultTeamId: 'indiranagar', canSimulate: false },

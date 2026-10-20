@@ -7,10 +7,10 @@ let p = await b.newPage({ viewport: { width: 1440, height: 900 } })
 p.on('pageerror', e => errs.push(e.message)); p.on('console', m => m.type() === 'error' && errs.push(m.text()))
 await p.goto(BASE_URL); await p.evaluate(() => localStorage.clear()); await p.reload(); await p.waitForTimeout(800)
 const panel = '.lead-detail'
-ok((await p.locator('.lead-row:has-text("Ananya") .lead-flag.shared').innerText()) === 'Also with 6 brokers', 'lead row shows "Also with 6 brokers"')
-ok(await p.locator('.lead-row:has-text("Deepak") .lead-flag').count() === 1 && (await p.locator('.lead-row:has-text("Deepak") .lead-flag').innerText()) === 'Overdue', 'one flag per row: Overdue wins over shared (Deepak)')
+ok(await p.locator('.lead-row:has-text("Ananya") .lead-flag').count() === 0, 'portal lead rows have no shared flag')
+ok(await p.locator('.lead-row:has-text("Deepak") .lead-flag').count() === 1 && (await p.locator('.lead-row:has-text("Deepak") .lead-flag').innerText()) === 'Overdue', 'one flag per row: Overdue (Deepak)')
 await p.click('.lead-row:has-text("Ananya")')
-ok(await p.locator(`${panel} .shared-lead`).isVisible(), 'shared-lead warning in panel')
+ok(await p.locator(`${panel} .shared-lead`).count() === 0, 'no shared-lead warning in the panel')
 ok(await p.locator(`${panel} .lead-detail-tabs button`).count() === 3, 'three tabs: Overview / Timeline / Notes')
 // Edit brief: invalid then valid
 await p.click(`${panel} .brief-edit`); await p.waitForTimeout(300)

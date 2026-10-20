@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 
 // All demo state is saved in localStorage under this prefix so it survives a
 // page refresh. Bump the version whenever a stored shape changes.
-const STORAGE_PREFIX = 'daira:v11:'
+const STORAGE_PREFIX = 'daira:v12:'
 
 /** useState that persists to localStorage. Falls back to `initialValue` if storage is unavailable or corrupt. */
 export function useLocalState<T>(key: string, initialValue: T) {

@@ -14,7 +14,7 @@ What the app does is described in `PRODUCT_SPEC.md`; this is the order to show i
 | # | Step | What to say | Wow moment |
 |---|---|---|---|
 | 1 | The Owner's morning | "This is what Arjun sees at 9 AM: who's overdue, who hasn't checked in, today's visits and leave requests, one tap each. The AI digest says what needs attention." | Tap a tile: it opens the screen that fixes it. |
-| 2 | A buyer enquires on 99acres | "A portal lead lands, gets an instant WhatsApp reply from Better Days Realty, and is routed to a telecaller. The red note: 99acres sold this buyer to 6 other brokers." | Speed to lead + the shared-lead warning. |
+| 2 | A buyer enquires on 99acres | "A portal lead lands, gets an instant WhatsApp reply from Better Days Realty, and is routed to a telecaller. The buyer hears back in seconds." | Speed to lead. |
 | 3 | Auto-qualification and the AI brief | "Bayana asks budget, area and move-in on WhatsApp. AI fills the brief; a person accepts it." | Answers stream in on their own. |
 | 4 | The telecaller's call queue | "Telecallers get a queue, not a dashboard: who to call next, one tap to call." | Phone numbers are masked for them. |
 | 5 | Hand to Sales | "Qualified: one tap hands it to the HSR salesperson. Notification sent, audit log updated." | |

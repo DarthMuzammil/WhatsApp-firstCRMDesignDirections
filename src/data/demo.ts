@@ -47,8 +47,7 @@ export type LeadSeed = {
   localities?: string[]
   purpose?: Purpose
   /** Portal leads: roughly how many other brokers received the same enquiry (spec §8.5). */
-  sharedWith?: number
-  /** True for leads added during the demo; they start with an empty chat. */
+    /** True for leads added during the demo; they start with an empty chat. */
   addedInDemo?: boolean
   /** True for leads that arrived from a source during the demo; the chat shows only their enquiry. */
   freshEnquiry?: boolean
@@ -85,7 +84,7 @@ const STORY_LEADS: LeadSeed[] = [
     id: 1, name: 'Ananya Rao', initials: 'AR', need: '3 BHK in Indiranagar', budget: '₹2.4–2.8 Cr', budgetCr: 2.6, locality: 'Indiranagar',
     message: 'See you at 11:30 today. Can we also see the corner unit?', enquiry: 'Hi, I’m looking for a 3 BHK in Indiranagar. Is anything good available?',
     minutesAgo: 2, unread: 2, temp: 'Hot', source: '99acres', color: 'coral', online: true, phone: '+91 98861 24018',
-    moveIn: 'Within 3 months', mustHave: 'Natural light · Balcony', initialStage: 2, ownerId: 'm-priya', sharedWith: 6,
+    moveIn: 'Within 3 months', mustHave: 'Natural light · Balcony', initialStage: 2, ownerId: 'm-priya',
   },
   {
     id: 2, name: 'Rohan & Meera', initials: 'RM', need: 'Villa near Whitefield', budget: '₹3.5 Cr', budgetCr: 3.5, locality: 'Whitefield',
@@ -109,7 +108,7 @@ const STORY_LEADS: LeadSeed[] = [
     id: 5, name: 'Deepak Malhotra', initials: 'DM', need: '4 BHK in Whitefield', budget: '₹3–3.4 Cr', budgetCr: 3.2, locality: 'Whitefield',
     message: 'Is the clubhouse ready? Can I visit on Sunday?', enquiry: 'Looking for a 4 BHK in a gated community in Whitefield.',
     minutesAgo: 35, unread: 1, temp: 'Hot', source: 'Housing', color: 'blue', online: true, phone: '+91 98455 61207',
-    moveIn: 'Within 2 months', mustHave: 'Gated · Clubhouse', initialStage: 2, ownerId: 'm-ritu', sharedWith: 5,
+    moveIn: 'Within 2 months', mustHave: 'Gated · Clubhouse', initialStage: 2, ownerId: 'm-ritu',
   },
   {
     id: 6, name: 'Nisha Kulkarni', initials: 'NK', need: '3 BHK in HSR Layout', budget: '₹1.8–2 Cr', budgetCr: 1.9, locality: 'HSR Layout',
@@ -121,7 +120,7 @@ const STORY_LEADS: LeadSeed[] = [
     id: 7, name: 'Farhan Qureshi', initials: 'FQ', need: '2 BHK in Indiranagar', budget: '₹1.5–1.7 Cr', budgetCr: 1.6, locality: 'Indiranagar',
     message: 'Hi, is the 2 BHK on 12th Main still available?', enquiry: 'Hi, is the 2 BHK on 12th Main still available?',
     minutesAgo: 8, unread: 1, temp: 'New', source: '99acres', color: 'gold', online: true, phone: '+91 97390 22814',
-    moveIn: 'To confirm', mustHave: 'To confirm', initialStage: 0, ownerId: null, sharedWith: 4,
+    moveIn: 'To confirm', mustHave: 'To confirm', initialStage: 0, ownerId: null,
   },
   {
     id: 8, name: 'Lavanya Subramaniam', initials: 'LS', need: 'Villa in Whitefield', budget: '₹4–4.2 Cr', budgetCr: 4.1, locality: 'Whitefield',
@@ -133,7 +132,7 @@ const STORY_LEADS: LeadSeed[] = [
     id: 9, name: 'Gaurav Bhatia', initials: 'GB', need: '3 BHK in Indiranagar', budget: '₹2.8–3 Cr', budgetCr: 2.9, locality: 'Indiranagar',
     message: 'What are the maintenance charges and is there covered parking?', enquiry: 'Interested in 3 BHK options near 100 Feet Road.',
     minutesAgo: 25, unread: 2, temp: 'Warm', source: 'MagicBricks', color: 'blue', online: false, phone: '+91 99459 31876',
-    moveIn: 'Within 6 months', mustHave: 'Covered parking', initialStage: 1, ownerId: 'm-aditya', sharedWith: 3,
+    moveIn: 'Within 6 months', mustHave: 'Covered parking', initialStage: 1, ownerId: 'm-aditya',
   },
   {
     id: 10, name: 'Pooja Venkatesh', initials: 'PV', need: '2 BHK in HSR Layout', budget: '₹1.2–1.3 Cr', budgetCr: 1.25, locality: 'HSR Layout',
@@ -151,7 +150,7 @@ const STORY_LEADS: LeadSeed[] = [
     id: 12, name: 'Ishita Banerjee', initials: 'IB', need: '3 BHK in Indiranagar', budget: '₹2.4–2.6 Cr', budgetCr: 2.5, locality: 'Indiranagar',
     message: 'Could you send the floor plans for the Courtyard House?', enquiry: 'Hi, I liked the Courtyard House listing. Is it still available?',
     minutesAgo: 1580, unread: 0, temp: 'Hot', source: '99acres', color: 'coral', online: false, phone: '+91 99723 18850',
-    moveIn: 'Within 3 months', mustHave: 'Low floor · Pet friendly', initialStage: 1, ownerId: 'm-priya', sharedWith: 6,
+    moveIn: 'Within 3 months', mustHave: 'Low floor · Pet friendly', initialStage: 1, ownerId: 'm-priya',
   },
 ]
 

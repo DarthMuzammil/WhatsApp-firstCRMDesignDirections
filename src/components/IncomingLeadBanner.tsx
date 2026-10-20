@@ -24,7 +24,7 @@ export function IncomingLeadBanner({ arrival, onOpen, onDismiss }: { arrival: Ar
         <span>
           <strong>{lead.name}</strong>
           <small>{lead.need} · {lead.budget}</small>
-          <small>{owner ? `Assigned to ${owner.name}` : 'Waiting in the unassigned queue'}{lead.sharedWith ? ` · also sent to ~${lead.sharedWith} brokers` : ''}</small>
+          <small>{owner ? `Assigned to ${owner.name}` : 'Waiting in the unassigned queue'}</small>
         </span>
       </div>
       <footer>

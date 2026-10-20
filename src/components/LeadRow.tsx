@@ -5,11 +5,10 @@ import './LeadRow.css'
 
 type Flag = { label: string; tone: string; title?: string }
 
-/** At most one coloured flag per row, the most urgent: closed (Won/Lost), then Overdue, then shared with other brokers. */
+/** At most one coloured flag per row, the most urgent: closed (Won/Lost), then Overdue. */
 function rowFlag(lead: Lead): Flag | null {
   if (lead.closed) return lead.closed.result === 'won' ? { label: 'Won', tone: 'won' } : { label: 'Lost', tone: 'closed' }
   if (lead.overdue) return { label: 'Overdue', tone: 'danger', title: 'Waiting more than 15 minutes for a reply' }
-  if (lead.sharedWith) return { label: `Also with ${lead.sharedWith} brokers`, tone: 'shared', title: `The portal sent this enquiry to about ${lead.sharedWith} other brokers` }
   return null
 }
 

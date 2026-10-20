@@ -46,7 +46,7 @@ export function LeadSourcesView({ store, onSimulate }: { store: DemoStore; onSim
           <article key={source.name} className={`source-row ${setting.connected ? '' : 'is-off'}`}>
             <span className="source-name">
               <strong>{source.name}</strong>
-              <small>{source.kind}{source.sharedWith ? ` · shared with ~${source.sharedWith} brokers` : ''}</small>
+              <small>{source.kind}</small>
             </span>
             <span className={`source-status ${setting.connected ? 'on' : ''}`}>
               <i className="status-dot" /> {setting.connected ? (source.manual ?? (source.kind === 'Offline' ? 'Manual entry' : 'Connected')) : 'Not connected'}

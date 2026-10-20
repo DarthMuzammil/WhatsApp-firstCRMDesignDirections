@@ -24,7 +24,6 @@ export function leadScore(lead: Lead): { score: number; label: string; reasons: 
   if (lead.visitScheduled) { score += 10; reasons.push('visit booked') }
   if (lead.minutesAgo <= 30) { score += 15; reasons.push(lead.minutesAgo < 1 ? 'replied just now' : `replied ${lead.minutesAgo} min ago`) } else if (lead.minutesAgo > 24 * 60) { score -= 15; reasons.push('quiet for over a day') }
   if (lead.temp === 'Hot') score += 10
-  if (lead.sharedWith) { score -= 5; reasons.push(`also with ~${lead.sharedWith} brokers`) }
   score = Math.max(5, Math.min(98, score))
   return { score, label: score >= 75 ? 'Hot' : score >= 50 ? 'Warm' : 'Cool', reasons: reasons.slice(0, 4) }
 }

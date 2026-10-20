@@ -474,7 +474,7 @@ export function useDemoStore() {
       const lead: LeadSeed = {
         ...template, id, source: source.name, enquiry: template.message, minutesAgo: 0, unread: 1, online: true,
         budget: 'Budget to qualify', budgetCr: 0, moveIn: 'To confirm', mustHave: 'To confirm',
-        initialStage: 0, ownerId: null, sharedWith: source.sharedWith, freshEnquiry: true,
+        initialStage: 0, ownerId: null, freshEnquiry: true,
         answers: { budget: template.budget, budgetCr: template.budgetCr, moveIn: template.moveIn === 'To confirm' ? 'Within 3 months' : template.moveIn },
       }
       const ownerId = routeLead(lead)

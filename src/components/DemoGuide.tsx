@@ -81,7 +81,7 @@ export function DemoGuide({ store, onSimulate, onOpenLead, onNavigate, notify, o
     },
     {
       title: 'A buyer enquires on 99acres',
-      say: 'The enquiry lands in Bayana within seconds: routed to Pre-sales, an automatic WhatsApp reply goes out, and the portal’s “also sent to other brokers” warning shows.',
+      say: 'The enquiry lands in Bayana within seconds: routed to Pre-sales, and an automatic WhatsApp reply goes out in seconds, so the buyer hears back before anyone else calls.',
       action: 'Send a 99acres enquiry',
       run: () => {
         store.setViewer(OWNER_ID)

@@ -319,7 +319,7 @@ type DetailsTab = 'overview' | 'timeline' | 'notes'
 
 /**
  * Everything about a lead, in three tabs. Rendered in the desktop side panel and in the phone details sheet.
- * Overview runs from what matters when replying (owner, stage and budget, the shared-lead warning, AI score, deal,
+ * Overview runs from what matters when replying (owner, stage and budget, AI score, deal,
  * matching homes) to reference details (buyer brief, tags); ownership history is folded away.
  */
 function LeadDetails({ lead, store, actions, onAssign, onEdit, onDeal, onRegistration }: LeadDetailsProps) {
@@ -381,10 +381,6 @@ function LeadOverview({ lead, store, actions, onAssign, onEdit, onDeal, onRegist
       <div><span className="eyebrow">{lead.closed ? (lead.closed.result === 'won' ? 'Won' : 'Lost') : STAGES[lead.stage]}</span><h2>{lead.budget}</h2><p>{lead.need}</p></div>
       <HeatBadge temp={lead.temp} />
     </div>
-
-    {lead.sharedWith ? (
-      <p className="shared-lead" role="note"><Icon name="alert" size={16} /><span><strong>Also sent to ~{lead.sharedWith} brokers</strong> by {lead.source}. Call now to be first.</span></p>
-    ) : null}
 
     <AiScore lead={lead} />
 
