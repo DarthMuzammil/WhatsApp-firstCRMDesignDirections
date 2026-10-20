@@ -1,0 +1,55 @@
+.brand { padding: 0; border: 0; display: flex; align-items: center; gap: 10px; background: transparent; }
+.brand-mark { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 10px; color: #1a2b30; background: var(--mint); font-size: 17px; font-weight: 800; }
+.brand strong { font-size: 19px; font-weight: 800; letter-spacing: -.02em; }
+
+/* Desktop / tablet sidebar */
+.sidebar { position: sticky; top: 0; width: 232px; height: 100vh; flex: 0 0 auto; padding: 26px 16px 20px; display: flex; flex-direction: column; color: #dfe3f1; background: var(--navy); }
+.sidebar > .brand { margin: 0 10px 30px; }
+.sidebar-nav { display: flex; flex-direction: column; gap: 4px; }
+.sidebar-nav button { height: 46px; padding: 0 14px; border: 0; border-radius: 11px; display: flex; align-items: center; gap: 12px; color: #b4bcd1; background: transparent; font-size: var(--fs-body); font-weight: 600; transition: background .18s ease, color .18s ease; }
+.sidebar-nav button:hover { color: white; background: var(--navy-raised); }
+.sidebar-nav button.active { color: #17213c; background: var(--mint); font-weight: 800; box-shadow: 0 7px 18px #10172c30; }
+.sidebar-nav b { min-width: 22px; height: 22px; margin-left: auto; padding: 0 6px; border-radius: 11px; display: grid; place-items: center; color: #17213c; background: var(--mint); font-size: var(--fs-meta); }
+.sidebar-nav button.active b { color: white; background: var(--navy); }
+.sidebar-status { margin-top: auto; padding: 16px; border: 1px solid #3a4668; border-radius: 13px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; background: #273252; }
+.sidebar-status > svg { color: var(--mint); }
+.sidebar-status strong { font-size: var(--fs-body-sm); }
+.sidebar-status > span { color: #a3acc4; font-size: var(--fs-caption); line-height: 1.5; }
+.sidebar-progress { width: 100%; height: 4px; margin-top: 4px; overflow: hidden; border-radius: 2px; background: #3e4868; }
+.sidebar-progress i { display: block; height: 100%; border-radius: 2px; background: var(--mint); transition: width .3s ease; }
+.sidebar-user { margin-top: 16px; padding: 16px 4px 0; border-top: 1px solid #36415f; display: flex; align-items: center; gap: 10px; }
+.sidebar-user > span:not(.avatar) { min-width: 0; flex: 1; display: flex; flex-direction: column; }
+.sidebar-user strong, .sidebar-user small { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.sidebar-user .account-menu-trigger { min-width: 32px; }
+.sidebar-user strong { font-size: var(--fs-body-sm); }
+.sidebar-user small { color: #97a0ba; font-size: var(--fs-caption); }
+
+/* Phone header and tab bar (hidden on larger screens) */
+.mobile-top-bar, .mobile-tab-bar { display: none; }
+
+@media (max-width: 1100px) {
+  .sidebar { width: 212px; }
+}
+
+@media (max-width: 760px) {
+  .sidebar { display: none; }
+
+  .mobile-top-bar { position: fixed; inset: 0 0 auto; z-index: 80; height: 60px; padding: 0 12px 0 16px; border-bottom: 1px solid #e6e8ed; display: flex; align-items: center; gap: 8px; background: #ffffffed; backdrop-filter: blur(12px); }
+  .mobile-top-bar .brand-mark { width: 30px; height: 30px; }
+  .mobile-top-bar .brand strong { font-size: var(--fs-title); }
+  .mobile-top-bar .brand { min-height: var(--tap); }
+  .whatsapp-status { margin-left: auto; color: var(--muted); display: flex; align-items: center; gap: 6px; font-size: var(--fs-caption); white-space: nowrap; }
+  .whatsapp-status i { width: 7px; height: 7px; border-radius: 50%; background: var(--success); box-shadow: 0 0 0 3px var(--success-soft); }
+  .mobile-top-bar .account-menu-trigger { width: var(--tap); height: var(--tap); }
+  .mobile-add { width: 40px; height: 40px; padding: 0; border: 0; border-radius: 12px; display: grid; place-items: center; color: white; background: var(--primary); box-shadow: 0 6px 15px #5646ce35; }
+
+  .mobile-tab-bar { position: fixed; inset: auto 0 0; z-index: 90; height: calc(68px + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom); border-top: 1px solid #e0e2e6; display: flex; background: white; box-shadow: 0 -8px 25px #1f29400c; }
+  .mobile-tab-bar button { flex: 1; min-height: 60px; border: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: var(--muted); background: transparent; font-size: var(--fs-meta); font-weight: 600; }
+  .mobile-tab-bar button.active { color: var(--primary); font-weight: 800; }
+  .tab-icon { position: relative; display: grid; }
+  .tab-icon b { position: absolute; top: -6px; right: -11px; min-width: 18px; height: 18px; padding: 0 5px; border: 2px solid white; border-radius: 9px; display: grid; place-items: center; color: white; background: var(--primary); font-size: var(--fs-meta); }
+}
+
+@media (max-width: 360px) {
+  .whatsapp-status { font-size: 0; gap: 0; }
+}

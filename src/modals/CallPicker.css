@@ -1,0 +1,23 @@
+.picker-backdrop { position: fixed; inset: 0; z-index: 205; padding: 20px; display: grid; place-items: center; background: #12172999; backdrop-filter: blur(7px); animation: fade .18s ease; }
+.call-picker { width: min(500px, 100%); max-height: min(680px, calc(100dvh - 40px)); padding: 24px; border-radius: 20px; display: flex; flex-direction: column; color: var(--ink); background: #fbfbfc; box-shadow: 0 30px 90px #11182c66; animation: rise .22s ease; }
+.picker-handle { display: none; }
+.call-picker > header { margin-bottom: 18px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.call-picker h2 { margin: 6px 0 4px; font-size: var(--fs-title-lg); letter-spacing: -.02em; }
+.call-picker header p { color: var(--muted); font-size: var(--fs-body-sm); line-height: 1.5; }
+.picker-section { margin: 16px 4px 6px; }
+.contact-list { min-height: 120px; margin-top: 8px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
+.contact-list > button { width: 100%; min-height: 68px; padding: 10px; border: 1px solid transparent; border-radius: 12px; display: flex; align-items: center; gap: 12px; text-align: left; background: transparent; transition: background .15s ease; }
+.contact-list > button:hover { border-color: var(--border); background: white; }
+.contact-list > button > span:nth-child(2) { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.contact-list strong { font-size: var(--fs-title-sm); }
+.contact-list small { overflow: hidden; color: var(--muted); font-size: var(--fs-caption); white-space: nowrap; text-overflow: ellipsis; }
+.contact-call { width: 40px; height: 40px; flex: 0 0 auto; border-radius: 50%; display: grid; place-items: center; color: var(--success-ink); background: var(--success-soft); }
+.call-picker > footer { margin-top: 14px; padding: 12px 14px; border-radius: 10px; display: flex; align-items: center; gap: 10px; color: #4f6357; background: #eef5f0; font-size: var(--fs-caption); line-height: 1.45; }
+.call-picker > footer svg { flex: 0 0 auto; color: var(--success); }
+
+@media (max-width: 760px) {
+  .picker-backdrop { padding: 0; place-items: end stretch; }
+  .call-picker { width: 100%; max-height: 88dvh; padding: 12px 16px calc(20px + env(safe-area-inset-bottom)); border-radius: 22px 22px 0 0; }
+  .picker-handle { width: 40px; height: 4px; margin: 0 auto 16px; border-radius: 3px; display: block; background: #d5d8df; }
+  .contact-list > button { padding-inline: 4px; }
+}

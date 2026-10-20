@@ -1,0 +1,9 @@
+.avatar { position: relative; flex: 0 0 auto; display: grid; place-items: center; border-radius: 50%; color: #272727; font-weight: 800; }
+.avatar-sm { width: 36px; height: 36px; font-size: var(--fs-caption); }
+.avatar-md { width: 44px; height: 44px; font-size: var(--fs-body-sm); }
+.avatar-lg { width: 88px; height: 88px; font-size: var(--fs-display-sm); }
+.avatar-coral { background: #f3b6a3; }
+.avatar-violet { background: #c8bcdf; }
+.avatar-blue { background: #b7cee5; }
+.avatar-gold { background: #e8d39c; }
+.avatar-online { position: absolute; right: 0; bottom: 1px; width: 11px; height: 11px; border: 2px solid white; border-radius: 50%; background: var(--success); }

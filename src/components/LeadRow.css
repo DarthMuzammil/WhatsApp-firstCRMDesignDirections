@@ -1,0 +1,19 @@
+.lead-row { width: 100%; padding: 16px 20px; border: 0; border-bottom: 1px solid var(--border-soft); display: flex; gap: 14px; text-align: left; background: transparent; transition: background .15s ease; }
+.lead-row:last-child { border-bottom: 0; }
+.lead-row:hover { background: var(--surface-subtle); }
+.lead-row-copy { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.lead-row-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.lead-row-top strong { font-size: var(--fs-title-sm); font-weight: 700; }
+.lead-row-top time { color: var(--faint); font-size: var(--fs-caption); white-space: nowrap; }
+.lead-row.has-unread .lead-row-top time { color: var(--success-ink); font-weight: 700; }
+.lead-row-need { overflow: hidden; color: var(--muted); font-size: var(--fs-caption); white-space: nowrap; text-overflow: ellipsis; }
+.lead-row-message { display: flex; align-items: center; gap: 10px; }
+.lead-row-message p { min-width: 0; flex: 1; overflow: hidden; color: var(--ink-soft); font-size: var(--fs-body-sm); white-space: nowrap; text-overflow: ellipsis; }
+.lead-row.has-unread .lead-row-message p { color: var(--ink); font-weight: 600; }
+.lead-row-message b { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; display: grid; place-items: center; color: white; background: var(--success); font-size: var(--fs-meta); }
+.lead-row footer { margin-top: 5px; display: flex; align-items: center; gap: 8px; }
+.lead-row footer > span:last-child { color: var(--faint); font-size: var(--fs-caption); }
+
+@media (max-width: 760px) {
+  .lead-row { padding: 14px 16px; gap: 12px; }
+}

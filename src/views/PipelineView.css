@@ -1,0 +1,51 @@
+.stage-dot { width: 8px; height: 8px; flex: 0 0 auto; border-radius: 50%; background: #8d94a2; }
+.stage-dot.stage-1 { background: #6254d4; }
+.stage-dot.stage-2 { background: #e7a356; }
+.stage-dot.stage-3 { background: #4aaa77; }
+
+.stage-tabs { display: none; }
+
+.pipeline-board { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.pipeline-stage { min-width: 0; padding: 10px; border-radius: 14px; background: #e9ebf0; }
+.pipeline-stage > header { height: 36px; padding: 2px 4px; display: flex; align-items: center; justify-content: space-between; }
+.pipeline-stage > header div { display: flex; align-items: center; gap: 8px; }
+.pipeline-stage > header strong { font-size: var(--fs-body-sm); }
+.pipeline-stage > header span { min-width: 24px; height: 24px; display: grid; place-items: center; border-radius: 12px; color: var(--ink-soft); background: #dadde5; font-size: var(--fs-caption); font-weight: 800; }
+.pipeline-cards { display: flex; flex-direction: column; gap: 8px; }
+
+.deal-card { padding: 14px; border: 1px solid var(--border); border-radius: 12px; background: white; box-shadow: 0 5px 15px #27304e08; animation: rise .22s ease; }
+.deal-person { width: 100%; padding: 0; border: 0; display: flex; align-items: center; gap: 10px; text-align: left; background: transparent; }
+.deal-person > span:not(.avatar) { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.deal-person strong { font-size: var(--fs-body); }
+.deal-person small { overflow: hidden; color: var(--muted); font-size: var(--fs-caption); white-space: nowrap; text-overflow: ellipsis; }
+.deal-person > svg { flex: 0 0 auto; color: var(--faint); }
+.deal-budget { margin: 14px 0 10px; display: flex; align-items: baseline; justify-content: space-between; }
+.deal-budget span { color: var(--muted); font-size: var(--fs-caption); }
+.deal-budget strong { font-size: var(--fs-title-sm); }
+.deal-message { padding: 9px 10px; border-radius: 8px; display: flex; gap: 6px; color: var(--ink-soft); background: var(--surface-subtle); font-size: var(--fs-caption); line-height: 1.45; }
+.deal-message svg { flex: 0 0 auto; margin-top: 1px; color: var(--success); }
+.deal-card footer { margin-top: 12px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.deal-advance { min-height: 32px; padding: 0 10px; border: 0; border-radius: 8px; display: flex; align-items: center; gap: 4px; color: var(--primary); background: var(--primary-soft); font-size: var(--fs-caption); font-weight: 700; }
+.deal-advance:hover { background: #e2dfff; }
+.pipeline-empty { height: 96px; border: 1px dashed #cfd2da; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: var(--faint); font-size: var(--fs-caption); }
+
+/* Tablet: two columns of stages */
+@media (max-width: 1100px) {
+  .pipeline-board { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Phone: tabs pick one stage; cards are full width with big tap targets */
+@media (max-width: 760px) {
+  .stage-tabs { margin: 0 -16px 12px; padding: 0 16px 2px; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+  .stage-tabs button { flex: 0 0 auto; min-height: var(--tap); padding: 0 14px; border: 1px solid var(--border); border-radius: 22px; display: flex; align-items: center; gap: 8px; color: var(--ink-soft); background: white; font-size: var(--fs-body-sm); font-weight: 600; }
+  .stage-tabs button.active { color: white; border-color: var(--navy); background: var(--navy); }
+  .stage-tabs b { min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px; display: grid; place-items: center; color: var(--ink-soft); background: #eef0f4; font-size: var(--fs-meta); }
+  .stage-tabs button.active b { color: var(--navy); background: var(--mint); }
+  .pipeline-board { display: block; }
+  .pipeline-stage { display: none; padding: 0; background: transparent; }
+  .pipeline-stage.phone-visible { display: block; }
+  .pipeline-stage > header { display: none; }
+  .deal-person { min-height: var(--tap); }
+  .deal-advance { min-height: var(--tap); padding: 0 14px; font-size: var(--fs-body-sm); }
+  .pipeline-empty { height: 140px; background: white; }
+}

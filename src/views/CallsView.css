@@ -1,0 +1,34 @@
+.recordings-head .search-field { width: 240px; }
+
+.recording { min-height: 84px; padding: 14px 20px; border-bottom: 1px solid var(--border-soft); display: grid; grid-template-columns: 44px 190px minmax(120px, 1fr) 48px minmax(160px, .8fr); align-items: center; gap: 14px; transition: background .2s ease; }
+.recording:last-of-type { border-bottom: 0; }
+.recording:hover, .recording.playing { background: #f8f9ff; }
+.recording-play { width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; display: grid; place-items: center; color: white; background: var(--primary); }
+.recording-person { min-width: 0; padding: 0; border: 0; display: flex; align-items: center; gap: 10px; text-align: left; background: transparent; }
+.recording-person > span:not(.avatar) { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.recording-person strong { font-size: var(--fs-body); }
+.recording-person small { color: var(--muted); font-size: var(--fs-caption); }
+.waveform { position: relative; height: 26px; overflow: hidden; display: flex; align-items: center; gap: 3px; }
+.waveform i { min-width: 1px; flex: 1 1 0; border-radius: 2px; background: #d2d6df; }
+.recording.playing .waveform i { background: #a39be5; }
+.waveform > span { position: absolute; inset: 0 auto 0 0; width: 2px; opacity: 0; background: var(--primary); }
+.waveform > span.moving { opacity: 1; animation: playhead 6s linear infinite; }
+@keyframes playhead { to { left: calc(100% - 2px); } }
+.recording > time { color: var(--ink-soft); font-size: var(--fs-body-sm); font-variant-numeric: tabular-nums; }
+.recording > p { color: var(--muted); font-size: var(--fs-caption); line-height: 1.45; }
+.recording-consent { margin: 12px 4px 0; display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: var(--fs-caption); line-height: 1.5; }
+.recording-consent svg { flex: 0 0 auto; }
+
+@media (max-width: 1100px) {
+  .recording { grid-template-columns: 44px minmax(0, 1fr) 48px; row-gap: 8px; }
+  .recording-person { grid-column: 2; }
+  .recording > time { grid-column: 3; grid-row: 1; }
+  .waveform { grid-column: 2 / -1; grid-row: 2; }
+  .recording > p { grid-column: 2 / -1; grid-row: 3; }
+}
+
+@media (max-width: 760px) {
+  .recordings-head { flex-direction: column; align-items: stretch; }
+  .recordings-head .search-field { width: 100%; }
+  .recording { padding: 14px 16px; }
+}
