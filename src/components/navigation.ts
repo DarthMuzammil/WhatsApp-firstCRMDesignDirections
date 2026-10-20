@@ -2,7 +2,7 @@ import type { Permission } from '../lib/permissions'
 import type { IconName } from './Icon'
 
 /** Every screen in the app. `chat` is reached from a lead, not from the nav; while it is open the nav highlights the screen it was opened from. */
-export type View = 'today' | 'chat' | 'visits' | 'attendance' | 'pipeline' | 'properties' | 'tasks' | 'calls' | 'escalations' | 'sources' | 'team' | 'settings'
+export type View = 'today' | 'chat' | 'visits' | 'attendance' | 'reports' | 'pipeline' | 'properties' | 'tasks' | 'calls' | 'escalations' | 'sources' | 'team' | 'settings'
 
 export type NavItem = {
   view: Exclude<View, 'chat'>
@@ -23,6 +23,7 @@ export const NAV_ITEMS: NavItem[] = [
   { view: 'tasks', icon: 'calendar', label: 'Follow-ups', shortLabel: 'Tasks', group: 'work' },
   { view: 'calls', icon: 'phone', label: 'Calls', shortLabel: 'Calls', group: 'work' },
   { view: 'attendance', icon: 'clock', label: 'Attendance', shortLabel: 'Attendance', group: 'work' },
+  { view: 'reports', icon: 'chart', label: 'Performance', shortLabel: 'Performance', group: 'work' },
   { view: 'escalations', icon: 'alert', label: 'Escalations', shortLabel: 'Escalations', group: 'manage', requires: 'reassignLeads' },
   { view: 'sources', icon: 'plug', label: 'Lead sources', shortLabel: 'Lead sources', group: 'manage', requires: 'viewReports' },
   { view: 'team', icon: 'users', label: 'Team', shortLabel: 'Team', group: 'manage', requires: 'manageTeam' },

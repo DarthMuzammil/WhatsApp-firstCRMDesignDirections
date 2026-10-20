@@ -135,6 +135,7 @@
   --radius-lg: 16px;
   --radius-xl: 20px;
   --radius-pill: 999px;
+  --radius-mark: 4px; /* chart bar ends (dataviz mark spec) */
 
   /* ---------- Shadow ---------- */
   --shadow-sm: 0 2px 6px #202a4815;

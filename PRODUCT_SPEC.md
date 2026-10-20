@@ -31,8 +31,8 @@ Layouts: **phone** ≤ 760px, **tablet** 761–1100px, **desktop** > 1100px. Eve
 | Area | Desktop / tablet | Phone |
 |---|---|---|
 | Brand + status | Sidebar with Daira logo (tap → Today) | Top bar: logo, "● WhatsApp connected" 🧱, viewer's avatar (account menu), **+** add lead |
-| Main nav | Sidebar **Work** group: **Today** (unread badge), **Visits**, **Pipeline**, **Properties**, **Follow-ups** (tasks-left badge), **Calls**, **Attendance**. **Manage** group, by permission: **Escalations** (red count; Manager/Owner), **Lead sources** (Manager/Owner), **Team** (Manager/Owner), **Settings** (Owner) | Bottom tabs: **Inbox** (unread badge), **Visits**, **Pipeline**, **Tasks**, **More**. **More** opens a sheet with Properties, Calls, Attendance, plus the Manage screens the viewer may use (a red "!" on More when escalations are waiting) |
-| Progress card | "Today's progress" ✅: buyers awaiting a reply · follow-ups left, with a progress bar of completed tasks. Says "You're all caught up" only when both are zero. | — |
+| Main nav | Sidebar **Work** group: **Today** (unread badge), **Visits**, **Pipeline**, **Properties**, **Follow-ups** (tasks-left badge), **Calls**, **Attendance**, **Performance**. **Manage** group, by permission: **Escalations** (red count; Manager/Owner), **Lead sources** (Manager/Owner), **Team** (Manager/Owner), **Settings** (Owner) | Bottom tabs: **Inbox** (unread badge), **Visits**, **Pipeline**, **Tasks**, **More**. **More** opens a sheet with Properties, Calls, Attendance, Performance, plus the Manage screens the viewer may use (a red "!" on More when escalations are waiting) |
+| Progress card | "Today's progress" ✅: buyers awaiting a reply · follow-ups left, with a progress bar of completed tasks. Says "You're all caught up" only when both are zero. Hidden on windows shorter than 940 px; the nav list scrolls if needed so the user card always stays on screen. | — |
 | User card | Viewer's name and role ("Sales · Indiranagar") | — |
 | Account menu | "⋯" next to the user card (opens upwards, beside the sidebar) | Viewer's avatar |
 | Account menu contents | **Demo · View as** ✅: Arjun Khanna (Owner), Neha Kapoor (Manager · Indiranagar), Priya Nair (Sales · Indiranagar), Kiran Patel (Pre-sales). Then **Simulate incoming lead** ✅ (§3.11) and **Reset demo data** ✅ (asks to confirm first) | same |
@@ -196,6 +196,17 @@ Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with
 - **Team calendar (Register tab):** approved and pending leave in scope (with cover) and fixed-date public holidays in the next 90 days (e.g. Kannada Rajyotsava, Christmas).
 - **On leave** status: a person shows "On leave" (Team screen, pickers) and LV in attendance on any day an approved leave covers.
 
+### 3.14 Performance & insights (M9)
+Monthly figures (leads handled, visits booked/verified, deals, commission, first reply, follow-ups on time, last month's figures for trends) are **generated per person** 🧱, because the prototype has no history. **Live** parts: today's verified check-ins (added to verified visits this month), pipeline value, open leads, attendance, overdue leads, requests and visits.
+- **Sales / Pre-sales — "My performance":** period (This month / Last month), "You're #4 of 15 salespeople by commission" (their rank only), and their **scorecard**.
+- **Manager — "<Team> team performance"; Owner — "Performance & insights" (with a team filter):**
+  - **Daily summary** ✅ (live, tappable): overdue leads → Escalations, not checked in → Attendance, visits today → Visits, requests waiting (leave + corrections) → Attendance.
+  - **Leaderboard** (salespeople in scope): metric picker (Commission, Deals closed, Verified visits, First reply — lower is better, Follow-ups on time), ranked bar chart with value at the tip and hover/focus tooltip; tap a person for their scorecard.
+  - **All numbers** table (the table view of the leaderboard): deals vs target, commission (green when target met), verified visits, first reply, on time.
+- **Scorecard** (sheet): targets with progress meters (deals 3, commission ₹12 L, verified visits 12 a month; green with "target met"), change vs the other month (▲/▼, green when better), funnel (leads → visits booked → verified → deals), attendance counts for the last 10 working days, today's verified/refused check-ins.
+- **Owner insights:** weighted pipeline forecast by stage (live), commission by team, **what a deal costs per lead source** (spend from the live cost per lead on Lead sources × this month's leads ÷ deals), first-reply time bands, lost-deal reasons, **stuck leads** (more than 7 days in a stage; tap to open), property interest (visits booked live, WhatsApp shares), Pre-sales leads handled and first reply.
+- Charts follow the dataviz rules: one series, one colour, no legend, bars ≤ 24 px with rounded ends, value at the tip, tooltip on hover/focus, a table alongside.
+
 ---
 
 ## 4. Seed data (`src/data/demo.ts`, `src/data/team.ts`, `src/data/sources.ts`)
@@ -219,6 +230,7 @@ Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with
 
   Each lead also has a phone number, minutes since the last message, move-in timing, must-haves, opening enquiry and latest message. Portal leads carry a "shared with ~N brokers" figure 🎭: Ananya 6, Deepak 5, Farhan 4, Gaurav 3, Ishita 6. Vikram and Sanjay are marked Investment. The Owner's totals with this data: active value ₹27.4 Cr across 12 leads.
 - **Properties (3):** The Courtyard House (Indiranagar, 3 BHK, ₹2.65 Cr) · Windermere Residences (Whitefield, 4 BHK, ₹3.40 Cr) · Lakeview Terraces (HSR Layout, 2 BHK, ₹1.48 Cr). Photos load from Unsplash, so the demo needs internet.
+- **Performance (`performance.ts`):** generated monthly figures and targets per person, response-time bands, lost reasons, per-source visits/deals, days-in-stage for stuck leads, property shares.
 - **Leave (`leave.ts`):** Kavya (Casual, 3 days ago → tomorrow, approved, cover Sameer); Aditya (Casual, in 2–3 days, pending, 1 lead); Rohit (Sick, tomorrow, pending; he has a visit tomorrow). Allowances 8 / 6 / 15 and generated days already used.
 - **Attendance (`attendance.ts`):** generated history for the last 10 working days; today's records (most people checked in, some late or in the field; Priya, Neha, Kiran and Sameer not yet, so the demo can do it); Kavya on leave; one pending correction from Sameer for 3 working days ago.
 - **Visits and offices (`visits.ts`):** 6 seed visits (§3.12); offices in Indiranagar (HQ), Whitefield and HSR Layout with coordinates. Properties also carry coordinates.
@@ -239,10 +251,11 @@ See `AGENTS.md` for conventions. Each component has a matching `.css` file next 
 - `src/data/visits.ts`: visit model, seed visits, offices, time slots, check-in limits.
 - `src/data/attendance.ts`: attendance codes, seed history and today's records, corrections, working-hours options.
 - `src/data/leave.ts`: leave types, allowances, seed requests, holidays, date-range helpers.
+- `src/data/performance.ts`: generated monthly figures, targets and insight data.
 - `src/state/useDemoStore.ts`: all saved state, the viewer, visibility filtering, routing, activity log and timeline, duplicate lookup, derived numbers and actions.
 - `src/lib/`: `location.ts` (one-off location readings: demo readings, the browser's real location, distance), `permissions.ts` (role → permissions, who sees which lead), `storage.ts` (localStorage), `format.ts` (dates, money, durations, phone masking), `useEscapeKey.ts`.
-- `src/components/`: `AppNavigation` (sidebar with Work/Manage groups, phone top bar, tab bar with More sheet), `navigation.ts` (items with required permission), `Dialog` (the one modal / sheet / full-screen shell), `AccountMenu`, `Avatar`, `HeatBadge`, `LeadActions`, `LeadRow`, `LeadTimeline`, `LeadNotes`, `LeadTags`, `IncomingLeadBanner`, `LocationControl` (demo location picker), `PropertyCard`, `Toast`, `Icon`.
-- `src/views/`: `TodayView`, `ChatView` (chat + lead panel), `PipelineView`, `PropertiesView`, `FollowUpsView`, `CallsView`, `VisitsView` (with the visit outcome form), `AttendanceView` (My day, Leave, Register with team calendar, Requests), `EscalationsView`, `LeadSourcesView`, `TeamView` (with invite dialog), `SettingsView`.
+- `src/components/`: `AppNavigation` (sidebar with Work/Manage groups, phone top bar, tab bar with More sheet), `navigation.ts` (items with required permission), `Dialog` (the one modal / sheet / full-screen shell), `AccountMenu`, `Avatar`, `HeatBadge`, `LeadActions`, `LeadRow`, `LeadTimeline`, `LeadNotes`, `LeadTags`, `IncomingLeadBanner`, `LocationControl` (demo location picker), `BarList` (single-series bar chart), `PropertyCard`, `Toast`, `Icon`.
+- `src/views/`: `TodayView`, `ChatView` (chat + lead panel), `PipelineView`, `PropertiesView`, `FollowUpsView`, `CallsView`, `VisitsView` (with the visit outcome form), `AttendanceView` (My day, Leave, Register with team calendar, Requests), `ReportsView` (my performance, leaderboard, scorecard, owner insights), `EscalationsView`, `LeadSourcesView`, `TeamView` (with invite dialog), `SettingsView`.
 - `src/modals/`: `AddLeadModal` (with duplicate check), `EditLeadDialog` (structured buyer brief), `ScheduleVisitDialog`, `AssignDialog` (people picker for assign / reassign / hand-off / deactivate), `CallPicker`, `CallModal`.
 - `src/index.css`: the only place raw colours are defined. Design tokens (colour, 4px spacing scale, radius, shadow, `--fs-*` type sizes, `--tap`) and shared classes (`.btn`, `.card`, `.chip`, `.count-badge`, `.status-dot`, `.icon-badge`, `.is-done` and more).
 
@@ -257,6 +270,7 @@ See `AGENTS.md` for conventions. Each component has a matching `.css` file next 
 - On desktop, Add lead is only on Today.
 - Sent messages show "Now" forever; lead times ("2m", "18m") and message timestamps are fixed seed values, so "Overdue" never appears or clears on its own.
 - The permissions table can't be edited.
+- Performance figures are generated, so they don't change when you close deals in the demo (deals can't be closed yet; M10). Only managers' and the owner's views show other people.
 - Leave counts calendar days (weekends and holidays included). Leave can't be cancelled by the person once requested.
 - Today's attendance doesn't roll over at midnight (the demo always shows one "today"); history before today is generated, not recorded.
 - Visit step times use the real clock, but visit days are relative to today, so the demo always looks like "today". Nothing marks a visit as a no-show automatically, and visits can't be rescheduled or cancelled yet.
@@ -341,7 +355,7 @@ Everything here is **UI only**: each item is a screen or flow driven by seed dat
 - **Team calendar** showing leave, holidays and visits; **leave balances**; company **holiday list**.
 - Out of scope: payroll, salary, statutory HR.
 
-### 8.9 M9 · Performance and reports
+### 8.9 M9 · Performance and reports — ✅ built (§3.14); monthly figures are generated demo data
 - **Leaderboard** (Manager/Owner; Sales sees their own rank only):
   - deals closed, commission earned
   - verified visits
@@ -414,6 +428,7 @@ Everything here is **UI only**: each item is a screen or flow driven by seed dat
 
 ## 9. Changelog
 Newest first. One line per change: date, what changed, which section was updated.
+- **2026-10-20:** Built M9: Performance screen (my performance and rank; manager/owner daily summary, leaderboard, numbers table, scorecards; owner insights incl. cost per deal by source, pipeline forecast, stuck leads), BarList chart component. Sidebar nav now scrolls and hides the progress card on short windows. Updated §2, §3.14, §4, §6, §7, §8.9.
 - **2026-10-20:** Built M8: Leave tab (balances, validated apply form, my requests), manager approval with a cover agent (visits on leave days move now, leads when leave starts; demo Start cover now / Return leads), team calendar with holidays, on-leave status derived from approved leave. Updated §3.8, §3.13, §4–§7, §8.8.
 - **2026-10-20:** Built M7: Attendance screen (My day with office check-in refused beyond the radius, field day, check-out, late marks; register for managers/owner; correction requests and approvals), check-in reminder on Today, working-hours settings, shared LocationControl. Section order fixed (§3.11 before §3.12). Updated §2, §3.1, §3.10, §3.13, §4–§7, §8.7.
 - **2026-10-20:** Built M6: Visits screen (agent flow Left office → Check in → Check out → required outcome; manager visit log), check-ins refused beyond the radius or when imprecise, demo location control plus real browser location, Schedule visit dialog with WhatsApp confirmation, check-in radius setting, Visits phone tab (Properties moves to More). Storage bumped to v4. Updated §2, §3.1, §3.2, §3.10, §3.12, §4–§7, §8.6.

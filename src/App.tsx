@@ -16,6 +16,7 @@ import { ChatView } from './views/ChatView'
 import { FollowUpsView } from './views/FollowUpsView'
 import { PipelineView } from './views/PipelineView'
 import { PropertiesView } from './views/PropertiesView'
+import { ReportsView } from './views/ReportsView'
 import { SettingsView } from './views/SettingsView'
 import { TeamView } from './views/TeamView'
 import { TodayView } from './views/TodayView'
@@ -94,6 +95,7 @@ export default function App() {
         {view === 'tasks' && <FollowUpsView store={store} onOpenLead={showLead} onCall={startCall} />}
         {view === 'calls' && <CallsView store={store} onOpenLead={showLead} onNewCall={() => setCallPickerOpen(true)} />}
         {view === 'attendance' && <AttendanceView store={store} notify={notify} />}
+        {view === 'reports' && <ReportsView store={store} onOpenLead={showLead} onNavigate={navigate} />}
         {view === 'escalations' && <EscalationsView store={store} onOpenLead={showLead} notify={notify} />}
         {view === 'sources' && <LeadSourcesView store={store} onSimulate={simulateLead} />}
         {view === 'team' && <TeamView store={store} notify={notify} />}
