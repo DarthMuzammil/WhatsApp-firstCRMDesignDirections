@@ -29,7 +29,7 @@ function AccountMenuFor({ store, trigger, placement, onSimulateLead, onStartDemo
 }
 
 /** Desktop and tablet navigation. Hidden on phones, where MobileTopBar + MobileTabBar take over. */
-export function Sidebar({ store, view, onNavigate, onSimulateLead, onStartDemo, onOpenLead }: NavProps & SimulateProps & OpenLeadProps) {
+export function Sidebar({ store, view, onNavigate, onAddLead, onSimulateLead, onStartDemo, onOpenLead }: NavProps & SimulateProps & OpenLeadProps & { onAddLead: () => void }) {
   const items = navItemsFor(store.viewerCan)
   const tasksTotal = store.tasks.length
   const tasksRemaining = store.remainingTasks.length
@@ -54,6 +54,8 @@ export function Sidebar({ store, view, onNavigate, onSimulateLead, onStartDemo, 
         <button className="brand" onClick={() => onNavigate('today')}><span className="brand-mark">D</span><strong>Daira</strong></button>
         <NotificationBell store={store} onOpenLead={onOpenLead} onNavigate={onNavigate} tone="on-dark" />
       </div>
+      {/* Add lead from any screen (phones use the + in the top bar). */}
+      <button className="btn sidebar-add" onClick={onAddLead}><Icon name="plus" size={18} /> Add lead</button>
       <nav className="sidebar-nav" aria-label="Main">
         {items.filter((item) => item.group === 'work').map(renderItem)}
         {manageItems.length > 0 && <>

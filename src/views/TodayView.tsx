@@ -15,13 +15,12 @@ const INBOX_FILTERS: ('All' | Temperature)[] = ['All', 'Hot', 'Warm', 'New']
 type TodayViewProps = {
   store: DemoStore
   onOpenLead: (lead: Lead) => void
-  onAddLead: () => void
   onNavigate: (view: View) => void
   notify: (message: string) => void
 }
 
 /** Home screen: next visit, headline numbers, lead inbox and today's follow-ups. */
-export function TodayView({ store, onOpenLead, onAddLead, onNavigate, notify }: TodayViewProps) {
+export function TodayView({ store, onOpenLead, onNavigate, notify }: TodayViewProps) {
   const [filter, setFilter] = useState<'All' | Temperature>('All')
   const [sourceFilter, setSourceFilter] = useState('All')
   const [searchOpen, setSearchOpen] = useState(false)
@@ -45,7 +44,6 @@ export function TodayView({ store, onOpenLead, onAddLead, onNavigate, notify }: 
           <button className={`icon-button bordered today-search-toggle ${searchOpen ? 'active' : ''}`} aria-label={searchOpen ? 'Close search' : 'Search leads'} onClick={() => { setSearchOpen(!searchOpen); setQuery('') }}>
             <Icon name={searchOpen ? 'close' : 'search'} />
           </button>
-          <button className="btn btn-primary today-add" onClick={onAddLead}><Icon name="plus" /> Add lead</button>
         </div>
       </header>
 
@@ -136,7 +134,8 @@ export function TodayView({ store, onOpenLead, onAddLead, onNavigate, notify }: 
           {store.remainingTasks.slice(0, 4).map((task) => {
             const lead = store.findLead(task.leadId)
             return (
-              <button key={task.id} className="due-item" onClick={() => onNavigate('tasks')}>
+              // Opens the lead's chat, where the follow-up happens; Follow-ups if the lead isn't visible any more.
+              <button key={task.id} className="due-item" onClick={() => (lead ? onOpenLead(lead) : onNavigate('tasks'))}>
                 <time>{task.time}</time>
                 <span><strong>{task.title}</strong><small>{lead?.name}</small></span>
               </button>

@@ -86,11 +86,11 @@ export default function App() {
 
   return (
     <div className="app">
-      <Sidebar store={store} view={navView} onNavigate={navigate} onSimulateLead={simulateLead} onStartDemo={() => setDemoOpen(true)} onOpenLead={showLead} />
+      <Sidebar store={store} view={navView} onNavigate={navigate} onAddLead={() => setAddLeadOpen(true)} onSimulateLead={simulateLead} onStartDemo={() => setDemoOpen(true)} onOpenLead={showLead} />
       <MobileTopBar store={store} onNavigate={navigate} onAddLead={() => setAddLeadOpen(true)} onSimulateLead={simulateLead} onStartDemo={() => setDemoOpen(true)} onOpenLead={showLead} />
 
       <main className="app-main" ref={mainRef}>
-        {view === 'today' && <TodayView store={store} onOpenLead={showLead} onAddLead={() => setAddLeadOpen(true)} onNavigate={navigate} notify={notify} />}
+        {view === 'today' && <TodayView store={store} onOpenLead={showLead} onNavigate={navigate} notify={notify} />}
         {view === 'chat' && openLead && <ChatView key={openLead.id} lead={openLead} store={store} onBack={() => setView(chatOrigin)} onCall={startCall} onNavigate={navigate} notify={notify} />}
         {view === 'visits' && <VisitsView store={store} onOpenLead={showLead} notify={notify} />}
         {view === 'pipeline' && <PipelineView store={store} onOpenLead={showLead} notify={notify} />}

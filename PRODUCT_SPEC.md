@@ -30,7 +30,7 @@ Layouts: **phone** ≤ 760px, **tablet** 761–1100px, **desktop** > 1100px. Eve
 
 | Area | Desktop / tablet | Phone |
 |---|---|---|
-| Brand + status | Sidebar with Daira logo (tap → Today) and the **notifications bell** | Top bar: logo, "● WhatsApp connected" 🧱 (just the dot on phones narrower than 430 px), **notifications bell**, viewer's avatar (account menu), **+** add lead |
+| Brand + status | Sidebar with Daira logo (tap → Today), the **notifications bell** and a mint **Add lead** button | Top bar: logo, "● WhatsApp connected" 🧱 (just the dot on phones narrower than 430 px), **notifications bell**, viewer's avatar (account menu), **+** add lead |
 | Main nav | Sidebar **Work** group: **Today** (unread badge), **Visits**, **Pipeline**, **Properties**, **Follow-ups** (tasks-left badge), **Calls**, **Attendance**, **Performance**. **Manage** group, by permission: **Escalations** (red count; Manager/Owner), **Lead sources** (Manager/Owner), **Team** (Manager/Owner), **Settings** (Owner), **Audit log** (Owner) | Bottom tabs: **Inbox** (unread badge), **Visits**, **Pipeline**, **Tasks**, **More**. **More** opens a sheet with Properties, Calls, Attendance, Performance, plus the Manage screens the viewer may use (a red "!" on More when escalations are waiting) |
 | Progress card | "Today's progress" ✅: buyers awaiting a reply · follow-ups left, with a progress bar of completed tasks. Says "You're all caught up" only when both are zero. Hidden on windows shorter than 940 px; the nav list scrolls if needed so the user card always stays on screen. | — |
 | User card | Viewer's name and role ("Sales · Indiranagar") | — |
@@ -48,13 +48,13 @@ Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with
 ## 3. Screens & workflows
 
 ### 3.1 Today (home / inbox)
-- Header: today's real date ✅; title "Your day, at a glance" (Sales/Pre-sales) or "Your team today" (Manager/Owner); search toggle ✅; **Add lead** ✅ (desktop/tablet; phones use the top-bar **+**).
+- Header: today's real date ✅; title "Your day, at a glance" (Sales/Pre-sales) or "Your team today" (Manager/Owner); search toggle ✅. (Add lead is in the sidebar on desktop/tablet and the top-bar **+** on phones.)
 - Every number and list on this screen covers only the leads the viewer may see (§3.8).
 - **Check-in reminder** ✅ for anyone who tracks attendance and hasn't checked in today: "You haven't checked in today · Work starts 9:30 AM" with **Check in** (opens Attendance).
 - **Up next card** ✅: the soonest open visit (planned, on the way or checked in) among the viewer's visits (§3.12), with "+N more visits booked". With none it says "No visits booked". **Directions** shows a toast ("Directions to … sent to your phone") 🎭. **Message** opens that lead's chat ✅.
 - **Follow-up rate 82%** 🧱 (with three lead avatars). **Active value** ✅ = sum of budget midpoints of the leads the viewer sees (Owner with seed data: ₹27.4 Cr), with the open-lead count (closed leads excluded).
 - **Lead inbox** ✅: filter *All / Hot / Warm / New*, a **source** dropdown (All sources + every source in the viewer's leads), plus search by name, requirement or locality. Subtitle counts conversations awaiting a reply. Each row: avatar (green dot if online), name, time since the last message, requirement · budget, last message, unread count, intent tag, green **Won** or grey **Lost** flag on closed leads, red **Overdue** flag (unread for more than 15 min), red-outlined **Shared ×N** flag (portal lead also sent to ~N other brokers), and "via <source>". Managers and the Owner also see the **owner** ("Priya N.") or a yellow **Unassigned** flag. Tapping a row opens the chat and **marks it read** ✅. Empty state when nothing matches.
-- **Due today** ✅: up to 4 remaining follow-ups (time, title, lead). Tapping one, or **Open follow-ups**, goes to Follow-ups.
+- **Due today** ✅: up to 4 remaining follow-ups (time, title, lead). Tapping one opens that lead's chat (Follow-ups if the lead is no longer visible); **Open follow-ups** goes to Follow-ups.
 - Desktop: inbox and Due today side by side. Tablet/phone: stacked.
 
 ### 3.2 Lead conversation (WhatsApp chat + lead panel)
@@ -136,7 +136,7 @@ Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with
 - Copy: "Secure internet call", "Your personal number stays private", and a consent reminder about recording.
 
 ### 3.7 Add lead (quick capture)
-- Opens from **+** (phone top bar) or **Add lead** (Today on desktop/tablet).
+- Opens from **+** (phone top bar) or **Add lead** in the sidebar (desktop/tablet, on every screen).
 - **Duplicate check** ✅: once 10 digits are typed, the number is looked up across **all** leads in the company. If found, a yellow alert names the existing lead (requirement, budget, owner; "(another team)" if the viewer can't see it) with **Open lead** (only if visible) and **Merge enquiry** (adds the new enquiry as a note and timeline entry on the existing lead; no new lead; success screen "Enquiry merged"). The submit button becomes "Add as a separate lead anyway".
 - Fields: Full name\*, WhatsApp number\* (+91, exactly 10 digits), Looking for (2 BHK / 3 BHK / 4 BHK / Villa / Plot), Preferred area (defaults to "Bengaluru"). Managers and the Owner also get **Assign to**: *Auto* (company routing, §3.10) or a named person with their open-lead count.
 - **Who owns the new lead:** Sales and Pre-sales own what they add. For Managers/Owner, *Auto* routes it: to the Pre-sales person with fewest open leads when *Separate pre-sales team* is on; otherwise to Sales, by locality team (if routing is "By locality" and the area matches a team) or fewest open leads.
@@ -312,10 +312,7 @@ See `AGENTS.md` for conventions. Each component has a matching `.css` file next 
 
 ## 7. Known issues
 - Navigation labels differ between phone and desktop (Today/Inbox, Properties/Homes, Follow-ups/Tasks).
-- Due today items open the Follow-ups page, not the lead's chat.
-- On phones the toast can cover the chat composer for 2.6 s.
-- On desktop, Add lead is only on Today.
-- Sent messages show "Now" forever; lead times ("2m", "18m") and message timestamps are fixed seed values, so "Overdue" never appears or clears on its own.
+- Seeded lead times ("2m", "18m") and seeded message timestamps are fixed values, so "Overdue" never appears or clears on its own. (Messages sent in the demo show the real time.)
 - The permissions table can't be edited.
 - All AI output is fixed demo text built from the lead's data, not a model; templates aren't really Meta-approved; the 24-hour window uses the seeded "minutes ago".
 - Performance figures are generated; only deals won in the demo and today's check-ins are added live. Only managers' and the owner's views show other people.
@@ -327,7 +324,6 @@ See `AGENTS.md` for conventions. Each component has a matching `.css` file next 
 - Activity logged in the demo always says "Just now"; seeded timeline entries use fixed labels ("Earlier", "On arrival").
 - Tags don't filter the inbox yet.
 - Listings added in the demo have no photo upload. "Seen" is simulated, and it stays "Sent" if the page is reloaded within those 4 seconds.
-- The "Visits planned · Next 7 days" caption is not computed.
 - Photos need an internet connection.
 
 ## 8. Planned modules (approved, not built)
@@ -477,6 +473,7 @@ Everything here is **UI only**: each item is a screen or flow driven by seed dat
 
 ## 9. Changelog
 Newest first. One line per change: date, what changed, which section was updated.
+- **2026-10-20:** Quick fixes: Add lead moves from the Today header to the sidebar (every screen, desktop/tablet); Due today items open the lead's chat; toasts appear at the top (under the top bar on phones) so they never cover the chat composer. Removed fixed and stale known issues. Updated §2, §3.1, §3.7, §7.
 - **2026-10-20:** Built Demo mode: **Start guided demo** in the account menu opens a 10-step presenter panel that runs the full loop with real demo actions (99acres enquiry → auto-qualification and AI brief → hand to Sales → share and book → refused then verified check-in → outcome → won → leaderboard), with Skip, minimise and end. Updated §2, §3.16, §6, §8.16.
 - **2026-10-20:** Built M12: notifications bell and panel (per person, unread count, needs-attention row, mark all read; created by assignments, leave and correction requests/decisions, refused check-ins, won deals), Owner-only Audit log (reassignments, team, settings incl. lead sources, properties, deals, exports; repeated edits coalesce) with leads and log CSV export. New permission: see the audit log. Phone top bar shows only the WhatsApp dot under 430 px. Updated §2, §3.8, §3.15, §4–§6, §8.12.
 - **2026-10-20:** Built M11: 8 listings with availability, listing agent and owner contact (masked unless Manager/Owner/listing agent), Add/Edit property, availability filter, scored matches with reasons in the lead panel, Share dialog (pick lead or homes → WhatsApp preview → send, template outside 24 h → Seen), shared listings in the chat, per-listing shares on Performance. New permissions: add/edit properties, see owners' numbers. Removed fixed known issues (Matches/Share, pipeline tab, deals). Updated §3.2, §3.4, §3.8, §3.14, §4–§7, §8.11.
