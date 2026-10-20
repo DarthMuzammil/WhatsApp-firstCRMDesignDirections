@@ -26,7 +26,7 @@ await p.click('.window-closed .btn'); await p.click('.template-list .chip:has-te
 ok(await p.locator('.messages .message-tag:has-text("Template · Follow-up")').count() === 1, 'template can be sent outside the window')
 // Arrival: auto-reply + qualification + suggestions
 await menu('Simulate incoming lead'); await p.click('.incoming-lead .btn:has-text("Reply now")'); await p.waitForTimeout(300)
-ok(await p.locator('.messages .message-auto').count() >= 1 && (await p.locator('.messages .message-auto').first().innerText()).includes('thanks for reaching out to Daira'), 'arrival got an automatic reply')
+ok(await p.locator('.messages .message-auto').count() >= 1 && (await p.locator('.messages .message-auto').first().innerText()).includes('thanks for reaching out to Better Days Realty'), 'arrival got an automatic reply')
 ok((await p.locator('.chat-context p').innerText()).includes('Budget to qualify'), 'arrival starts with budget unknown')
 await p.waitForTimeout(9500)
 const msgs = await p.locator('.messages .message').allInnerTexts()

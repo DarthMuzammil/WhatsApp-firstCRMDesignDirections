@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { DEMO_METRICS, firstName, type Lead, type Temperature } from '../data/demo'
+import { RESPONSE_SLA_MINUTES, firstName, type Lead, type Temperature } from '../data/demo'
 import { tracksAttendance } from '../data/attendance'
 import { shortName } from '../data/team'
 import { Avatar, LeadAvatar } from '../components/Avatar'
@@ -32,6 +32,9 @@ export function TodayView({ store, onOpenLead, onNavigate, notify }: TodayViewPr
     `${lead.name} ${lead.need} ${lead.locality}`.toLowerCase().includes(query.trim().toLowerCase()),
   )
   const [nextVisit, ...laterVisits] = store.upcomingVisits
+  // Buyers waiting for a reply, longest wait first (live).
+  const waiting = store.leads.filter((lead) => lead.unread > 0 && !lead.closed).sort((a, b) => b.minutesAgo - a.minutesAgo)
+  const overdueCount = waiting.filter((lead) => lead.overdue).length
   // Managers and the owner see other people's leads, so rows show who owns each one.
   const seesOthers = store.viewerCan('seeTeamLeads')
   const ownerLabel = (lead: Lead) => (lead.ownerId ? shortName(store.findMember(lead.ownerId)?.name ?? '') : null)
@@ -85,11 +88,11 @@ export function TodayView({ store, onOpenLead, onNavigate, notify }: TodayViewPr
           </article>
         )}
         <article className="day-stat warm">
-          <span className="day-card-label">Follow-up rate</span>
-          <strong>{DEMO_METRICS.followUpRate}%</strong>
-          <p>Up {DEMO_METRICS.followUpRateChange}% this week</p>
+          <span className="day-card-label">Waiting for a reply</span>
+          <strong>{waiting.length}</strong>
+          <p>{waiting.length === 0 ? 'Every buyer has heard back' : overdueCount > 0 ? `${overdueCount} over ${RESPONSE_SLA_MINUTES} min · reply first` : `All within ${RESPONSE_SLA_MINUTES} min`}</p>
           <div className="day-stat-avatars">
-            {store.leads.filter((lead) => !lead.addedInDemo).slice(0, 3).map((lead) => <Avatar key={lead.id} initials={lead.initials} color={lead.color} size="sm" />)}
+            {waiting.slice(0, 3).map((lead) => <Avatar key={lead.id} initials={lead.initials} color={lead.color} size="sm" />)}
           </div>
         </article>
         <article className="day-stat cool">

@@ -40,7 +40,7 @@ for (const [tag, w, h] of [['desk', 1440, 900], ['tab', 900, 1000], ['mob', 390,
   await audit('home')
   await p.locator('.lead-row:has-text("Gaurav")').click(); await audit('chat')
   await p.locator('.quick-replies button').first().click(); await p.locator('.send-button').click()
-  await p.locator(tag === 'mob' ? '.chat-mobile-actions button:nth-child(2)' : '.lead-detail-actions button:nth-child(2)').click(); await audit('schedule-visit')
+  await p.locator('.chat-actions button:nth-child(2)').click(); await audit('schedule-visit')
   await p.locator('.add-lead .add-lead-submit').click(); await audit('chat-after')
   await nav('Pipeline'); await audit('pipeline')
   if (tag === 'mob') { await p.locator('.stage-tabs button').nth(1).click(); await audit('pipeline-stage1') }

@@ -11,7 +11,8 @@ import { LeadNotes } from '../components/LeadNotes'
 import { LeadTags } from '../components/LeadTags'
 import { LeadTimeline } from '../components/LeadTimeline'
 import { PropertyCard } from '../components/PropertyCard'
-import { dayLabel, onDayLabel } from '../lib/format'
+import { clockMinutesAgo, dayLabel, dayOfMinutesAgo, onDayLabel } from '../lib/format'
+import { BROKERAGE } from '../data/brand'
 import { areaLabel, bedroomsLabel, priceLabel } from '../data/inventory'
 import type { View } from '../components/navigation'
 import { AssignDialog } from '../modals/AssignDialog'
@@ -181,8 +182,12 @@ function ChatPanel({ lead, store, actions, onBack, onCall, onShowDetails }: Chat
     setMenu(null)
   }
 
+  // Seeded history: the first enquiry came in a few days before the latest message for leads past
+  // "New lead", and about 20 minutes before it for new ones. Times count back from now.
+  const seedStart = lead.minutesAgo + (lead.stage >= 1 ? 4 * 24 * 60 + 35 : 20)
+
   const quickReplies = lead.addedInDemo || lead.freshEnquiry
-    ? [{ label: 'Send a welcome message', text: `Hi ${firstName(lead.name)}, thanks for reaching out! I’m ${firstName(store.viewer.name)} from Daira. When is a good time to talk about your ${lead.need}?` }]
+    ? [{ label: 'Send a welcome message', text: `Hi ${firstName(lead.name)}, thanks for reaching out! I’m ${firstName(store.viewer.name)} from ${BROKERAGE.name}. When is a good time to talk about your ${lead.need}?` }]
     : [
         { label: 'Suggest a time', text: 'Saturday works. Would 11:30 AM suit you?' },
         { label: 'Share location', text: 'I’ll share the location pin right away.' },
@@ -206,20 +211,23 @@ function ChatPanel({ lead, store, actions, onBack, onCall, onShowDetails }: Chat
         <p><strong>Brief</strong> {lead.need} · {lead.budget} · {lead.moveIn}</p>
       </div>
 
-      <div className="chat-mobile-actions"><LeadActions lead={lead} actions={actions} layout="bar" visitLabel={store.upcomingVisits.find((visit) => visit.leadId === lead.id)?.when} /></div>
+      <div className="chat-actions"><LeadActions lead={lead} actions={actions} visitLabel={store.upcomingVisits.find((visit) => visit.leadId === lead.id)?.when} /></div>
 
       <div className="messages" ref={messagesRef}>
-        <span className="day-label">Today</span>
+        {(lead.addedInDemo || lead.freshEnquiry) && <span className="day-label">Today</span>}
         {lead.addedInDemo ? (
           <p className="chat-note">Lead captured just now. Say hello on WhatsApp to start the conversation.</p>
         ) : lead.freshEnquiry ? (
           <div className="message theirs">{lead.enquiry}<time>Just now</time></div>
         ) : <>
-          <div className="message theirs">{lead.enquiry}<time>10:16</time></div>
-          <div className="message mine message-auto"><span className="message-tag">Automatic</span>Hi {firstName(lead.name)}, thanks for reaching out to Daira! A property expert will reply in a few minutes.<time>10:16 <Icon name="check" size={12} /></time></div>
-          <div className="message mine">Hi {firstName(lead.name)}! Yes, I have a strong match within your {lead.budget} budget. Sharing it here.<time>10:18 <Icon name="check" size={12} /></time></div>
-          <div className="message mine message-property"><PropertyCard property={introProperty} /><time>10:18 <Icon name="check" size={12} /></time></div>
-          <div className="message theirs">{lead.message}<time>10:24</time></div>
+          <span className="day-label">{dayOfMinutesAgo(seedStart)}</span>
+          <div className="message theirs">{lead.enquiry}<time>{clockMinutesAgo(seedStart)}</time></div>
+          <div className="message mine message-auto"><span className="message-tag">Automatic</span>Hi {firstName(lead.name)}, thanks for reaching out to {BROKERAGE.name}! A property expert will reply in a few minutes.<time>{clockMinutesAgo(seedStart)} <Icon name="check" size={12} /></time></div>
+          <div className="message mine">Hi {firstName(lead.name)}! Yes, I have a strong match within your {lead.budget} budget. Sharing it here.<time>{clockMinutesAgo(seedStart - 2)} <Icon name="check" size={12} /></time></div>
+          <div className="message mine message-property"><PropertyCard property={introProperty} /><time>{clockMinutesAgo(seedStart - 2)} <Icon name="check" size={12} /></time></div>
+          {dayOfMinutesAgo(lead.minutesAgo) !== dayOfMinutesAgo(seedStart) && <span className="day-label">{dayOfMinutesAgo(lead.minutesAgo)}</span>}
+          <div className="message theirs">{lead.message}<time>{clockMinutesAgo(lead.minutesAgo)}</time></div>
+          {chat.length > 0 && dayOfMinutesAgo(lead.minutesAgo) !== 'Today' && <span className="day-label">Today</span>}
         </>}
         {chat.map((entry, index) => (
           <div key={index} className={`message new-message ${entry.from === 'buyer' ? 'theirs' : 'mine'} ${entry.from === 'auto' ? 'message-auto' : ''} ${entry.propertyIds ? 'message-shared' : ''}`}>
@@ -336,7 +344,7 @@ function LeadOverview({ lead, store, actions, onAssign, onEdit, onDeal }: LeadDe
       <ol className="owner-history" aria-label="Ownership history">
         {history.map((entry, index) => (
           <li key={index}>
-            <strong>{store.findMember(entry.toId)?.name}</strong> · {entry.reason}
+            <span><strong>{store.findMember(entry.toId)?.name}</strong> · {entry.reason}</span>
             <small>{entry.fromId ? `from ${store.findMember(entry.fromId)?.name} · ` : ''}{entry.byId === SYSTEM_ID ? 'automatically' : `by ${store.findMember(entry.byId)?.name}`} · {entry.at}</small>
           </li>
         ))}
@@ -377,8 +385,6 @@ function LeadOverview({ lead, store, actions, onAssign, onEdit, onDeal }: LeadDe
     <div className="lead-detail-tags"><LeadTags tags={store.tagsFor(lead.id)} onToggle={(tag) => store.toggleTag(lead.id, tag)} /></div>
 
     <LeadMatches lead={lead} store={store} />
-
-    <div className="lead-detail-actions"><LeadActions lead={lead} actions={actions} layout="cards" visitLabel={store.upcomingVisits.find((visit) => visit.leadId === lead.id)?.when} /></div>
   </>
 }
 

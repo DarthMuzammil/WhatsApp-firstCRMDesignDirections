@@ -26,7 +26,7 @@ import { VisitsView } from './views/VisitsView'
 import './App.css'
 
 /**
- * Daira — WhatsApp-first CRM for brokerage teams (client demo prototype).
+ * Bayana — WhatsApp-first CRM for brokerage teams (client demo prototype).
  * App owns navigation, the open lead, modals and toasts. Data and the current viewer live in useDemoStore.
  */
 export default function App() {

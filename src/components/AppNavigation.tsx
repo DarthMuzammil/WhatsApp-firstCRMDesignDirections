@@ -8,6 +8,7 @@ import { Dialog } from './Dialog'
 import { Icon } from './Icon'
 import { NotificationBell } from './NotificationBell'
 import { PHONE_TAB_VIEWS, navItemsFor, type NavItem, type View } from './navigation'
+import { APP_NAME, BROKERAGE } from '../data/brand'
 import './AppNavigation.css'
 
 /** `view` is the nav item to highlight (App passes the chat's origin screen while a chat is open). */
@@ -51,7 +52,10 @@ export function Sidebar({ store, view, onNavigate, onAddLead, onSimulateLead, on
   return (
     <aside className="sidebar">
       <div className="sidebar-head">
-        <button className="brand" onClick={() => onNavigate('today')}><span className="brand-mark">D</span><strong>Daira</strong></button>
+        <button className="brand" onClick={() => onNavigate('today')} aria-label={`${APP_NAME} · ${BROKERAGE.name}`}>
+          <span className="brand-mark">{APP_NAME[0]}</span>
+          <span className="brand-text"><strong>{APP_NAME}</strong><small>{BROKERAGE.name}</small></span>
+        </button>
         <NotificationBell store={store} onOpenLead={onOpenLead} onNavigate={onNavigate} tone="on-dark" />
       </div>
       {/* Add lead from any screen (phones use the + in the top bar). */}
@@ -89,7 +93,8 @@ export function Sidebar({ store, view, onNavigate, onAddLead, onSimulateLead, on
 export function MobileTopBar({ store, onNavigate, onAddLead, onSimulateLead, onStartDemo, onOpenLead }: { store: DemoStore; onNavigate: (view: View) => void; onAddLead: () => void } & SimulateProps & OpenLeadProps) {
   return (
     <header className="mobile-top-bar">
-      <button className="brand" onClick={() => onNavigate('today')}><span className="brand-mark">D</span><strong>Daira</strong></button>
+      {/* Phones show the product name only; the brokerage's name is in the account menu. */}
+      <button className="brand" onClick={() => onNavigate('today')} aria-label={`${APP_NAME} · ${BROKERAGE.name}`}><span className="brand-mark">{APP_NAME[0]}</span><strong>{APP_NAME}</strong></button>
       <span className="whatsapp-status" title="WhatsApp connected"><i className="status-dot glow" /><span>WhatsApp connected</span></span>
       <NotificationBell store={store} onOpenLead={onOpenLead} onNavigate={onNavigate} tone="on-light" />
       <AccountMenuFor store={store} trigger={<Avatar initials={store.viewer.initials} color={store.viewer.color} size="sm" />} placement="down" onSimulateLead={onSimulateLead} onStartDemo={onStartDemo} />

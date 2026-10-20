@@ -15,7 +15,7 @@ await p.click('.chat-layout header button[aria-label="Back"], .chat-layout heade
 ok(await p.locator('.sidebar-nav button.active:has-text("Today")').count() === 1, 'Back returns to Today')
 await p.setViewportSize({ width: 390, height: 844 }); await p.waitForTimeout(300)
 await p.click('.lead-row >> nth=0'); await p.waitForTimeout(300)
-await p.click('.chat-mobile-actions button:has-text("Share homes")'); await p.click('.share-footer .btn-success'); await p.waitForTimeout(300)
+await p.click('.chat-actions button:has-text("Share homes")'); await p.click('.share-footer .btn-success'); await p.waitForTimeout(300)
 const t = await p.locator('.toast').boundingBox(); const c = await p.locator('.composer, .chat-composer, form').last().boundingBox()
 ok(t && t.y < 150, `phone toast at the top (y=${t?.y})`)
 await p.screenshot({ path: `${SHOTS}/quick-phone-toast.png` })

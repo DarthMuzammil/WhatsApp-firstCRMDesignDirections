@@ -75,7 +75,7 @@ export type Recording = { id: number; leadId: number; when: string; duration: nu
 export const SEED_LEADS: LeadSeed[] = [
   {
     id: 1, name: 'Ananya Rao', initials: 'AR', need: '3 BHK in Indiranagar', budget: '₹2.4–2.8 Cr', budgetCr: 2.6, locality: 'Indiranagar',
-    message: 'Can we see the corner unit this Saturday?', enquiry: 'Hi, I’m looking for a 3 BHK in Indiranagar. Is anything good available?',
+    message: 'See you at 11:30 today. Can we also see the corner unit?', enquiry: 'Hi, I’m looking for a 3 BHK in Indiranagar. Is anything good available?',
     minutesAgo: 2, unread: 2, temp: 'Hot', source: '99acres', color: 'coral', online: true, phone: '+91 98861 24018',
     moveIn: 'Within 3 months', mustHave: 'Natural light · Balcony', initialStage: 2, ownerId: 'm-priya', sharedWith: 6,
   },
@@ -148,7 +148,7 @@ export const SEED_LEADS: LeadSeed[] = [
 ]
 
 export const SEED_TASKS: Task[] = [
-  { id: 1, leadId: 1, time: '10:30 AM', title: 'Confirm Saturday property visit', note: 'The Courtyard House · Indiranagar', channel: 'WhatsApp' },
+  { id: 1, leadId: 1, time: '10:30 AM', title: 'Confirm today’s 11:30 visit', note: 'The Courtyard House · Indiranagar', channel: 'WhatsApp' },
   { id: 2, leadId: 2, time: '12:00 PM', title: 'Send revised price and payment plan', note: 'Windermere Residences · Whitefield', channel: 'Send details' },
   { id: 3, leadId: 3, time: '3:30 PM', title: 'Discuss rental yield estimates', note: 'Lakeview Terraces · HSR Layout', channel: 'Call' },
   { id: 4, leadId: 4, time: '5:00 PM', title: 'Check family decision', note: '2 BHK shortlist · HSR Layout', channel: 'WhatsApp' },

@@ -13,7 +13,7 @@ import { DOC_LABELS, OFFER_BY_LABELS, SEED_DEALS, type Closure, type Deal } from
 import { SEED_PROPERTIES, matchesForLead, priceLabel, type Property } from '../data/inventory'
 import { DEFAULT_AUTO_REPLY, SERVICE_WINDOW_MINUTES } from '../data/templates'
 import { callSummary } from '../lib/ai'
-import { clockLabel, dayLabel, formatDuration, maskPhone } from '../lib/format'
+import { clockLabel, dayLabel, formatDuration, maskPhone, minutesOfDay } from '../lib/format'
 import { distanceM, type PretendLocation, type Reading } from '../lib/location'
 import { can, canSeeLead, type Permission } from '../lib/permissions'
 import { clearDemoStorage, useLocalState } from '../lib/storage'
@@ -268,7 +268,8 @@ export function useDemoStore() {
   }
 
   // ---------- Work items (scoped to visible leads) ----------
-  const visibleTasks = tasks.filter((task) => visibleIds.has(task.leadId))
+  // Follow-ups in time order ('10:30 AM' before '2:00 PM').
+  const visibleTasks = tasks.filter((task) => visibleIds.has(task.leadId)).sort((a, b) => minutesOfDay(a.time) - minutesOfDay(b.time))
   const remainingTasks = visibleTasks.filter((task) => !completedTaskIds.includes(task.id))
   const visibleRecordings = recordings.filter((recording) => visibleIds.has(recording.leadId))
   const unreadTotal = leads.reduce((sum, lead) => sum + lead.unread, 0)

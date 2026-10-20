@@ -14,7 +14,7 @@ ok(await p.locator('.followups-view').count() === 1, 'Back returns to Follow-ups
 // 4. Up next follows bookings
 await p.click('.sidebar-nav button:has-text("Today")')
 ok((await p.locator('.day-focus-more').innerText()).includes('+3 more visits'), 'seed: up next shows "+3 more visits booked"')
-await p.click('.lead-row:has-text("Sana")'); await p.click('.lead-detail .lead-actions button:nth-child(2)'); await p.click('.add-lead .add-lead-submit')
+await p.click('.lead-row:has-text("Sana")'); await p.click('.chat-actions button:nth-child(2)'); await p.click('.add-lead .add-lead-submit')
 await p.click('.sidebar-nav button:has-text("Today")')
 ok((await p.locator('.day-focus-more').innerText()).includes('+4 more visits'), 'booking Sana adds a visit ("+4 more")')
 // 3. Reset confirm: Cancel keeps data, Escape closes, focus lands on Cancel

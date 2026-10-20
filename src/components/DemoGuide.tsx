@@ -5,6 +5,7 @@ import { QUALIFICATION_QUESTIONS } from '../data/templates'
 import { pretendReading } from '../lib/location'
 import type { DemoStore } from '../state/useDemoStore'
 import { Icon } from './Icon'
+import type { Notify } from './Toast'
 import type { View } from './navigation'
 import './DemoGuide.css'
 
@@ -16,7 +17,7 @@ type GuideProps = {
   onSimulate: (sourceName: string) => Lead | undefined
   onOpenLead: (lead: Lead) => void
   onNavigate: (view: View) => void
-  notify: (message: string) => void
+  notify: Notify
   onClose: () => void
 }
 
@@ -56,13 +57,14 @@ export function DemoGuide({ store, onSimulate, onOpenLead, onNavigate, notify, o
   const checkIn = (mode: 'far' | 'client') => {
     const at = reading(mode)
     if (!visit || !at) return
-    notify(store.recordVisitStep(visit.id, 'check-in', at).message)
+    const result = store.recordVisitStep(visit.id, 'check-in', at)
+    notify(result.message, result.ok ? 'success' : 'warning')
   }
 
   const steps: Step[] = [
     {
       title: 'A buyer enquires on 99acres',
-      say: 'The enquiry lands in Daira within seconds: routed to Pre-sales, an automatic WhatsApp reply goes out, and the portal’s “also sent to other brokers” warning shows.',
+      say: 'The enquiry lands in Bayana within seconds: routed to Pre-sales, an automatic WhatsApp reply goes out, and the portal’s “also sent to other brokers” warning shows.',
       action: 'Send a 99acres enquiry',
       run: () => {
         store.setViewer(OWNER_ID)
@@ -74,7 +76,7 @@ export function DemoGuide({ store, onSimulate, onOpenLead, onNavigate, notify, o
     },
     {
       title: 'Auto-qualification and the AI brief',
-      say: 'Daira asks the qualifying questions on WhatsApp; AI turns the answers into a buyer brief. Nothing changes until a person accepts it.',
+      say: 'Bayana asks the qualifying questions on WhatsApp; AI turns the answers into a buyer brief. Nothing changes until a person accepts it.',
       action: 'Accept the AI brief',
       // Ready once every question is answered and AI has suggestions (or someone already accepted them in the lead panel).
       ready: (!!leadId && store.qualifyStepFor(leadId) >= QUALIFICATION_QUESTIONS.length * 2 && !!store.aiSuggestionsFor(leadId)) || (!!lead && lead.budget !== 'Budget to qualify'),
@@ -100,7 +102,7 @@ export function DemoGuide({ store, onSimulate, onOpenLead, onNavigate, notify, o
     },
     {
       title: `Switch to ${agentName}’s phone`,
-      say: `Field agents use Daira on their phone. ${agentName}’s Visits screen shows today’s visit with Left office, Check in and Check out.`,
+      say: `Field agents use Bayana on their phone. ${agentName}’s Visits screen shows today’s visit with Left office, Check in and Check out.`,
       action: `View as ${agentName}`,
       run: () => { if (agent) store.setViewer(agent.id); onNavigate('visits') },
     },
@@ -152,7 +154,19 @@ export function DemoGuide({ store, onSimulate, onOpenLead, onNavigate, notify, o
       title: 'The leaderboard moves',
       say: `Back as the Owner: ${agentName}’s commission this month goes up by ₹${(agreedCr * 2).toFixed(1)} L (2% fee), live on the leaderboard. Check the bell and the audit log too.`,
       action: 'View as the Owner',
-      run: () => { store.setViewer(OWNER_ID); onNavigate('reports') },
+      run: () => {
+        store.setViewer(OWNER_ID)
+        onNavigate('reports')
+        notify(`${agentName}: +₹${(agreedCr * 2).toFixed(1)} L commission this month`)
+        // Bring the salesperson's bar into view and pulse it, so the change is visible without hunting.
+        window.setTimeout(() => {
+          const row = [...document.querySelectorAll<HTMLElement>('.reports-grid .bar-list li')].find((item) => item.textContent?.includes(agent?.name ?? '-'))
+          if (!row) return
+          row.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          row.classList.add('demo-spotlight')
+          window.setTimeout(() => row.classList.remove('demo-spotlight'), 6000)
+        }, 400)
+      },
     },
   ]
 

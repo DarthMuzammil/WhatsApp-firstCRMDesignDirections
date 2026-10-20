@@ -22,7 +22,7 @@ export function leadScore(lead: Lead): { score: number; label: string; reasons: 
   if (lead.budgetCr > 0) { score += 15; reasons.push('budget confirmed') } else reasons.push('budget not yet known')
   if (lead.stage >= 2) { score += 15; reasons.push(lead.stage === 3 ? 'negotiating' : 'visit planned') }
   if (lead.visitScheduled) { score += 10; reasons.push('visit booked') }
-  if (lead.minutesAgo <= 30) { score += 15; reasons.push(`replied ${lead.minutesAgo} min ago`) } else if (lead.minutesAgo > 24 * 60) { score -= 15; reasons.push('quiet for over a day') }
+  if (lead.minutesAgo <= 30) { score += 15; reasons.push(lead.minutesAgo < 1 ? 'replied just now' : `replied ${lead.minutesAgo} min ago`) } else if (lead.minutesAgo > 24 * 60) { score -= 15; reasons.push('quiet for over a day') }
   if (lead.temp === 'Hot') score += 10
   if (lead.sharedWith) { score -= 5; reasons.push(`also with ~${lead.sharedWith} brokers`) }
   score = Math.max(5, Math.min(98, score))

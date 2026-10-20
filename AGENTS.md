@@ -11,10 +11,11 @@ A Vite development server is **already running** on `$PORT` (default 8443). You 
 
 ## Project Structure
 
-Daira is a clickable client-demo prototype of a WhatsApp-first CRM for independent real-estate brokers in India. There is no backend: all data is seed data plus user actions saved in localStorage.
+Bayana is a clickable client-demo prototype of a WhatsApp-first CRM for independent real-estate brokers in India. There is no backend: all data is seed data plus user actions saved in localStorage.
 
 - `src/main.tsx` - React entrypoint. Imports `src/index.css` **before** `App` so component styles can override global ones. Keep that order.
 - `src/App.tsx` - App shell. Owns the current view, the open lead, the screen a chat was opened from (`chatOrigin`, used by Back and the nav highlight), modals (add lead, call picker, call) and toasts. Renders one view at a time.
+- `src/data/brand.ts` - The product name (`APP_NAME`, Bayana) and the brokerage's name (`BROKERAGE`, Better Days Realty). Buyer-facing text uses `BROKERAGE.name`, never the product name.
 - `src/data/demo.ts` - Seed data and types for leads, properties, tasks, recordings, pipeline stages and demo metrics. Change demo content here.
 - `src/data/team.ts` - The brokerage's people, teams, roles and the "View as" personas.
 - `src/data/sources.ts` - Lead sources (portals, ads, offline) and the buyer pool for simulated arrivals.
@@ -27,7 +28,7 @@ Daira is a clickable client-demo prototype of a WhatsApp-first CRM for independe
 - `src/data/performance.ts` - Generated monthly performance, targets and insight data.
 - `src/data/templates.ts` - WhatsApp templates, 24-hour window, auto-reply and qualification questions.
 - `src/state/useDemoStore.ts` - The single store hook. Persisted state, derived numbers (unread count, active value, commission) and every action (move stage, schedule visit, send message, reset demo). Views receive `store` as a prop and never touch localStorage directly.
-- `src/lib/` - Small helpers: `ai.ts` (demo AI text; outputs are suggestions people confirm, never auto-sent), `location.ts` (one-off location readings and distance; never add background tracking), `permissions.ts` (role → permissions, `canSeeLead`), `storage.ts` (localStorage hook, key prefix `daira:v6:`), `format.ts` (dates, money, durations, `maskPhone`), `csv.ts`, `useEscapeKey.ts`.
+- `src/lib/` - Small helpers: `ai.ts` (demo AI text; outputs are suggestions people confirm, never auto-sent), `location.ts` (one-off location readings and distance; never add background tracking), `permissions.ts` (role → permissions, `canSeeLead`), `storage.ts` (localStorage hook, key prefix `daira:v7:`), `format.ts` (dates, money, durations, `maskPhone`), `csv.ts`, `useEscapeKey.ts`.
 - `src/components/` - Shared UI: `DemoGuide` (the guided demo: one store action per step; keep it working when you change a flow it drives), `AppNavigation` (desktop sidebar, phone top bar and tab bar), `navigation.ts` (nav items and the `View` type), `Dialog` (the one modal/sheet/full-screen shell), `Avatar`, `HeatBadge`, `LeadActions`, `LeadRow`, `LeadTimeline`, `LeadNotes`, `LeadTags`, `IncomingLeadBanner`, `LocationControl`, `BarList`, `PropertyCard`, `AccountMenu` (reset demo data, with confirmation), `NotificationBell`, `Toast`, `Icon` (inline SVG icon set).
 - `src/views/` - One file per screen: `TodayView`, `ChatView` (chat + lead detail panel), `PipelineView`, `PropertiesView`, `FollowUpsView`, `CallsView`, `VisitsView`, `AttendanceView`, `ReportsView`, `EscalationsView`, `LeadSourcesView`, `TeamView`, `SettingsView`, `AuditView`.
 - `tests/e2e/` - End-to-end checks (headless Chromium, one `*.test.mjs` per area) and `run.mjs`, run with `pnpm test:e2e`.
@@ -49,14 +50,14 @@ Every push to `main` publishes the demo to GitHub Pages (https://darthmuzammil.g
 - **Reuse shared pieces, don't copy them:**
   - `components/Dialog` for every modal, sheet or full-screen overlay (backdrop, Escape, click-outside, focus trap and focus return are built in)
   - `components/HeatBadge` for Hot/Warm/New
-  - `components/LeadActions` for Shortlist / Visit / Matches
+  - `components/LeadActions` for the chat's Share homes / Plan visit bar
   - `firstName()` and `initialsFor()` in `src/data/demo.ts`
   - Shared CSS classes in `src/index.css`: `.btn*`, `.card`, `.page-head`, `.stat-strip`, `.segmented`, `.chip-row` / `.chip`, `.count-badge`, `.status-dot`, `.icon-badge`, `.is-done`, `.inline-feedback`, `.form-error`, `.ai-chip`, `.search-field`, `.empty-state`
 - Hover-only effects (lifts, zooms) go inside `@media (hover: hover)` so they don't stick on touch screens.
 - **Charts:** use `components/BarList` (one series, one colour = `--primary`, no legend, bars ≤ 24 px with `--radius-mark` ends, value at the tip, tooltip on hover and focus) and put a table view next to any chart that compares people. Never a dual axis, never a colour per bar for unordered categories. Validate any new chart colour with the dataviz skill's `validate_palette.js`.
 - Breakpoints: phone `max-width: 760px`, tablet `max-width: 1100px`. On phones every tappable control is at least 44px (`--tap`).
 - `Avatar` renders a `<span class="avatar">`. Layout selectors like `.parent > span` must use `span:not(.avatar)` or they will stretch the avatar.
-- When a stored data shape changes, bump the `daira:v6:` prefix in `src/lib/storage.ts` so old saved data is ignored.
+- When a stored data shape changes, bump the `daira:v7:` prefix in `src/lib/storage.ts` so old saved data is ignored.
 - **Roles and visibility:** never filter leads or hide features by checking a role name. Use `store.viewerCan(permission)` and the already-filtered `store.leads` / `store.tasks` / `store.recordings`. Show phone numbers through `store.displayPhone()` so masking applies. Any new action that changes a lead should also write to the activity log (the store's `log()` helper) so it appears on the lead's timeline; pass `SYSTEM_ID` for things the product does by itself. Inside the store, use `pushNotification()` to tell other people about something that concerns them and `recordAudit()` for changes the Owner should be able to trace (reassignments, team, settings, listings, deals, exports). Inside React state updaters, never read mutable counters: compute ids (e.g. with `nextId()`) before calling the setter. New Manage screens go in `NAV_ITEMS` with a `requires` permission.
 - Verify changes with `npx tsc --noEmit -p .`, `npx vite build` and `pnpm test:e2e` (all suites must pass; see `tests/e2e/README.md`), then look at the phone (390px), tablet (900px) and desktop (1440px) layouts. When you change a flow, update or add the e2e suite that covers it in the same commit.
 

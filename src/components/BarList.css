@@ -22,3 +22,7 @@ button.bar-row { cursor: pointer; }
   .bar-row { grid-template-columns: minmax(90px, 38%) minmax(0, 1fr); gap: var(--space-2); }
   .bar-list.ranked .bar-row { grid-template-columns: auto minmax(90px, 38%) minmax(0, 1fr); }
 }
+
+/* Guided demo, last step: the salesperson whose deal was just won. */
+.bar-list li.demo-spotlight { border-radius: var(--radius-sm); background: var(--success-soft); box-shadow: 0 0 0 2px var(--success-line); animation: spotlight 1.2s ease 2; }
+@keyframes spotlight { 50% { box-shadow: 0 0 0 5px var(--success-line); } }

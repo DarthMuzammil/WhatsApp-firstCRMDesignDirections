@@ -61,7 +61,7 @@ ok((await p.locator('.lead-detail .match-reasons').first().innerText()).replace(
 await p.screenshot({ path: `${SHOTS}/m11-panel.png` })
 // Share from chat outside the 24h window → template
 await openLead('Ishita')
-await p.click('.lead-detail .lead-actions button:has-text("Share homes")')
+await p.click('.chat-actions button:has-text("Share homes")')
 ok((await p.locator('.share-dialog .eyebrow:has-text("WhatsApp preview")').innerText()).toLowerCase().includes('template'), 'outside window: sent as template')
 const ticked = await p.locator('.share-list button[aria-pressed="true"]').count()
 ok(ticked >= 1, `top matches pre-ticked (${ticked})`)

@@ -1,6 +1,8 @@
 .brand { padding: 0; border: 0; display: flex; align-items: center; gap: var(--space-3); background: transparent; }
 .brand-mark { width: 32px; height: 32px; display: grid; place-items: center; border-radius: var(--radius-md); color: var(--navy-deep); background: var(--mint); font-size: var(--fs-title); font-weight: 800; }
 .brand strong { font-size: var(--fs-title-lg); font-weight: 800; letter-spacing: -.02em; }
+.brand-text { min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; line-height: 1.1; }
+.brand-text small { max-width: 132px; overflow: hidden; color: var(--on-navy-muted); font-size: var(--fs-meta); font-weight: 600; letter-spacing: .01em; white-space: nowrap; text-overflow: ellipsis; }
 
 /* Desktop / tablet sidebar */
 /* z-index: the sticky sidebar is its own stacking context; keep it (and its account menu) above page content. */

@@ -1,4 +1,4 @@
-# Daira: Product Spec (living document)
+# Bayana: Product Spec (living document)
 
 > **What this is:** the single source of truth for what the prototype does *right now* (§2–§7) and for the approved plan (§8). §8 is a plan, not a description of the app: when a planned item ships, move it into §2–§7 and mark it built.
 > **Who updates it:** whoever changes the app (person or AI) updates this file in the same commit as any feature, workflow, data or UI change (see `AGENTS.md`). If the code and this doc disagree, that's a bug in one of them.
@@ -8,11 +8,11 @@
 ---
 
 ## 1. Product in one paragraph
-Daira is a WhatsApp-first CRM for **real estate brokerages of 20–25 people** in India, starting with Bengaluru: an owner, team managers, field agents and (in some companies) separate telecallers. Agents work from their phones: leads arrive, conversations happen on WhatsApp, matching homes get shared, visits are planned and verified, and follow-ups are kept. Managers and owners see the team: who is handling which lead, who turned up, who is performing. All of it happens in one place instead of across WhatsApp, Excel and a paper diary. This repo is a **UI-only prototype** for customer demos. There is no backend; data is seeded in code, changes are saved in the browser's localStorage, and anything a backend would do (portal sync, WhatsApp delivery, calling, GPS, AI) is **simulated with scripted data**.
+Bayana is a WhatsApp-first CRM for **real estate brokerages of 20–25 people** in India, starting with Bengaluru: an owner, team managers, field agents and (in some companies) separate telecallers. Agents work from their phones: leads arrive, conversations happen on WhatsApp, matching homes get shared, visits are planned and verified, and follow-ups are kept. Managers and owners see the team: who is handling which lead, who turned up, who is performing. All of it happens in one place instead of across WhatsApp, Excel and a paper diary. This repo is a **UI-only prototype** for customer demos. There is no backend; data is seeded in code, changes are saved in the browser's localStorage, and anything a backend would do (portal sync, WhatsApp delivery, calling, GPS, AI) is **simulated with scripted data**.
 
-**People in the prototype:** a 22-person brokerage (owner Arjun Khanna, 3 team managers, 15 Sales, 3 Pre-sales). The demo **"View as"** switcher (account menu) shows the app as the Owner, a Manager, a Sales agent or a Pre-sales telecaller; data visibility, phone masking and navigation change with the role (§3.8).
+**People in the prototype:** a 22-person brokerage, **Better Days Realty** (the workspace name; buyers see it in every WhatsApp message, set in `src/data/brand.ts`), (owner Arjun Khanna, 3 team managers, 15 Sales, 3 Pre-sales). The demo **"View as"** switcher (account menu) shows the app as the Owner, a Manager, a Sales agent or a Pre-sales telecaller; data visibility, phone masking and navigation change with the role (§3.8).
 
-> **Positioning note:** the research PRD targeted solo brokers and 2–5 person shops. At 20–25 seats Daira competes directly with Leadrat and LeadSquared, so per-seat pricing needs revisiting. The edge remains: phone-first for agents in the field, WhatsApp-native, verified visits, and leave-aware lead handover.
+> **Positioning note:** the research PRD targeted solo brokers and 2–5 person shops. At 20–25 seats Bayana competes directly with Leadrat and LeadSquared, so per-seat pricing needs revisiting. The edge remains: phone-first for agents in the field, WhatsApp-native, verified visits, and leave-aware lead handover.
 
 **Differentiators the product must make obvious** (from the research PRD):
 1. Speed to lead: instant WhatsApp reply and qualification for portal leads.
@@ -30,18 +30,18 @@ Layouts: **phone** ≤ 760px, **tablet** 761–1100px, **desktop** > 1100px. Eve
 
 | Area | Desktop / tablet | Phone |
 |---|---|---|
-| Brand + status | Sidebar with Daira logo (tap → Today), the **notifications bell** and a mint **Add lead** button | Top bar: logo, "● WhatsApp connected" 🧱 (just the dot on phones narrower than 430 px), **notifications bell**, viewer's avatar (account menu), **+** add lead |
+| Brand + status | Sidebar with the Bayana mark and name, the workspace name "Better Days Realty" under it (tap → Today), the **notifications bell** and a mint **Add lead** button | Top bar: the Bayana mark and name only (the workspace name is in the account menu, so the two names never crowd the bar), "● WhatsApp connected" 🧱 (just the dot on phones narrower than 430 px), **notifications bell**, viewer's avatar (account menu), **+** add lead |
 | Main nav | Sidebar **Work** group: **Today** (unread badge), **Visits**, **Pipeline**, **Properties**, **Follow-ups** (tasks-left badge), **Calls**, **Attendance**, **Performance**. **Manage** group, by permission: **Escalations** (red count; Manager/Owner), **Lead sources** (Manager/Owner), **Team** (Manager/Owner), **Settings** (Owner), **Audit log** (Owner) | Bottom tabs: **Inbox** (unread badge), **Visits**, **Pipeline**, **Tasks**, **More**. **More** opens a sheet with Properties, Calls, Attendance, Performance, plus the Manage screens the viewer may use (a red "!" on More when escalations are waiting) |
 | Progress card | "Today's progress" ✅: buyers awaiting a reply · follow-ups left, with a progress bar of completed tasks. Says "You're all caught up" only when both are zero. Hidden on windows shorter than 940 px; the nav list scrolls if needed so the user card always stays on screen. | — |
 | User card | Viewer's name and role ("Sales · Indiranagar") | — |
 | Account menu | "⋯" next to the user card (opens upwards, beside the sidebar) | Viewer's avatar |
-| Account menu contents | **Demo · View as** ✅: Arjun Khanna (Owner), Neha Kapoor (Manager · Indiranagar), Priya Nair (Sales · Indiranagar), Kiran Patel (Pre-sales). Then **Start guided demo** ✅ (§3.16), **Simulate incoming lead** ✅ (§3.11) and **Reset demo data** ✅ (asks to confirm first) | same |
+| Account menu contents | **Workspace · Better Days Realty**, then **Demo · View as** ✅: Arjun Khanna (Owner), Neha Kapoor (Manager · Indiranagar), Priya Nair (Sales · Indiranagar), Kiran Patel (Pre-sales). Then **Start guided demo** ✅ (§3.16), **Simulate incoming lead** ✅ (§3.11) and **Reset demo data** ✅ (asks to confirm first). **Escape** closes the menu. | same |
 
 ⚠️ Names differ between desktop and phone (Today/Inbox, Follow-ups/Tasks). Pick one set.
 
 While a chat is open, the nav keeps the screen it was opened from highlighted. If switching "View as" hides the open lead or screen, the app falls back to that screen or to Today.
 
-Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with **Escape** or by tapping outside, keep keyboard focus inside while open, and return focus to the button that opened them. On phones, pickers and lead details open as bottom sheets.
+Toasts confirm actions at the top of the screen for 2.6 s, with a tick; refusals (e.g. a check-in from too far away in the guided demo) show a red alert icon instead. Dialogs close with **Escape** or by tapping outside, keep keyboard focus inside while open, and return focus to the button that opened them. On phones, pickers and lead details open as bottom sheets.
 
 ---
 
@@ -52,7 +52,7 @@ Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with
 - Every number and list on this screen covers only the leads the viewer may see (§3.8).
 - **Check-in reminder** ✅ for anyone who tracks attendance and hasn't checked in today: "You haven't checked in today · Work starts 9:30 AM" with **Check in** (opens Attendance).
 - **Up next card** ✅: the soonest open visit (planned, on the way or checked in) among the viewer's visits (§3.12), with "+N more visits booked". With none it says "No visits booked". **Directions** shows a toast ("Directions to … sent to your phone") 🎭. **Message** opens that lead's chat ✅.
-- **Follow-up rate 82%** 🧱 (with three lead avatars). **Active value** ✅ = sum of budget midpoints of the leads the viewer sees (Owner with seed data: ₹27.4 Cr), with the open-lead count (closed leads excluded).
+- **Waiting for a reply** ✅ (live): buyers with unread messages among the viewer's open leads, "N over 15 min · reply first" (or "All within 15 min" / "Every buyer has heard back"), and the avatars of the three who have waited longest. On phones the day cards are compact (no avatars or bars) so the inbox starts higher. **Active value** ✅ = sum of budget midpoints of the leads the viewer sees (Owner with seed data: ₹27.4 Cr), with the open-lead count (closed leads excluded).
 - **Lead inbox** ✅: filter *All / Hot / Warm / New*, a **source** dropdown (All sources + every source in the viewer's leads), plus search by name, requirement or locality. Subtitle counts conversations awaiting a reply. Each row: avatar (green dot if online), name, time since the last message, requirement · budget, last message, unread count, intent tag, green **Won** or grey **Lost** flag on closed leads, red **Overdue** flag (unread for more than 15 min), red-outlined **Shared ×N** flag (portal lead also sent to ~N other brokers), and "via <source>". Managers and the Owner also see the **owner** ("Priya N.") or a yellow **Unassigned** flag. Tapping a row opens the chat and **marks it read** ✅. Empty state when nothing matches.
 - **Due today** ✅: up to 4 remaining follow-ups (time, title, lead). Tapping one opens that lead's chat (Follow-ups if the lead is no longer visible); **Open follow-ups** goes to Follow-ups.
 - Desktop: inbox and Due today side by side. Tablet/phone: stacked.
@@ -61,10 +61,10 @@ Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with
 **Chat column**
 - Header: **Back** returns to the screen the chat was opened from (Today, Pipeline, Follow-ups or Calls) ✅, avatar, status line, **Details** (phones only, opens the lead panel as a bottom sheet ✅), **Call** opens the call screen ✅. Status line 🎭 comes from lead data: "Online on WhatsApp", "Last seen <time> ago", or "New lead · <phone>" for leads added in the demo.
 - **Brief strip:** requirement · budget · move-in timing (per lead).
-- **Phone-only action buttons:**
+- **Action bar** above the thread, on every screen size:
   - **Share homes** ✅ opens the Share dialog (§3.4) for this lead.
-  - **Plan visit** ✅ opens Schedule visit (below); once booked it reads "Visit booked" and opens Visits.
-- Messages 🎭: the lead's own opening enquiry, an **Automatic** reply (tagged), a scripted reply with the lead's budget, the property card sent then (the best match from the seed listings, so adding listings later doesn't rewrite history), and the lead's latest message. Homes shared in the demo appear as a message with the listing cards and, a few seconds later, **"Seen"** 🎭 next to the time. Leads added in the demo start with an empty chat and a "Lead captured just now" note. Leads that **arrived from a source in the demo** show only the buyer's enquiry ("Just now").
+  - **Plan visit** ✅ opens Schedule visit (below); once booked it reads "Visit booked" (plus the time, e.g. "· Today · 11:30 AM", on desktop) and opens Visits.
+- Messages 🎭: the lead's own opening enquiry, an **Automatic** reply (tagged, "thanks for reaching out to Better Days Realty!"), a scripted reply with the lead's budget, the property card sent then (the best match from the seed listings, so adding listings later doesn't rewrite history), and the lead's latest message. **Times count back from now**: the latest message is the lead's "minutes ago" before now; the earlier messages are about 4 days before that for leads past *New lead* and about 20 minutes before for new ones, with day labels ("Fri, 16 Oct", "Yesterday", "Today") where the day changes. Homes shared in the demo appear as a message with the listing cards and, a few seconds later, **"Seen"** 🎭 next to the time. Leads added in the demo start with an empty chat and a "Lead captured just now" note. Leads that **arrived from a source in the demo** show only the buyer's enquiry ("Just now").
 - Quick replies ✅ fill the composer: "Suggest a time", "Share location" (or "Send a welcome message" for added and newly arrived leads), plus a **Templates** chip. The **+** menu offers *Property* (fills the best match's details) and *Location*.
 - **AI drafts** ✅ 🎭 (sparkle button in the composer): three reply drafts for the buyer's last message: English, Hindi, Kannada + English. Picking one only fills the composer; nothing is sent automatically.
 - **Templates** ✅: a sheet with Welcome / Share shortlist / Visit reminder / Follow-up. Fields (buyer name, property, day and time, your name) are prefilled and editable, with a live preview; **Send template** posts it tagged "Template · <name>".
@@ -89,8 +89,7 @@ Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with
 - **Deal** panel ✅ (leads in Negotiation, closed leads, or any lead with a recorded offer), above the buyer brief: asking price; the **offer history**, newest first ("Buyer offered ₹3.2 Cr · Sun, 11 Oct", "Owner countered ₹3.35 Cr · Fri, 9 Oct"; blue dot for the buyer, amber for the owner); an amber **"No new offer in N days"** note when the latest offer is more than 7 days old (open deals only); agreed price; token with the day it was paid ("₹5 L · paid today"); **Agreement by** (when set); commission split; and a **document checklist** (Buyer KYC, Token receipt, Sale agreement; tap to tick, logged on the timeline). **Edit** / **Add offer** opens the deal dialog; **Mark lost** / **Mark won** as on the pipeline. Closed leads show "Won" or "Lost · reason", the stage label reads Won/Lost, and **Reopen deal** is offered.
 - **Tags** ✅: applied tags as removable chips; **+ Tag** shows suggestions (First-time buyer, Loan needed, NRI, Investor, Urgent, Price sensitive, Repeat client) and a custom-tag field (Enter to add).
 - **Matches · N** ✅: the best listing as a card with its reasons ("Indiranagar", "3 BHK", "In budget"; weaker ones like "6% over budget" or "On hold" in amber), then up to 3 more with their reasons. Listings already sent show **Sent** or **Seen**. With none: "No listing fits this brief yet." Matching (`matchesForLead` in `src/data/inventory.ts`): one of the buyer's localities +3, BHK or villa as asked +2 (any apartment +1 if no size was given), in budget +3 (up to 10% over +1), on hold −1; sold listings never match; a match needs 4 or more; equal scores put the price closest to the middle of the buyer's budget first. Editing the brief changes the matches straight away.
-- **Share homes** ✅ opens the Share dialog (§3.4).
-- **Schedule visit** ✅ opens a dialog: property (matched one preselected), day (Today … 6 days ahead; defaults to the coming Saturday), time slot, and agent (the lead owner; only Managers/Owner can change it). Booking posts a WhatsApp confirmation in the chat ("Visit confirmed: The Courtyard House, Indiranagar, Tomorrow at 3:00 PM…") 🎭, moves the lead to *Visit planned* (never backwards), and logs it. When a visit is booked the button reads "Visit booked · Tomorrow · 3:00 PM" and opens Visits.
+- (Share homes and Plan visit live in the chat's action bar, above.) **Schedule visit** ✅ opens a dialog: property (matched one preselected), day (Today … 6 days ahead; defaults to the coming Saturday), time slot, and agent (the lead owner; only Managers/Owner can change it). Booking posts a WhatsApp confirmation in the chat ("Visit confirmed: The Courtyard House, Indiranagar, Tomorrow at 3:00 PM…") 🎭, moves the lead to *Visit planned* (never backwards), and logs it. When a visit is booked the button reads "Visit booked · Tomorrow · 3:00 PM" and opens Visits.
 
 *Timeline tab* ✅: everything on the lead, newest first. Demo actions are logged as they happen (with who did it): messages sent, assignments, stage moves, visits booked, calls saved, notes, tag changes, brief edits, merged enquiries. Below them, events implied by the seed data: the buyer's latest message, seeded call recordings, the seeded visit, "Assigned to … by routing", and "First enquiry via <source>" last.
 
@@ -123,7 +122,7 @@ Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with
 
 ### 3.5 Follow-ups ("Tasks")
 - Header shows today's date ✅ and a progress ring (done/total) ✅.
-- Today's seeded tasks for the leads the viewer sees (8 in total; e.g. 2 for Priya Nair), each with a time, lead avatar, title, note and action type.
+- Today's seeded tasks for the leads the viewer sees (8 in total; e.g. 2 for Priya Nair), each with a time, lead avatar, title, note and action type, **in time order**.
 - Tick to complete ✅ (saved; done tasks are struck through and faded).
 - Task action: **Call** opens the call screen ✅. **WhatsApp / Send details** opens the chat ✅. Tapping the title also opens the chat.
 - **Add reminder** ✅ adds one fixed task ("Send post-visit follow-up · 6:30 PM"), once only.
@@ -251,7 +250,7 @@ Monthly figures (leads handled, visits booked/verified, deals, commission, first
   7. **A verified check-in at the property**.
   8. **Visit outcome**: checks out with "Liked it" and a next step.
   9. **Negotiate and win**: moves to Negotiation, records the deal (asking = listing price; a buyer offer at 94% and the owner's counter at 98%, both today; agreed = the counter; ₹5 L token paid today; agreement in 14 days; KYC and token receipt done; 100% to the salesperson), marks it won, opens Pipeline.
-  10. **The leaderboard moves**: back to the Owner on Performance; the salesperson's commission this month rises by agreed price × 2%.
+  10. **The leaderboard moves**: back to the Owner on Performance; the salesperson's commission this month rises by agreed price × 2%. A toast says "Sneha P.: +₹2.9 L commission this month", and their leaderboard row scrolls into view and pulses green for a few seconds.
 - The finish card suggests resetting demo data before the next client. The guide's place in the script is not saved; reloading the page ends it.
 
 ## 4. Seed data (`src/data/demo.ts`, `src/data/team.ts`, `src/data/sources.ts`)
@@ -286,7 +285,7 @@ Monthly figures (leads handled, visits booked/verified, deals, commission, first
 - **Fixed demo numbers** (`DEMO_METRICS`): follow-up rate 82% (+12%), weekly chart values, 18 calls this week (2h 14m), 72% answer rate (+8%).
 
 ## 5. Saved in the browser (localStorage)
-All keys use the prefix `daira:v6:`: `viewer`, `settings`, `pretend-location`, `attendance-today`, `corrections`, `leave`, `added-members`, `member-status`, `added-leads`, `owners`, `assignments`, `lead-edits`, `notes`, `tags`, `activity`, `source-settings`, `arrivals`, `stages`, `deals` (offer history with dates, token and agreement dates, documents, splits), `closures` (won/lost), `visits` (visit records with steps and outcomes), `read-leads`, `chats`, `ai-suggestions`, `qualify-steps`, `tasks`, `completed-tasks`, `recordings`, `saved-properties`, `properties` (inventory incl. edits and additions), `property-shares` (Sent/Seen per lead), `notifications` (everyone's, with read state), `audit`.
+All keys use the prefix `daira:v7:`: `viewer`, `settings`, `pretend-location`, `attendance-today`, `corrections`, `leave`, `added-members`, `member-status`, `added-leads`, `owners`, `assignments`, `lead-edits`, `notes`, `tags`, `activity`, `source-settings`, `arrivals`, `stages`, `deals` (offer history with dates, token and agreement dates, documents, splits), `closures` (won/lost), `visits` (visit records with steps and outcomes), `read-leads`, `chats`, `ai-suggestions`, `qualify-steps`, `tasks`, `completed-tasks`, `recordings`, `saved-properties`, `properties` (inventory incl. edits and additions), `property-shares` (Sent/Seen per lead), `notifications` (everyone's, with read state), `audit`.
 **Reset demo data** (account menu → confirm) deletes these, plus any older `daira:*` / `daira-*` keys, and reloads the page. Run it before every client demo.
 
 ## 6. Code map
@@ -302,6 +301,7 @@ See `AGENTS.md` for conventions. Each component has a matching `.css` file next 
 - `src/data/notifications.ts`: notification and audit-entry types, their seed entries, audit type labels.
 - `src/data/deals.ts`: deal model (offer, token, documents, commission split), lost reasons, seed deals.
 - `src/data/performance.ts`: generated monthly figures, targets and insight data.
+- `src/data/brand.ts`: the product name (Bayana) and the brokerage's name (Better Days Realty), used in the nav, account menu and every buyer-facing message.
 - `src/data/templates.ts`: WhatsApp templates, the 24-hour window, default auto-reply, qualification questions.
 - `src/state/useDemoStore.ts`: all saved state, the viewer, visibility filtering, routing, activity log and timeline, duplicate lookup, derived numbers and actions.
 - `src/lib/`: `ai.ts` (demo AI: reply drafts, lead score, call summary, weekly digest), `location.ts` (one-off location readings: demo readings, the browser's real location, distance), `permissions.ts` (role → permissions, who sees which lead), `storage.ts` (localStorage), `format.ts` (dates, money, durations, phone masking), `csv.ts` (CSV text and browser download), `useEscapeKey.ts`.
@@ -316,7 +316,7 @@ See `AGENTS.md` for conventions. Each component has a matching `.css` file next 
 
 ## 7. Known issues
 - Navigation labels differ between phone and desktop (Today/Inbox, Properties/Homes, Follow-ups/Tasks).
-- Seeded lead times ("2m", "18m") and seeded message timestamps are fixed values, so "Overdue" never appears or clears on its own. (Messages sent in the demo show the real time.)
+- Seeded lead times ("2m", "18m") are fixed values, so "Overdue" never appears or clears on its own. Seeded message times are worked out from them when the chat opens.
 - The permissions table can't be edited.
 - All AI output is fixed demo text built from the lead's data, not a model; templates aren't really Meta-approved; the 24-hour window uses the seeded "minutes ago".
 - Performance figures are generated; only deals won in the demo and today's check-ins are added live. Only managers' and the owner's views show other people.
@@ -460,7 +460,7 @@ Everything here is **UI only**: each item is a screen or flow driven by seed dat
   - **Activation** is typically 1–3 business days after KYC (Exotel asks customers to escalate after 24 working hours).
   - In-browser (VoIP) calling needs extra paperwork and per-city KYC, so start with the phone bridge.
   - Promotional cold calls must use the 140 series; recording needs disclosure under the DPDP Act. Confirm with the provider and a lawyer.
-  - **Decision for later:** Daira holds one telephony account for all customers (Daira does their KYC) or each brokerage connects its own account (simpler to start).
+  - **Decision for later:** Bayana holds one telephony account for all customers (Bayana does their KYC) or each brokerage connects its own account (simpler to start).
 - **WhatsApp:** WhatsApp Business API through a provider; Meta business verification; templates must be approved before use.
 - **AI:** transcription and LLM costs are per call or message; buyer data falls under the DPDP Act.
 
@@ -477,6 +477,7 @@ Everything here is **UI only**: each item is a screen or flow driven by seed dat
 
 ## 9. Changelog
 Newest first. One line per change: date, what changed, which section was updated.
+- **2026-10-20:** Rebrand to **Bayana** (app name only) with the workspace **Better Days Realty** (`src/data/brand.ts`): sidebar shows both, phone top bar Bayana only, account menu shows the workspace; buyer-facing messages (auto-reply, Welcome template, welcome quick reply) use the brokerage name; tab title "Bayana · WhatsApp-first CRM demo". Demo polish: seeded chat times count back from now with day labels; Share homes / Plan visit bar above the chat on every width (removed from the lead panel); Today's static follow-up-rate card replaced by a live "Waiting for a reply" card and phone day cards made compact; follow-ups sorted by time; refused check-in toast shows an alert icon; guided demo step 10 spotlights the salesperson's leaderboard row; Ananya's message and task now match her visit today at 11:30; AI score says "replied just now"; ownership-history line fixed; account menu closes on Escape. Saved-data prefix bumped to `daira:v7:` so browsers that opened the old build start fresh. Updated §1, §2, §3.1, §3.2, §3.5, §3.16, §5, §6, §7.
 - **2026-10-20:** Desktop pipeline is drag and drop only: compact cards (owner · need, amount with intent tag, stale-offer flag; no last message or move buttons), Won / Lost drop zones on Closed while dragging (any stage), drag a closed card back to a stage to reopen it; buttons stay on tablet/phone and appear on keyboard focus. Updated §3.3; `deal-closing` and `layout-audit` suites now drag on desktop.
 - **2026-10-20:** The end-to-end checks used during the build now live in the repo (`tests/e2e/`, `pnpm test:e2e`): 17 suites, 389 checks, including layout audits at three widths; they can also run against the live site. No behaviour change. Updated §6.
 - **2026-10-20:** Published as a shareable demo on GitHub Pages (https://darthmuzammil.github.io/WhatsApp-firstCRMDesignDirections/), redeployed on every push to main; browser tab title is now "Daira · WhatsApp-first CRM demo" (search engines still told not to index it). Updated §6.

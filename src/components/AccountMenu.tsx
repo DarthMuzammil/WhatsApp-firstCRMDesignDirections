@@ -3,6 +3,8 @@ import { roleSummary, type Member } from '../data/team'
 import { Avatar } from './Avatar'
 import { Dialog } from './Dialog'
 import { Icon } from './Icon'
+import { BROKERAGE } from '../data/brand'
+import { useEscapeKey } from '../lib/useEscapeKey'
 import './AccountMenu.css'
 
 type AccountMenuProps = {
@@ -23,12 +25,16 @@ type AccountMenuProps = {
 export function AccountMenu({ trigger, label, placement, viewer, personas, onViewAs, onSimulateLead, onStartDemo, onReset }: AccountMenuProps) {
   const [open, setOpen] = useState(false)
   const [confirming, setConfirming] = useState(false)
+  // Escape closes the menu (the reset confirmation, a Dialog, handles its own Escape).
+  useEscapeKey(() => setOpen(false), open && !confirming)
   return (
     <div className="account-menu">
       <button className="account-menu-trigger" aria-label={label} aria-expanded={open} onClick={() => setOpen(!open)}>{trigger}</button>
       {open && <>
         <div className="account-menu-dismiss" onClick={() => setOpen(false)} />
         <div className={`account-menu-popover ${placement}`} role="menu">
+          <div className="account-menu-workspace"><small>Workspace</small><strong>{BROKERAGE.name}</strong></div>
+          <div className="account-menu-divider" />
           <span className="eyebrow account-menu-section">Demo · View as</span>
           {personas.map((person) => (
             <button key={person.id} role="menuitemradio" aria-checked={person.id === viewer.id} className={person.id === viewer.id ? 'current' : ''} onClick={() => { setOpen(false); onViewAs(person.id) }}>

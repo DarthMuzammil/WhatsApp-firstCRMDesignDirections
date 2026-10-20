@@ -65,3 +65,23 @@ export function clockLabel(date = new Date()): string {
   const hours = date.getHours()
   return `${hours % 12 || 12}:${String(date.getMinutes()).padStart(2, '0')} ${hours < 12 ? 'AM' : 'PM'}`
 }
+
+/** "2:30 PM" → minutes after midnight (870), for sorting by time of day. Unparseable times sort last. */
+export function minutesOfDay(label: string): number {
+  const match = /^(\d{1,2}):(\d{2})\s*(AM|PM)$/i.exec(label.trim())
+  if (!match) return 24 * 60
+  const hours = (Number(match[1]) % 12) + (match[3].toUpperCase() === 'PM' ? 12 : 0)
+  return hours * 60 + Number(match[2])
+}
+
+/** Clock label for a moment `minutesAgo` before now, e.g. "10:24 AM". */
+export function clockMinutesAgo(minutesAgo: number, now = new Date()): string {
+  return clockLabel(new Date(now.getTime() - minutesAgo * 60_000))
+}
+
+/** Day label ("Today", "Yesterday", "Sat, 17 Oct") for a moment `minutesAgo` before now. */
+export function dayOfMinutesAgo(minutesAgo: number, now = new Date()): string {
+  const then = new Date(now.getTime() - minutesAgo * 60_000)
+  const startOf = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime()
+  return dayLabel(Math.round((startOf(then) - startOf(now)) / 86_400_000), now)
+}

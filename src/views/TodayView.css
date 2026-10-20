@@ -58,8 +58,12 @@
 
 @media (max-width: 760px) {
   .day-cards { gap: var(--space-3); }
-  .day-cards article { min-height: 150px; padding: var(--space-4); }
-  .day-stat strong { font-size: var(--fs-display-sm); }
+  /* Compact cards so the inbox starts higher on the screen. */
+  .day-cards article { min-height: 0; padding: var(--space-4); }
+  .day-focus-person { margin-top: var(--space-3); }
+  .day-focus footer { margin-top: var(--space-4); }
+  .day-stat strong { margin-top: var(--space-2); font-size: var(--fs-display-sm); }
+  .day-stat-avatars, .day-stat-bars { display: none; }
   .day-focus footer .btn { flex: 1; }
   .inbox-head { flex-direction: column; align-items: flex-start; }
   .inbox-filters { width: 100%; }
