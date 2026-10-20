@@ -138,8 +138,13 @@ Toasts confirm actions at the top of the screen for 2.6 s, with a tick; refusals
 - Stats: calls this week 18 🧱, answer rate 72% 🧱, recorded count ✅. The first two are demo numbers; in the product they come from the telephony provider's call logs (§8.15).
 - Recording list: play/pause toggle (visual only 🎭, moving playhead; in the product it plays the recording file the provider stores, §8.15), waveform, duration, note. Calls saved in the demo get the note "Saved from the call screen" and are logged on the lead's timeline ("Call recorded (m:ss)"). There is no AI call summary: it depends on call recordings, which need a telephony provider (see §8.15). Search by buyer ✅. Tapping a person opens the chat.
 - **New call** opens the lead picker ✅ (search by name, area or budget; a bottom sheet on phones) and then the call screen.
-- **Call screen** 🎭: "Calling…" (button reads **Cancel**; Escape also cancels while dialling, but never during or after a call) → connected after 1.2 s, live timer ✅, REC badge, Mute / Speaker / Record toggles. **End call** shows the duration and recording status, then **Save recording** adds it to the top of the list ("Just now") and shows a toast ✅ (saved locally). If recording was turned off, **Done** closes without saving. Full screen on phones.
-- Copy: "Secure internet call", "Your personal number stays private", and a consent reminder about recording.
+- **Call screen** 🎭 shows a **phone-bridge call** (§8.15): the telephony provider rings the agent's own phone, then the buyer's, and joins them. The talking happens on the agent's phone, so the screen has **no Mute, Speaker or Record buttons**. Top line "Calls from Better Days Realty's number"; a three-step tracker (Your phone rings → <Buyer>'s phone rings → You talk · the call is recorded) with the current step highlighted.
+  1. "Bayana is calling your phone…" · "Pick up to connect to Ananya." (1.5 s in the demo). **Cancel**, Escape or tapping outside cancels; nothing is saved.
+  2. "Connecting to Ananya…" · "Ananya sees Better Days Realty's number, not yours." (1.2 s). **Cancel** still cancels; Escape and tapping outside do nothing from here on.
+  3. Connected: live timer ✅ with a REC badge · "Talk on your phone. Ananya heard a short notice that the call is recorded." Every connected call is recorded (by the provider in the product).
+  4. **End call** → "Call ended" with the duration and "Recording · Saved". The recording is saved **as the call ends** (top of the list, "Just now"; logged on the timeline), so closing this screen can't lose it. **Done** (or Escape) closes it and shows the toast "Call recording saved to the lead timeline".
+  Full screen on phones.
+- Copy: "Calls from <brokerage>'s number", "Your personal number stays private" (call picker), and a consent reminder about recording.
 
 ### 3.7 Add lead (quick capture)
 - Opens from **+** (phone top bar) or **Add lead** in the sidebar (desktop/tablet, on every screen).
@@ -789,6 +794,7 @@ Developers pay CP brokerage late, and only after the buyer has paid a set share 
 
 ## 9. Changelog
 Newest first. One line per change: date, what changed, which section was updated.
+- **2026-10-20:** Call screen redone as a phone-bridge call (§3.6): "Bayana is calling your phone… Pick up to connect", then the buyer's phone rings, then connected with a timer and REC. Removed "Secure internet call" and the Mute / Speaker / Record buttons; every connected call is recorded and saved when it ends.
 - **2026-10-20:** Calls: stated that the call stats and recording playback are demo data until a telephony provider is connected (§3.6), and that the Calls screen is provider-backed (§8.15).
 - **2026-10-20:** Removed the "Online on WhatsApp" / "Last seen" status from the chat header, which WhatsApp's API doesn't provide; it now shows "Last message <time> ago". Removed the AI call summary (demo text) from saved calls, the Calls screen and the landing page; calls save a plain note. Added **Export chat** UI (owner only, §3.2; nothing is downloaded, the export is audited). Recorded the property location pins as a TODO (§8.18) and the inbox online dot as a TODO (§7).
 - **2026-10-20:** Removed the portal "shared lead" feature: the "shared with ~N brokers" figure on portal sources and leads, the "Also with N brokers" row flag, the lead-panel "Also sent to ~N brokers" warning, the arrival-banner line, and its AI score reason. Portal leads now carry no shared count (we have no source for it). Reworded the problem statement (§1), the guided demo's step 2 and the demo script. Saved-data prefix bumped to `daira:v12:`. Updated §1, §2, §3.1, §3.2, §3.11, §4, §5, §6, §8.5.

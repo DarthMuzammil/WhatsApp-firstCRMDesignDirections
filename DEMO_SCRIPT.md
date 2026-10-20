@@ -45,7 +45,7 @@ On the guided demo's finish card, tap **Bonus: money developers owe you**, then 
 - **Audit log** (Owner): every reassignment, setting and export.
 
 ## Questions to expect
-- WhatsApp Business API and per-conversation charges (the launch preview shows Meta's ₹0.86 per marketing message) · developer portals (Bayana records registrations and proof; it doesn't submit them) · GST and TDS on brokerage (demo rates; confirm with their CA) · how 99acres / MagicBricks / Housing leads come in · price per seat vs LeadSquared and Leadrat · importing their Excel data · what stops an agent leaving with clients (masked numbers, in-app calling) · fake-GPS apps (we say "verified location", never "proof") · offline use · Hindi and Kannada · onboarding time.
+- WhatsApp Business API and per-conversation charges (the launch preview shows Meta's ₹0.86 per marketing message) · developer portals (Bayana records registrations and proof; it doesn't submit them) · GST and TDS on brokerage (demo rates; confirm with their CA) · how 99acres / MagicBricks / Housing leads come in · price per seat vs LeadSquared and Leadrat · importing their Excel data · what stops an agent leaving with clients (masked numbers; calls go through the firm's number: Bayana rings the agent's phone, then the buyer's) · fake-GPS apps (we say "verified location", never "proof") · offline use · Hindi and Kannada · onboarding time.
 
 ## Don't click
 - **"This device"** in Phone location on a laptop: it asks for location permission and the reading is inaccurate, so check-ins get refused.

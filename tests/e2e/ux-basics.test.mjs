@@ -29,8 +29,15 @@ ok((await p.locator('.day-focus-more').innerText()).includes('+1 more'), 'cancel
 await p.click('.sidebar-add'); await p.keyboard.press('Escape')
 ok(await p.evaluate(() => document.activeElement?.classList.contains('sidebar-add')), 'focus returns to Add lead button')
 // Call dialog not dismissible once connected
-await p.click('.sidebar-nav button:has-text("Calls")'); await p.click('.page-head .btn-primary'); await p.click('.contact-list button >> nth=0'); await p.waitForTimeout(1600)
-await p.keyboard.press('Escape'); ok(await p.locator('.call-modal').count() === 1, 'Escape does not drop a live call')
+await p.click('.sidebar-nav button:has-text("Calls")'); await p.click('.page-head .btn-primary'); await p.click('.contact-list button >> nth=0')
+await p.waitForSelector('.call-status.buyer'); await p.keyboard.press('Escape'); ok(await p.locator('.call-modal').count() === 1, 'Escape does not drop a connecting call')
+await p.waitForSelector('.call-status.connected'); await p.keyboard.press('Escape'); ok(await p.locator('.call-modal').count() === 1, 'Escape does not drop a live call')
+const recordingsBefore = await p.locator('.recording').count()
+await p.click('.end-call'); await p.keyboard.press('Escape'); await p.waitForTimeout(200)
+ok(await p.locator('.call-modal').count() === 0 && await p.locator('.recording').count() === recordingsBefore + 1, 'Escape on the end screen closes it and the recording is already saved')
+// Cancel while your phone rings: nothing saved
+await p.click('.page-head .btn-primary'); await p.click('.contact-list button >> nth=0'); await p.click('.end-call:has-text("Cancel")'); await p.waitForTimeout(200)
+ok(await p.locator('.call-modal').count() === 0 && await p.locator('.recording').count() === recordingsBefore + 1, 'Cancel while ringing saves nothing')
 await p.close()
 // Phone checks: 1. details sheet
 p = await b.newPage({ viewport: { width: 390, height: 844 } })

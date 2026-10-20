@@ -53,7 +53,7 @@ for (const [tag, w, h] of [['desk', 1440, 900], ['tab', 900, 1000], ['mob', 390,
   await nav('Follow-ups'); await p.locator('.task-check').first().click(); await audit('tasks')
   await nav('Calls'); await audit('calls')
   await p.locator('.page-head .btn-primary').click(); await audit('picker')
-  await p.locator('.contact-list button').first().click(); await p.waitForTimeout(2600); await audit('call')
+  await p.locator('.contact-list button').first().click(); await audit('call-ringing'); await p.waitForSelector('.call-status.connected'); await audit('call')
   await p.locator('.end-call').click(); await audit('call-ended')
   await p.locator('.call-ended button').click(); await audit('calls-saved')
   await nav('Today')

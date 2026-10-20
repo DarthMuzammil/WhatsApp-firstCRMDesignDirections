@@ -49,6 +49,7 @@ export default function App() {
   const [forwardOpen, setForwardOpen] = useState(false)
   const [callPickerOpen, setCallPickerOpen] = useState(false)
   const [callingLeadId, setCallingLeadId] = useState<number | null>(null)
+  const [callSaved, setCallSaved] = useState(false)
   const [arrival, setArrival] = useState<Arrival | null>(null)
   const [demoOpen, setDemoOpen] = useState(false)
   const dismissArrival = useCallback(() => setArrival(null), [])
@@ -138,11 +139,12 @@ export default function App() {
       {callingLead && (
         <CallModal
           lead={callingLead}
-          onClose={() => setCallingLeadId(null)}
-          onSave={(duration) => {
-            store.addRecording(callingLead.id, duration)
+          onEnded={(duration) => { store.addRecording(callingLead.id, duration); setCallSaved(true) }}
+          onClose={() => {
+            // The recording is saved when the call ends; the toast waits until the end screen closes so it doesn't cover it.
+            if (callSaved) notify('Call recording saved to the lead timeline')
+            setCallSaved(false)
             setCallingLeadId(null)
-            notify('Call recording saved to the lead timeline')
           }}
         />
       )}

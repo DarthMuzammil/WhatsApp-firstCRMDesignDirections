@@ -40,7 +40,15 @@ await nav('Settings'); await p.click('button.setting-row:has-text("Auto-reply to
 await menu('Simulate incoming lead'); await p.click('.incoming-lead .btn:has-text("Reply now")'); await p.waitForTimeout(1800)
 ok(await p.locator('.messages .message-auto').count() === 0, 'auto-reply off: no automatic message, no qualification')
 // Saved call: no AI summary any more
-await p.click('.chat-head .icon-button[aria-label^="Call"]'); await p.waitForTimeout(1600); await p.click('.end-call'); await p.click('.call-ended button'); await p.waitForTimeout(300)
+await p.click('.chat-head .icon-button[aria-label^="Call"]')
+// Phone-bridge call: your phone rings, then the buyer's, then you talk; no in-app Mute / Speaker / Record
+ok((await p.locator('.call-status').innerText()).includes('Bayana is calling your phone') && (await p.locator('.call-hint').innerText()).includes('Pick up to connect to'), 'call starts with "Bayana is calling your phone… Pick up to connect"')
+ok((await p.locator('.call-modal').innerText()).includes('number') && !(await p.locator('.call-modal').innerText()).match(/Secure internet call|Mute|Speaker/), 'call screen: firm\'s number, no internet-call label or Mute / Speaker')
+await p.waitForSelector('.call-status.buyer'); ok((await p.locator('.call-hint').innerText()).includes('not yours'), 'then the buyer\'s phone rings; they see the firm\'s number')
+await p.waitForSelector('.call-status.connected'); ok(await p.locator('.call-steps li.current').innerText() === 'You talk · the call is recorded' || (await p.locator('.call-steps li.current').innerText()).includes('You talk'), 'connected: step 3 is current')
+await p.click('.end-call'); ok((await p.locator('.call-ended').innerText()).includes('Saved'), 'end screen: recording saved')
+await p.click('.call-ended button'); await p.waitForTimeout(300)
+ok((await p.locator('.toast').innerText()).includes('Call recording saved'), 'toast after closing the end screen')
 await nav('Calls'); ok((await p.locator('.recording').first().innerText()).includes('Saved from the call screen') && !(await p.locator('.recording').first().innerText()).includes('AI summary'), 'saved call has a plain note, no AI summary')
 // Chat header: last message time only (no WhatsApp online or last-seen claims)
 await nav('Today'); await p.click('.lead-row:has-text("Ananya")'); await p.waitForTimeout(200)

@@ -1,24 +1,26 @@
 /* Backdrop and full-screen-on-phone behaviour come from components/Dialog (variant "fullscreen"). */
 .call-modal.dialog { width: min(400px, 100%); min-height: 580px; display: flex; flex-direction: column; align-items: center; border: 1px solid var(--navy-line); color: var(--surface); background: radial-gradient(circle at 50% 15%, var(--focus-glow) 0, var(--navy) 42%, var(--focus-end) 100%); }
-.call-security { margin-bottom: var(--space-8); padding: var(--space-2) var(--space-3); border: 1px solid var(--navy-line); border-radius: var(--radius-pill); display: flex; align-items: center; gap: var(--space-2); color: var(--on-navy-muted); font-size: var(--fs-caption); }
+.call-number { margin-bottom: var(--space-8); padding: var(--space-2) var(--space-3); border: 1px solid var(--navy-line); border-radius: var(--radius-pill); display: flex; align-items: center; gap: var(--space-2); color: var(--on-navy-muted); font-size: var(--fs-caption); }
 .call-modal .avatar-lg { box-shadow: 0 0 0 6px var(--on-navy-ring); }
 .call-modal h2 { margin-top: var(--space-5); font-size: var(--fs-display-sm); }
 .call-modal > p { margin-top: var(--space-1); color: var(--on-navy-muted); font-size: var(--fs-body-sm); }
 .call-status { min-height: 26px; margin-top: var(--space-4); display: flex; align-items: center; gap: var(--space-2); color: var(--on-navy-muted); font-size: var(--fs-body); }
 .call-status.connected { color: var(--on-navy); font-variant-numeric: tabular-nums; }
+/* Two lines tall in every state, so the screen doesn't jump as the call moves on. */
+.call-modal > p.call-hint { max-width: 330px; min-height: calc(2 * 1.45em); margin-top: var(--space-2); color: var(--on-navy-muted); font-size: var(--fs-body-sm); line-height: 1.45; text-align: center; }
 .call-status span { padding: var(--space-half) var(--space-2); border-radius: var(--radius-xs); color: var(--danger-deep-ink); background: var(--danger-deep); font-size: var(--fs-meta); font-weight: 800; letter-spacing: .06em; }
 .call-wave { height: 46px; margin: var(--space-6) 0; display: flex; align-items: center; gap: var(--space-1); }
 .call-wave i { width: 3px; border-radius: var(--radius-pill); background: var(--mint); animation: callwave 1.1s ease-in-out infinite alternate; }
 .call-wave i:nth-child(3n) { animation-delay: .2s; }
 .call-wave i:nth-child(2n) { animation-delay: .4s; }
 @keyframes callwave { to { transform: scaleY(.45); opacity: .5; } }
-.call-controls { width: 100%; display: flex; justify-content: space-around; }
-.call-controls button { padding: 0; border: 0; display: flex; flex-direction: column; align-items: center; gap: var(--space-2); color: var(--on-navy-muted); background: transparent; font-size: var(--fs-caption); }
-.call-controls small { font-size: var(--fs-caption); }
-.call-controls button > span { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; color: var(--surface); background: var(--navy-raised); transition: background .2s ease; }
-.call-controls button.active > span { color: var(--navy-deep); background: var(--mint); }
-.call-controls button.recording > span { background: var(--danger-on-navy); }
-.call-controls button > span > i { width: 14px; height: 14px; border-radius: 50%; background: var(--danger-bright); box-shadow: 0 0 0 4px var(--danger-on-navy); }
+.call-steps { width: 100%; max-width: 280px; margin: 0; padding: 0; list-style: none; display: grid; gap: var(--space-3); }
+.call-steps li { display: flex; align-items: center; gap: var(--space-3); color: var(--on-navy-muted); font-size: var(--fs-body-sm); }
+.call-steps li > span { width: 24px; height: 24px; flex: none; border: 1px solid var(--navy-line); border-radius: 50%; display: grid; place-items: center; font-size: var(--fs-meta); font-weight: 800; }
+.call-steps li.current { color: var(--on-navy); font-weight: 700; }
+.call-steps li.current > span { border-color: var(--mint); color: var(--mint); }
+.call-steps li.done { color: var(--on-navy); }
+.call-steps li.done > span { border-color: var(--mint); color: var(--navy-deep); background: var(--mint); }
 .end-call { min-height: 52px; margin-top: var(--space-10); padding: 0 var(--space-6); border: 0; border-radius: var(--radius-pill); display: flex; align-items: center; gap: var(--space-2); color: var(--surface); background: var(--danger); box-shadow: var(--shadow-danger); font-size: var(--fs-body); font-weight: 700; }
 .end-call svg { transform: rotate(135deg); }
 .call-ended { width: 100%; margin-top: var(--space-10); display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
@@ -29,6 +31,6 @@
 
 @media (max-width: 760px) {
   .call-modal.dialog { width: 100%; min-height: 100%; padding-top: calc(var(--space-9) + env(safe-area-inset-top)); border: 0; }
-  .call-security { margin-bottom: var(--space-10); }
+  .call-number { margin-bottom: var(--space-10); }
   .end-call { margin-top: var(--space-10); }
 }
