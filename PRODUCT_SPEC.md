@@ -381,7 +381,7 @@ See `AGENTS.md` for conventions. Each component has a matching `.css` file next 
 - Listings added in the demo have no photo upload. "Seen" is simulated, and it stays "Sent" if the page is reloaded within those 4 seconds.
 - Photos need an internet connection.
 
-## 8. Planned modules (approved, not built)
+## 8. Planned modules (approved; built items are marked ✅)
 Everything here is **UI only**: each item is a screen or flow driven by seed data and scripted events. Each module notes what it simulates. When a module ships, move it into §2–§7 and add a changelog line.
 
 ### 8.0 Ground rules
