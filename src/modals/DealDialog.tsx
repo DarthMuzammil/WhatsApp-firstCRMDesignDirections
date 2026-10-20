@@ -39,7 +39,7 @@ export function DealDialog({ lead, store, mode, onClose, onSaved }: { lead: Lead
     const deal: Deal = { askedCr: Number(asked) || asking, offeredCr: num(offered), agreedCr: num(agreed), tokenL: num(token), docs: existing?.docs ?? { kyc: false, token: false, agreement: false }, split }
     store.updateDeal(lead.id, deal)
     if (mode === 'win') {
-      store.closeLead(lead.id, { result: 'won' })
+      store.closeLead(lead.id, { result: 'won' }, deal.agreedCr)
       onSaved(`${lead.name} won at ₹${deal.agreedCr} Cr`)
     } else onSaved('Deal saved')
   }

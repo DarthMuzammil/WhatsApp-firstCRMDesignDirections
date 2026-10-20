@@ -18,6 +18,7 @@ import { PipelineView } from './views/PipelineView'
 import { PropertiesView } from './views/PropertiesView'
 import { ReportsView } from './views/ReportsView'
 import { SettingsView } from './views/SettingsView'
+import { AuditView } from './views/AuditView'
 import { TeamView } from './views/TeamView'
 import { TodayView } from './views/TodayView'
 import { VisitsView } from './views/VisitsView'
@@ -83,8 +84,8 @@ export default function App() {
 
   return (
     <div className="app">
-      <Sidebar store={store} view={navView} onNavigate={navigate} onSimulateLead={simulateLead} />
-      <MobileTopBar store={store} onNavigate={navigate} onAddLead={() => setAddLeadOpen(true)} onSimulateLead={simulateLead} />
+      <Sidebar store={store} view={navView} onNavigate={navigate} onSimulateLead={simulateLead} onOpenLead={showLead} />
+      <MobileTopBar store={store} onNavigate={navigate} onAddLead={() => setAddLeadOpen(true)} onSimulateLead={simulateLead} onOpenLead={showLead} />
 
       <main className="app-main" ref={mainRef}>
         {view === 'today' && <TodayView store={store} onOpenLead={showLead} onAddLead={() => setAddLeadOpen(true)} onNavigate={navigate} notify={notify} />}
@@ -100,6 +101,7 @@ export default function App() {
         {view === 'sources' && <LeadSourcesView store={store} onSimulate={simulateLead} />}
         {view === 'team' && <TeamView store={store} notify={notify} />}
         {view === 'settings' && <SettingsView store={store} notify={notify} />}
+        {view === 'audit' && <AuditView store={store} notify={notify} />}
       </main>
 
       <MobileTabBar store={store} view={navView} onNavigate={navigate} />

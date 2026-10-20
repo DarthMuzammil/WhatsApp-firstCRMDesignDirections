@@ -1,16 +1,19 @@
 import { useState } from 'react'
+import type { Lead } from '../data/demo'
 import { VIEW_AS_PERSONAS, roleSummary } from '../data/team'
 import type { DemoStore } from '../state/useDemoStore'
 import { AccountMenu } from './AccountMenu'
 import { Avatar } from './Avatar'
 import { Dialog } from './Dialog'
 import { Icon } from './Icon'
+import { NotificationBell } from './NotificationBell'
 import { PHONE_TAB_VIEWS, navItemsFor, type NavItem, type View } from './navigation'
 import './AppNavigation.css'
 
 /** `view` is the nav item to highlight (App passes the chat's origin screen while a chat is open). */
 type NavProps = { store: DemoStore; view: View; onNavigate: (view: View) => void }
 type SimulateProps = { onSimulateLead: () => void }
+type OpenLeadProps = { onOpenLead: (lead: Lead) => void }
 
 /** The count shown next to a nav item, if any. */
 function badgeFor(item: NavItem, store: DemoStore): { count: number; label: string; tone: 'default' | 'danger' } | null {
@@ -26,7 +29,7 @@ function AccountMenuFor({ store, trigger, placement, onSimulateLead }: { store: 
 }
 
 /** Desktop and tablet navigation. Hidden on phones, where MobileTopBar + MobileTabBar take over. */
-export function Sidebar({ store, view, onNavigate, onSimulateLead }: NavProps & SimulateProps) {
+export function Sidebar({ store, view, onNavigate, onSimulateLead, onOpenLead }: NavProps & SimulateProps & OpenLeadProps) {
   const items = navItemsFor(store.viewerCan)
   const tasksTotal = store.tasks.length
   const tasksRemaining = store.remainingTasks.length
@@ -47,7 +50,10 @@ export function Sidebar({ store, view, onNavigate, onSimulateLead }: NavProps & 
 
   return (
     <aside className="sidebar">
-      <button className="brand" onClick={() => onNavigate('today')}><span className="brand-mark">D</span><strong>Daira</strong></button>
+      <div className="sidebar-head">
+        <button className="brand" onClick={() => onNavigate('today')}><span className="brand-mark">D</span><strong>Daira</strong></button>
+        <NotificationBell store={store} onOpenLead={onOpenLead} onNavigate={onNavigate} tone="on-dark" />
+      </div>
       <nav className="sidebar-nav" aria-label="Main">
         {items.filter((item) => item.group === 'work').map(renderItem)}
         {manageItems.length > 0 && <>
@@ -77,12 +83,13 @@ export function Sidebar({ store, view, onNavigate, onSimulateLead }: NavProps & 
   )
 }
 
-/** Phone-only header with brand, WhatsApp status, account menu and quick "add lead". */
-export function MobileTopBar({ store, onNavigate, onAddLead, onSimulateLead }: { store: DemoStore; onNavigate: (view: View) => void; onAddLead: () => void } & SimulateProps) {
+/** Phone-only header with brand, WhatsApp status, notifications, account menu and quick "add lead". */
+export function MobileTopBar({ store, onNavigate, onAddLead, onSimulateLead, onOpenLead }: { store: DemoStore; onNavigate: (view: View) => void; onAddLead: () => void } & SimulateProps & OpenLeadProps) {
   return (
     <header className="mobile-top-bar">
       <button className="brand" onClick={() => onNavigate('today')}><span className="brand-mark">D</span><strong>Daira</strong></button>
-      <span className="whatsapp-status"><i className="status-dot glow" /><span>WhatsApp connected</span></span>
+      <span className="whatsapp-status" title="WhatsApp connected"><i className="status-dot glow" /><span>WhatsApp connected</span></span>
+      <NotificationBell store={store} onOpenLead={onOpenLead} onNavigate={onNavigate} tone="on-light" />
       <AccountMenuFor store={store} trigger={<Avatar initials={store.viewer.initials} color={store.viewer.color} size="sm" />} placement="down" onSimulateLead={onSimulateLead} />
       <button className="mobile-add" aria-label="Add a new lead" onClick={onAddLead}><Icon name="plus" /></button>
     </header>

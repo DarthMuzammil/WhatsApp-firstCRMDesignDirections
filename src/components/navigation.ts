@@ -2,7 +2,7 @@ import type { Permission } from '../lib/permissions'
 import type { IconName } from './Icon'
 
 /** Every screen in the app. `chat` is reached from a lead, not from the nav; while it is open the nav highlights the screen it was opened from. */
-export type View = 'today' | 'chat' | 'visits' | 'attendance' | 'reports' | 'pipeline' | 'properties' | 'tasks' | 'calls' | 'escalations' | 'sources' | 'team' | 'settings'
+export type View = 'today' | 'chat' | 'visits' | 'attendance' | 'reports' | 'pipeline' | 'properties' | 'tasks' | 'calls' | 'escalations' | 'sources' | 'team' | 'settings' | 'audit'
 
 export type NavItem = {
   view: Exclude<View, 'chat'>
@@ -28,6 +28,7 @@ export const NAV_ITEMS: NavItem[] = [
   { view: 'sources', icon: 'plug', label: 'Lead sources', shortLabel: 'Lead sources', group: 'manage', requires: 'viewReports' },
   { view: 'team', icon: 'users', label: 'Team', shortLabel: 'Team', group: 'manage', requires: 'manageTeam' },
   { view: 'settings', icon: 'settings', label: 'Settings', shortLabel: 'Settings', group: 'manage', requires: 'manageSettings' },
+  { view: 'audit', icon: 'shield', label: 'Audit log', shortLabel: 'Audit log', group: 'manage', requires: 'viewAuditLog' },
 ]
 
 /** Phone tab bar: these four (what a field agent uses all day), then "More" for everything else. */

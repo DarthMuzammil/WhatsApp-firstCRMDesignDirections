@@ -1,0 +1,34 @@
+/* Bell button: in the desktop sidebar (on-dark) and the phone top bar (on-light). Panel comes from components/Dialog. */
+.notification-bell { position: relative; width: 40px; height: 40px; padding: 0; border: 0; border-radius: var(--radius-md); display: grid; place-items: center; background: transparent; }
+.notification-bell.on-dark { color: var(--on-navy-muted); }
+.notification-bell.on-dark:hover { color: var(--surface); background: var(--navy-raised); }
+.notification-bell.on-light { width: var(--tap); height: var(--tap); color: var(--ink-soft); }
+.notification-bell .count-badge { position: absolute; top: 2px; right: 0; min-width: 18px; height: 18px; padding: 0 var(--space-1); border: 2px solid var(--navy); }
+.notification-bell.on-light .count-badge { border-color: var(--surface); }
+
+.notifications-dialog { width: min(480px, 100%); max-height: min(680px, calc(100dvh - 40px)); }
+.notifications-head-buttons { display: flex; align-items: center; gap: var(--space-2); }
+.notifications-head-buttons .btn { min-height: 36px; padding: 0 var(--space-3); font-size: var(--fs-caption); }
+.notifications-body { min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: var(--space-2); }
+.notification-attention { width: 100%; padding: var(--space-3); border: 1px solid var(--danger-soft); border-radius: var(--radius-md); display: flex; align-items: center; gap: var(--space-3); color: var(--danger-text); background: var(--danger-soft); text-align: left; }
+.notification-attention > span { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: var(--space-half); }
+.notification-attention strong { color: var(--ink); font-size: var(--fs-body-sm); }
+.notification-attention small { font-size: var(--fs-caption); }
+.notification-list { margin: 0; padding: 0; display: flex; flex-direction: column; list-style: none; }
+.notification-list button { width: 100%; padding: var(--space-3) var(--space-2); border: 0; border-bottom: 1px solid var(--border-soft); border-radius: 0; display: flex; align-items: flex-start; gap: var(--space-3); color: var(--ink-soft); background: transparent; text-align: left; }
+.notification-list button:hover { background: var(--surface-subtle); }
+.notification-list button.unread { color: var(--ink); }
+.notification-list button.unread .notification-text { font-weight: 700; }
+.notification-list button > span:nth-child(2) { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: var(--space-1); }
+.notification-text { font-size: var(--fs-body-sm); line-height: 1.45; }
+.notification-list small { color: var(--muted); font-size: var(--fs-caption); }
+.notification-icon { width: 34px; height: 34px; color: var(--primary); background: var(--primary-soft); }
+.notification-icon.danger { color: var(--danger-text); background: var(--danger-soft); }
+.notification-icon.success { color: var(--success-ink); background: var(--success-soft); }
+.notification-dot { width: 8px; height: 8px; margin-top: var(--space-2); flex: 0 0 auto; border-radius: 50%; background: var(--primary); }
+.notifications-empty { padding: var(--space-6) var(--space-4); color: var(--muted); font-size: var(--fs-body-sm); text-align: center; line-height: 1.5; }
+
+@media (max-width: 760px) {
+  .notifications-head-buttons .btn { min-height: var(--tap); }
+  .notification-list button { min-height: 64px; }
+}

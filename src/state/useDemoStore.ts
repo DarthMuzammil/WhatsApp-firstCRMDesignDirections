@@ -6,10 +6,11 @@ import {
 import { SEED_CORRECTIONS, SEED_TODAY, seedAttendance, type AttendanceCode, type CorrectionRequest, type TodayAttendance } from '../data/attendance'
 import { LEAVE_ALLOWANCE, SEED_LEAVE, coversDay, leaveDays, seedLeaveUsed, type LeaveRequest, type LeaveType } from '../data/leave'
 import { INCOMING_LEAD_TEMPLATES, LEAD_SOURCES, findSource } from '../data/sources'
-import { DEFAULT_VIEWER_ID, SEED_MEMBERS, TEAMS, type Member, type MemberStatus, type TeamId } from '../data/team'
+import { DEFAULT_VIEWER_ID, ROLE_LABELS, SEED_MEMBERS, TEAMS, shortName, type Member, type MemberStatus, type TeamId } from '../data/team'
+import { SEED_AUDIT, SEED_NOTIFICATIONS, type AppNotification, type AuditEntry, type AuditKind, type NotificationKind, type NotificationView } from '../data/notifications'
 import { MAX_ACCURACY_M, OFFICES, SEED_VISITS, formatDistance, slotMinutes, type Office, type Visit, type VisitOutcome } from '../data/visits'
 import { DOC_LABELS, SEED_DEALS, type Closure, type Deal } from '../data/deals'
-import { SEED_PROPERTIES, matchesForLead, type Property } from '../data/inventory'
+import { SEED_PROPERTIES, matchesForLead, priceLabel, type Property } from '../data/inventory'
 import { DEFAULT_AUTO_REPLY, SERVICE_WINDOW_MINUTES } from '../data/templates'
 import { callSummary } from '../lib/ai'
 import { clockLabel, dayLabel, formatDuration, maskPhone } from '../lib/format'
@@ -82,6 +83,23 @@ const DEFAULT_SOURCE_SETTINGS: Record<string, SourceSetting> = Object.fromEntrie
   LEAD_SOURCES.map((source) => [source.name, { connected: true, costPerLead: source.defaultCostPerLead, teamId: source.defaultTeamId }]),
 )
 
+/** Plain-language description of a settings change, for the audit log (spec §8.12). */
+function describeSettings(patch: Partial<CompanySettings>, before: CompanySettings): { text: string; key: string }[] {
+  const changes: { text: string; key: string }[] = []
+  const onOff = (value: boolean) => (value ? 'on' : 'off')
+  if (patch.separatePresales !== undefined) changes.push({ key: 'presales', text: `Separate pre-sales team turned ${onOff(patch.separatePresales)}` })
+  if (patch.routing) changes.push({ key: 'routing', text: `Lead routing set to ${patch.routing.replace('-', ' ')}` })
+  if (patch.checkInRadiusM) changes.push({ key: 'radius', text: `Check-in radius set to ${patch.checkInRadiusM} m` })
+  if (patch.workStart) changes.push({ key: 'work-start', text: `Work start set to ${patch.workStart}` })
+  if (patch.graceMin !== undefined) changes.push({ key: 'grace', text: `Late-mark grace set to ${patch.graceMin} min` })
+  if (patch.autoReply) {
+    if (patch.autoReply.enabled !== before.autoReply.enabled) changes.push({ key: 'auto-reply', text: `Auto-reply turned ${onOff(patch.autoReply.enabled)}` })
+    if (patch.autoReply.qualify !== before.autoReply.qualify) changes.push({ key: 'qualify', text: `Qualifying questions turned ${onOff(patch.autoReply.qualify)}` })
+    if (patch.autoReply.message !== before.autoReply.message) changes.push({ key: 'auto-reply-message', text: 'Auto-reply message edited' })
+  }
+  return changes
+}
+
 /**
  * Single source of truth for everything the demo remembers: team and settings,
  * who is viewing ("View as"), leads and their owners, stages, read state,
@@ -101,6 +119,8 @@ export function useDemoStore() {
   const [sourceSettings, setSourceSettings] = useLocalState<Record<string, SourceSetting>>('source-settings', DEFAULT_SOURCE_SETTINGS)
   const [arrivals, setArrivals] = useLocalState<number>('arrivals', 0)
   const [addedMembers, setAddedMembers] = useLocalState<Member[]>('added-members', [])
+  const [notifications, setNotifications] = useLocalState<AppNotification[]>('notifications', SEED_NOTIFICATIONS)
+  const [auditLog, setAuditLog] = useLocalState<AuditEntry[]>('audit', SEED_AUDIT)
   const [memberStatus, setMemberStatus] = useLocalState<Record<string, MemberStatus>>('member-status', {})
   const [addedLeads, setAddedLeads] = useLocalState<LeadSeed[]>('added-leads', [])
   const [ownerOverrides, setOwnerOverrides] = useLocalState<Record<number, string | null>>('owners', {})
@@ -194,11 +214,39 @@ export function useDemoStore() {
     setActivity((current) => [{ id, leadId, kind, text, byId, at: 'Just now' }, ...current])
   }
 
+  // ---------- Notifications and audit (spec §8.12) ----------
+  const nameOf = (memberId: string | null | undefined) => shortName(findMember(memberId)?.name ?? 'Someone')
+  /** Sends a notification to each person (never to the viewer, who did the thing). */
+  function pushNotification(forIds: (string | null | undefined)[], kind: NotificationKind, text: string, target: { leadId?: number; view?: NotificationView } = {}) {
+    const at = clockLabel()
+    const items = [...new Set(forIds)]
+      .filter((id): id is string => !!id && id !== viewer.id)
+      .map((forId) => ({ id: nextId(), forId, kind, text, at, ...target, read: false }))
+    if (items.length) setNotifications((current) => [...items, ...current])
+  }
+  /** The person's team manager plus the Owner(s): who approves their leave and hears about their deals. */
+  function approversFor(memberId: string | null | undefined): string[] {
+    const managerId = TEAMS.find((team) => team.id === findMember(memberId)?.teamId)?.managerId
+    return [managerId, ...members.filter((person) => person.roles.includes('owner') && person.status !== 'deactivated').map((person) => person.id)].filter((id): id is string => !!id && id !== memberId)
+  }
+  /** Adds an audit entry by the viewer. With a `key`, a repeat by the same person updates the latest entry instead. */
+  function recordAudit(kind: AuditKind, text: string, key?: string) {
+    const id = nextId()
+    const at = clockLabel()
+    setAuditLog((current) => (key && current[0]?.key === key && current[0].byId === viewer.id
+      ? [{ ...current[0], text, at }, ...current.slice(1)]
+      : [{ id, byId: viewer.id, kind, text, at, key }, ...current]))
+  }
+
   function assign(leadId: number, toId: string, reason: string) {
     const fromId = allLeads.find((lead) => lead.id === leadId)?.ownerId ?? null
     setOwnerOverrides((current) => ({ ...current, [leadId]: toId }))
     setAssignments((current) => [{ leadId, fromId, toId, byId: viewer.id, reason, at: 'Just now' }, ...current])
     log(leadId, 'assign', `Assigned to ${findMember(toId)?.name ?? 'someone'} · ${reason}`)
+    const name = allLeads.find((lead) => lead.id === leadId)?.name ?? 'A lead'
+    pushNotification([toId], 'assigned', `${name} was assigned to you by ${nameOf(viewer.id)} · ${reason}`, { leadId })
+    if (fromId && fromId !== toId) pushNotification([fromId], 'moved', `${name} moved to ${nameOf(toId)} · ${reason}`, { leadId })
+    recordAudit('reassign', fromId ? `Reassigned ${name} from ${nameOf(fromId)} to ${nameOf(toId)} · ${reason}` : `Assigned ${name} to ${nameOf(toId)} · ${reason}`)
   }
 
   /** Timeline for one lead: demo activity (newest first), then what the seed data implies, oldest last. */
@@ -361,9 +409,16 @@ export function useDemoStore() {
 
     // ---------- Actions ----------
     setViewer: (memberId: string) => setViewerId(memberId),
-    updateSettings: (patch: Partial<CompanySettings>) => setSettings((current) => ({ ...current, ...patch })),
-    updateSource: (name: string, patch: Partial<SourceSetting>) =>
-      setSourceSettings((current) => ({ ...current, [name]: { ...current[name], ...patch } })),
+    updateSettings: (patch: Partial<CompanySettings>) => {
+      describeSettings(patch, settings).forEach((change) => recordAudit('settings', change.text, `settings:${change.key}`))
+      setSettings((current) => ({ ...current, ...patch }))
+    },
+    updateSource: (name: string, patch: Partial<SourceSetting>) => {
+      if (patch.costPerLead !== undefined) recordAudit('settings', `${name}: cost per lead set to ₹${patch.costPerLead}`, `source:${name}:cost`)
+      if (patch.teamId) recordAudit('settings', `${name}: leads go to the ${TEAMS.find((team) => team.id === patch.teamId)?.name} team`, `source:${name}:team`)
+      if (patch.connected !== undefined) recordAudit('settings', `${name} ${patch.connected ? 'connected' : 'disconnected'}`)
+      setSourceSettings((current) => ({ ...current, [name]: { ...current[name], ...patch } }))
+    },
     /**
      * Simulates a new enquiry arriving from a source (spec §8.3): next buyer from the template pool,
      * routed by the company rule. Without a source name, rotates through the connected sources.
@@ -388,6 +443,7 @@ export function useDemoStore() {
         setAssignments((current) => [{ leadId: id, fromId: null, toId: ownerId, byId: SYSTEM_ID, reason, at: 'Just now' }, ...current])
       }
       log(id, 'enquiry', `New enquiry via ${source.name}${ownerId ? ` · routed to ${findMember(ownerId)?.name}` : ''}`, SYSTEM_ID)
+      pushNotification([ownerId], 'assigned', `New lead from ${source.name}: ${template.name} was routed to you.`, { leadId: id })
       if (settings.autoReply.enabled) {
         const text = settings.autoReply.message.replace(/\{name\}/g, firstName(template.name))
         setChats((current) => ({ ...current, [id]: [{ from: 'auto', text, at: clockLabel() }] }))
@@ -404,6 +460,7 @@ export function useDemoStore() {
       if (ownerId) {
         const reason = ownedByViewer ? 'Added by them' : ownerChoice === 'auto' ? `Routing: ${settings.routing.replace('-', ' ')}` : 'Assigned on capture'
         setAssignments((current) => [{ leadId: lead.id, fromId: null, toId: ownerId, byId: !ownedByViewer && ownerChoice === 'auto' ? SYSTEM_ID : viewer.id, reason, at: 'Just now' }, ...current])
+        pushNotification([ownerId], 'assigned', `${lead.name} was assigned to you by ${nameOf(viewer.id)}.`, { leadId: lead.id })
       }
       return findMember(ownerId)
     },
@@ -419,14 +476,20 @@ export function useDemoStore() {
       setDeals((current) => ({ ...current, [leadId]: { ...deal, docs: { ...deal.docs, [doc]: done } } }))
       log(leadId, 'stage', `${DOC_LABELS[doc]} ${done ? 'received' : 'marked missing'}`)
     },
-    /** Won or lost (lost needs a reason). Won deals count towards commission and the leaderboard. */
-    closeLead: (leadId: number, closure: Closure) => {
+    /** Won or lost (lost needs a reason). Won deals count towards commission and the leaderboard; the manager and Owner are notified. */
+    closeLead: (leadId: number, closure: Closure, agreedCr?: number) => {
+      const lead = findLead(leadId)
       setClosures((current) => ({ ...current, [leadId]: closure }))
       log(leadId, 'stage', closure.result === 'won' ? 'Deal won' : `Deal lost: ${closure.reason}`)
+      // The win dialog saves the deal in the same click, so it passes the agreed price (state isn't updated yet).
+      const agreed = agreedCr ?? deals[leadId]?.agreedCr
+      if (closure.result === 'won') pushNotification(approversFor(lead?.ownerId), 'deal-won', `${nameOf(lead?.ownerId)} won ${lead?.name}${agreed ? ` at ₹${agreed} Cr` : ''}.`, { leadId })
+      recordAudit('deal', closure.result === 'won' ? `Marked ${lead?.name} won${agreed ? ` at ₹${agreed} Cr` : ''}` : `Marked ${lead?.name} lost · ${closure.reason}`)
     },
     reopenLead: (leadId: number) => {
       setClosures((current) => { const next = { ...current }; delete next[leadId]; return next })
       log(leadId, 'stage', 'Deal reopened')
+      recordAudit('deal', `Reopened ${findLead(leadId)?.name}`)
     },
     moveToPreviousStage: (leadId: number) => {
       const lead = findLead(leadId)
@@ -461,13 +524,21 @@ export function useDemoStore() {
       setNotes((current) => ({ ...current, [leadId]: [{ id, text: `New enquiry merged: ${summary}`, byId: viewer.id, at: 'Just now' }, ...(current[leadId] ?? [])] }))
       log(leadId, 'merge', `Duplicate enquiry merged: ${summary}`)
     },
-    inviteMember: (person: Member) => setAddedMembers((current) => [...current, person]),
+    inviteMember: (person: Member) => {
+      setAddedMembers((current) => [...current, person])
+      recordAudit('team', `Invited ${person.name} as ${person.roles.map((role) => ROLE_LABELS[role]).join(' + ')}`)
+    },
     /** Deactivates someone after moving all their leads to `reassignToId`. */
     deactivateMember: (memberId: string, reassignToId: string) => {
-      allLeads.filter((lead) => lead.ownerId === memberId).forEach((lead) => assign(lead.id, reassignToId, 'Previous owner deactivated'))
+      const owned = allLeads.filter((lead) => lead.ownerId === memberId)
+      owned.forEach((lead) => assign(lead.id, reassignToId, 'Previous owner deactivated'))
       setMemberStatus((current) => ({ ...current, [memberId]: 'deactivated' }))
+      recordAudit('team', `Deactivated ${findMember(memberId)?.name}; ${owned.length} lead${owned.length === 1 ? '' : 's'} moved to ${nameOf(reassignToId)}`)
     },
-    reactivateMember: (memberId: string) => setMemberStatus((current) => ({ ...current, [memberId]: 'active' })),
+    reactivateMember: (memberId: string) => {
+      setMemberStatus((current) => ({ ...current, [memberId]: 'active' }))
+      recordAudit('team', `Reactivated ${findMember(memberId)?.name}`)
+    },
     markRead: (leadId: number) => setReadLeadIds((current) => (current.includes(leadId) ? current : [...current, leadId])),
     moveToNextStage: (leadId: number) => {
       const lead = findLead(leadId)
@@ -516,8 +587,11 @@ export function useDemoStore() {
       setToday({ status: 'out', outAt: clockLabel() })
       return { ok: true, message: 'Checked out for the day.' }
     },
-    applyLeave: (request: Pick<LeaveRequest, 'type' | 'from' | 'to' | 'reason'>) =>
-      setLeaveRequests((current) => [...current, { ...request, id: Date.now(), memberId: viewer.id, status: 'pending' }]),
+    applyLeave: (request: Pick<LeaveRequest, 'type' | 'from' | 'to' | 'reason'>) => {
+      setLeaveRequests((current) => [...current, { ...request, id: Date.now(), memberId: viewer.id, status: 'pending' }])
+      const days = leaveDays(request)
+      pushNotification(approversFor(viewer.id), 'leave-request', `${nameOf(viewer.id)} asked for ${days} day${days === 1 ? '' : 's'} of ${request.type} leave (${request.reason}).`, { view: 'attendance' })
+    },
     /**
      * Approve (with a cover) or reject (spec §8.8). Visits on the leave days move to the cover now.
      * Leads move when the leave starts: immediately if it covers today, otherwise via startCover.
@@ -527,8 +601,11 @@ export function useDemoStore() {
       if (!request) return
       if (!approve || !coverId) {
         setLeaveRequests((current) => current.map((item) => (item.id === id ? { ...item, status: 'rejected' } : item)))
+        pushNotification([request.memberId], 'leave-decision', `Your ${request.type} leave request was declined by ${nameOf(viewer.id)}.`, { view: 'attendance' })
         return
       }
+      pushNotification([request.memberId], 'leave-decision', `Your ${request.type} leave was approved. ${nameOf(coverId)} will cover your leads and visits.`, { view: 'attendance' })
+      pushNotification([coverId], 'leave-decision', `You’re covering for ${nameOf(request.memberId)} during their leave (${dayLabel(request.from)} – ${dayLabel(request.to)}).`, { view: 'attendance' })
       const movedVisitIds = visits
         .filter((visit) => visit.agentId === request.memberId && isOpenVisit(visit) && visit.day >= request.from && visit.day <= request.to)
         .map((visit) => visit.id)
@@ -556,10 +633,15 @@ export function useDemoStore() {
         visitIds.includes(visit.id) && visit.agentId === request.coverId && isOpenVisit(visit) ? { ...visit, agentId: request.memberId } : visit))
       setLeaveRequests((current) => current.map((item) => (item.id === id ? { ...item, status: 'ended', endedOn: Math.max(request.from, 0) } : item)))
     },
-    requestCorrection: (day: number, reason: string) =>
-      setCorrections((current) => [...current, { id: Date.now(), memberId: viewer.id, day, reason, status: 'pending' }]),
-    decideCorrection: (id: number, approve: boolean) =>
-      setCorrections((current) => current.map((request) => (request.id === id ? { ...request, status: approve ? 'approved' : 'rejected' } : request))),
+    requestCorrection: (day: number, reason: string) => {
+      setCorrections((current) => [...current, { id: Date.now(), memberId: viewer.id, day, reason, status: 'pending' }])
+      pushNotification(approversFor(viewer.id), 'correction', `${nameOf(viewer.id)} asked to correct attendance for ${dayLabel(day)}: ${reason}`, { view: 'attendance' })
+    },
+    decideCorrection: (id: number, approve: boolean) => {
+      const request = corrections.find((item) => item.id === id)
+      setCorrections((current) => current.map((item) => (item.id === id ? { ...item, status: approve ? 'approved' : 'rejected' } : item)))
+      if (request) pushNotification([request.memberId], 'correction', `Your attendance correction for ${dayLabel(request.day)} was ${approve ? 'approved' : 'declined'}.`, { view: 'attendance' })
+    },
     /**
      * One step of the agent's visit flow, from a single location reading (spec §8.6):
      * "Left office" is recorded wherever it happens; "Check in" is refused beyond the radius or
@@ -588,6 +670,7 @@ export function useDemoStore() {
             : `You’re ${formatDistance(away)} from ${property.name}. Move closer to check in.`
           updateVisit(visitId, (current) => ({ ...current, steps: [...current.steps, { kind: 'check-in-refused', at, distanceM: away, accuracyM: reading.accuracyM, note: tooVague ? 'Location too imprecise' : 'Too far from the property' }] }))
           log(visit.leadId, 'visit', `Check-in refused at ${at}: ${tooVague ? 'location too imprecise' : `${formatDistance(away)} from ${property.name}`}`)
+          pushNotification(approversFor(visit.agentId), 'checkin-refused', `${nameOf(visit.agentId)}’s check-in at ${property.name} was refused (${tooVague ? 'location too imprecise' : `${formatDistance(away)} away`}).`, { view: 'visits' })
           return { ok: false, message }
         }
         updateVisit(visitId, (current) => ({ ...current, status: 'checked-in', steps: [...current.steps, { kind: 'check-in', at, distanceM: away, accuracyM: reading.accuracyM }] }))
@@ -647,6 +730,14 @@ export function useDemoStore() {
     saveProperty: (property: Property): Property => {
       const saved = property.id ? property : { ...property, id: Math.max(0, ...properties.map((item) => item.id)) + 1, addedInDemo: true }
       setProperties((current) => (property.id ? current.map((item) => (item.id === property.id ? saved : item)) : [...current, saved]))
+      const before = findProperty(property.id)
+      const changed = before ? [
+        before.priceCr !== saved.priceCr && `price ${priceLabel(before)} → ${priceLabel(saved)}`,
+        before.status !== saved.status && `availability → ${saved.status === 'hold' ? 'on hold' : saved.status}`,
+        before.listingAgentId !== saved.listingAgentId && `listing agent → ${nameOf(saved.listingAgentId)}`,
+        (before.ownerName !== saved.ownerName || before.ownerPhone !== saved.ownerPhone) && 'owner contact',
+      ].filter(Boolean) : []
+      recordAudit('property', before ? `Edited ${saved.name}${changed.length ? `: ${changed.join(', ')}` : ''}` : `Added ${saved.name} (${saved.locality}, ${priceLabel(saved)})`)
       return saved
     },
     /** Sends listings to a lead on WhatsApp (as a template outside the 24-hour window); "Seen" follows a few seconds later 🎭. */
@@ -660,6 +751,15 @@ export function useDemoStore() {
     },
     toggleSavedProperty: (propertyId: number) =>
       setSavedPropertyIds((current) => (current.includes(propertyId) ? current.filter((id) => id !== propertyId) : [...current, propertyId])),
+    // ---------- Notifications and audit (spec §8.12) ----------
+    /** The viewer's notifications, newest first. */
+    notifications: notifications.filter((item) => item.forId === viewer.id),
+    unreadNotifications: notifications.filter((item) => item.forId === viewer.id && !item.read).length,
+    markNotificationRead: (id: number) => setNotifications((current) => current.map((item) => (item.id === id ? { ...item, read: true } : item))),
+    markAllNotificationsRead: () => setNotifications((current) => current.map((item) => (item.forId === viewer.id ? { ...item, read: true } : item))),
+    auditLog,
+    /** Records a CSV export in the audit log (the file itself is built by the screen). */
+    recordExport: (text: string) => recordAudit('export', text),
     resetDemo: () => {
       clearDemoStorage()
       window.location.reload()

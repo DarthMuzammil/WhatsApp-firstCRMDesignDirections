@@ -30,8 +30,8 @@ Layouts: **phone** ≤ 760px, **tablet** 761–1100px, **desktop** > 1100px. Eve
 
 | Area | Desktop / tablet | Phone |
 |---|---|---|
-| Brand + status | Sidebar with Daira logo (tap → Today) | Top bar: logo, "● WhatsApp connected" 🧱, viewer's avatar (account menu), **+** add lead |
-| Main nav | Sidebar **Work** group: **Today** (unread badge), **Visits**, **Pipeline**, **Properties**, **Follow-ups** (tasks-left badge), **Calls**, **Attendance**, **Performance**. **Manage** group, by permission: **Escalations** (red count; Manager/Owner), **Lead sources** (Manager/Owner), **Team** (Manager/Owner), **Settings** (Owner) | Bottom tabs: **Inbox** (unread badge), **Visits**, **Pipeline**, **Tasks**, **More**. **More** opens a sheet with Properties, Calls, Attendance, Performance, plus the Manage screens the viewer may use (a red "!" on More when escalations are waiting) |
+| Brand + status | Sidebar with Daira logo (tap → Today) and the **notifications bell** | Top bar: logo, "● WhatsApp connected" 🧱 (just the dot on phones narrower than 430 px), **notifications bell**, viewer's avatar (account menu), **+** add lead |
+| Main nav | Sidebar **Work** group: **Today** (unread badge), **Visits**, **Pipeline**, **Properties**, **Follow-ups** (tasks-left badge), **Calls**, **Attendance**, **Performance**. **Manage** group, by permission: **Escalations** (red count; Manager/Owner), **Lead sources** (Manager/Owner), **Team** (Manager/Owner), **Settings** (Owner), **Audit log** (Owner) | Bottom tabs: **Inbox** (unread badge), **Visits**, **Pipeline**, **Tasks**, **More**. **More** opens a sheet with Properties, Calls, Attendance, Performance, plus the Manage screens the viewer may use (a red "!" on More when escalations are waiting) |
 | Progress card | "Today's progress" ✅: buyers awaiting a reply · follow-ups left, with a progress bar of completed tasks. Says "You're all caught up" only when both are zero. Hidden on windows shorter than 940 px; the nav list scrolls if needed so the user card always stays on screen. | — |
 | User card | Viewer's name and role ("Sales · Indiranagar") | — |
 | Account menu | "⋯" next to the user card (opens upwards, beside the sidebar) | Viewer's avatar |
@@ -143,7 +143,7 @@ Toasts confirm actions at the bottom of the screen for 2.6 s. Dialogs close with
 - Saving creates a lead at the top of the inbox ✅: source "Quick capture", intent New, stage New lead, budget "Budget to qualify" (counts as ₹0 in totals), 1 unread, phone stored, and an ownership-history entry. Success screen says where it went: "now in your inbox", "assigned to <name>" or "in the unassigned queue".
 
 ### 3.8 Team, roles and visibility (M1)
-- **Roles** (permission bundles; one person can hold several): **Owner**, **Manager**, **Sales**, **Pre-sales**. Permissions: see all leads · see team's leads · assign/reassign · see full phone numbers · invite/deactivate people · change settings · view reports · export · hand leads to Sales · add and edit properties (Owner, Manager, Sales) · see property owners' numbers (Owner, Manager) (table in §3.10).
+- **Roles** (permission bundles; one person can hold several): **Owner**, **Manager**, **Sales**, **Pre-sales**. Permissions: see all leads · see team's leads · assign/reassign · see full phone numbers · invite/deactivate people · change settings · view reports · export · hand leads to Sales · add and edit properties (Owner, Manager, Sales) · see property owners' numbers (Owner, Manager) · see the audit log (Owner) (table in §3.10).
 - **Which leads someone sees** ✅: Owner, every lead. Manager, leads owned by their team plus unassigned leads. Sales and Pre-sales, only their own. Tasks, recordings, upcoming visits, badges and every total follow the same rule.
 - **Team screen** ✅ (Manager: own team; Owner: everyone):
   - Stat strip: Active / On leave / Deactivated.
@@ -224,6 +224,19 @@ Monthly figures (leads handled, visits booked/verified, deals, commission, first
 
 ---
 
+### 3.15 Notifications and audit log (M12)
+- **Bell** ✅ (sidebar on desktop/tablet, top bar on phones) with a red count of the viewer's **unread** notifications. Each person sees only their own; "View as" switches them.
+- **Notifications panel** (sheet on phones): "N unread", **Mark all read**, then a red **needs attention** row when leads the viewer can see are overdue ("4 leads are waiting over 15 min for a reply" → Escalations for Managers/Owner, Today for others), then the list, newest first, unread in bold with a dot. Tapping one marks it read and opens its lead's chat (if the viewer can still see the lead) or its screen (Visits, Attendance).
+- **What creates one** (never for the person who did it):
+  - a lead assigned to you (by a person, routing, Add lead, a leave cover or a deactivation) and, to the previous owner, "X moved to Y";
+  - leave requested → the person's team manager and the Owner; approved → the person and the cover; declined → the person;
+  - attendance correction requested → manager and Owner; decided → the person;
+  - a refused visit check-in → the agent's manager and the Owner;
+  - a deal won → the owner's manager and the Owner.
+- **Audit log** ✅ (Owner only; nav **Audit log**): newest first, who (avatar, short name), when, type and what. Types with counts as filter chips: Reassignments, Team (invite, deactivate with lead count, reactivate), Settings (pre-sales switch, routing, radius, work hours, auto-reply on/off/message, lead-source cost/team/connection), Properties (added; edited with what changed: price, availability, listing agent, owner contact), Deals (won with price, lost with reason, reopened), Exports. Repeated edits of the same setting by the same person update one entry, so typing a cost doesn't flood the log.
+- **Export leads** and **Export log** ✅ download CSV files in the browser (`daira-leads.csv`: name, phone, source, owner, stage or Won/Lost, budget, looking for, localities; `daira-audit-log.csv`) and are themselves logged.
+- Not built: logging each time someone views a full phone number (Managers and the Owner always see full numbers in this prototype); editing permissions (the table is read-only, so there are no permission changes to log).
+
 ## 4. Seed data (`src/data/demo.ts`, `src/data/team.ts`, `src/data/sources.ts`)
 - **Team (22, `team.ts`):** Owner Arjun Khanna; Indiranagar team (manager Neha Kapoor; Sales Priya Nair, Aditya Rao, Kavya Reddy *on leave*, Sameer Joshi, Divya Iyer); Whitefield (manager Rahul Menon; Sales Vivek Sharma, Ritu Bansal, Manoj Kumar, Ayesha Khan, Karthik Srinivas); HSR Layout (manager Farah Sheikh; Sales Sneha Pillai, Rohit Verma, Ananth Krishnan, Meghna Das, Tarun Gowda); central Pre-sales Kiran Patel, Lakshmi Narayan, Imran Ali.
 - **Leads (12):**
@@ -246,6 +259,7 @@ Monthly figures (leads handled, visits booked/verified, deals, commission, first
   Each lead also has a phone number, minutes since the last message, move-in timing, must-haves, opening enquiry and latest message. Ishita Banerjee last wrote 1 day ago (outside the 24-hour window). Portal leads carry a "shared with ~N brokers" figure 🎭: Ananya 6, Deepak 5, Farhan 4, Gaurav 3, Ishita 6. Vikram and Sanjay are marked Investment. The Owner's totals with this data: active value ₹27.4 Cr across 12 leads.
 - **Properties (8, `inventory.ts`):** The Courtyard House (Indiranagar, 3 BHK, ₹2.65 Cr, Priya) · Windermere Residences (Whitefield, 4 BHK villa, ₹3.40 Cr, Vivek) · Lakeview Terraces (HSR Layout, 2 BHK, ₹1.48 Cr, Sneha) · Palm Grove Villas (Whitefield, 4 BHK villa, ₹4.20 Cr, Manoj) · Indigo Heights (Indiranagar, 2 BHK, ₹1.62 Cr, Aditya) · Maple Court (HSR Layout, 3 BHK, ₹1.95 Cr, Rohit) · Brookside Towers (Whitefield, 2 BHK, ₹1.12 Cr, **on hold**, Ritu) · Cedar Row (Indiranagar, 3 BHK, ₹3.10 Cr, **sold**, Kavya). Each has an owner name and number. Photos load from Unsplash, so the demo needs internet.
 - **Deals (`deals.ts`):** Rohan & Meera (asking ₹3.4 Cr, offer ₹3.2 Cr, split Vivek 100%) and Lavanya Subramaniam (asking ₹4.2 Cr, offer ₹4.0 Cr, split Manoj 100%), both with Buyer KYC received. No deals are closed at the start.
+- **Notifications and audit (`notifications.ts`):** unread for Arjun (Vivek's refused check-in, Aditya's leave request; Rohit's request already read), Rahul (the refused check-in), Neha (Aditya's request), Farah (Rohit's request), Priya (Ishita routed to her) and Kiran (Pooja routed to her). Audit log: 5 earlier entries (radius set to 200 m, two reassignments, a 214-row export, Lakshmi invited).
 - **Performance (`performance.ts`):** generated monthly figures and targets per person, response-time bands, lost reasons, per-source visits/deals, days-in-stage for stuck leads, property shares.
 - **Leave (`leave.ts`):** Kavya (Casual, 3 days ago → tomorrow, approved, cover Sameer); Aditya (Casual, in 2–3 days, pending, 1 lead); Rohit (Sick, tomorrow, pending; he has a visit tomorrow). Allowances 8 / 6 / 15 and generated days already used.
 - **Attendance (`attendance.ts`):** generated history for the last 10 working days; today's records (most people checked in, some late or in the field; Priya, Neha, Kiran and Sameer not yet, so the demo can do it); Kavya on leave; one pending correction from Sameer for 3 working days ago.
@@ -255,7 +269,7 @@ Monthly figures (leads handled, visits booked/verified, deals, commission, first
 - **Fixed demo numbers** (`DEMO_METRICS`): follow-up rate 82% (+12%), weekly chart values, 18 calls this week (2h 14m), 72% answer rate (+8%).
 
 ## 5. Saved in the browser (localStorage)
-All keys use the prefix `daira:v5:`: `viewer`, `settings`, `pretend-location`, `attendance-today`, `corrections`, `leave`, `added-members`, `member-status`, `added-leads`, `owners`, `assignments`, `lead-edits`, `notes`, `tags`, `activity`, `source-settings`, `arrivals`, `stages`, `deals` (offers, documents, splits), `closures` (won/lost), `visits` (visit records with steps and outcomes), `read-leads`, `chats`, `ai-suggestions`, `qualify-steps`, `tasks`, `completed-tasks`, `recordings`, `saved-properties`, `properties` (inventory incl. edits and additions), `property-shares` (Sent/Seen per lead).
+All keys use the prefix `daira:v5:`: `viewer`, `settings`, `pretend-location`, `attendance-today`, `corrections`, `leave`, `added-members`, `member-status`, `added-leads`, `owners`, `assignments`, `lead-edits`, `notes`, `tags`, `activity`, `source-settings`, `arrivals`, `stages`, `deals` (offers, documents, splits), `closures` (won/lost), `visits` (visit records with steps and outcomes), `read-leads`, `chats`, `ai-suggestions`, `qualify-steps`, `tasks`, `completed-tasks`, `recordings`, `saved-properties`, `properties` (inventory incl. edits and additions), `property-shares` (Sent/Seen per lead), `notifications` (everyone's, with read state), `audit`.
 **Reset demo data** (account menu → confirm) deletes these, plus any older `daira:*` / `daira-*` keys, and reloads the page. Run it before every client demo.
 
 ## 6. Code map
@@ -268,13 +282,14 @@ See `AGENTS.md` for conventions. Each component has a matching `.css` file next 
 - `src/data/attendance.ts`: attendance codes, seed history and today's records, corrections, working-hours options.
 - `src/data/leave.ts`: leave types, allowances, seed requests, holidays, date-range helpers.
 - `src/data/inventory.ts`: listing model, seed listings, localities, price/BHK/area labels, `matchesForLead` (scored matches with reasons).
+- `src/data/notifications.ts`: notification and audit-entry types, their seed entries, audit type labels.
 - `src/data/deals.ts`: deal model (offer, token, documents, commission split), lost reasons, seed deals.
 - `src/data/performance.ts`: generated monthly figures, targets and insight data.
 - `src/data/templates.ts`: WhatsApp templates, the 24-hour window, default auto-reply, qualification questions.
 - `src/state/useDemoStore.ts`: all saved state, the viewer, visibility filtering, routing, activity log and timeline, duplicate lookup, derived numbers and actions.
-- `src/lib/`: `ai.ts` (demo AI: reply drafts, lead score, call summary, weekly digest), `location.ts` (one-off location readings: demo readings, the browser's real location, distance), `permissions.ts` (role → permissions, who sees which lead), `storage.ts` (localStorage), `format.ts` (dates, money, durations, phone masking), `useEscapeKey.ts`.
-- `src/components/`: `AppNavigation` (sidebar with Work/Manage groups, phone top bar, tab bar with More sheet), `navigation.ts` (items with required permission), `Dialog` (the one modal / sheet / full-screen shell), `AccountMenu`, `Avatar`, `HeatBadge`, `LeadActions`, `LeadRow`, `LeadTimeline`, `LeadNotes`, `LeadTags`, `IncomingLeadBanner`, `LocationControl` (demo location picker), `BarList` (single-series bar chart), `PropertyCard`, `Toast`, `Icon`.
-- `src/views/`: `TodayView`, `ChatView` (chat + lead panel), `PipelineView`, `PropertiesView`, `FollowUpsView`, `CallsView`, `VisitsView` (with the visit outcome form), `AttendanceView` (My day, Leave, Register with team calendar, Requests), `ReportsView` (my performance, leaderboard, scorecard, owner insights), `EscalationsView`, `LeadSourcesView`, `TeamView` (with invite dialog), `SettingsView`.
+- `src/lib/`: `ai.ts` (demo AI: reply drafts, lead score, call summary, weekly digest), `location.ts` (one-off location readings: demo readings, the browser's real location, distance), `permissions.ts` (role → permissions, who sees which lead), `storage.ts` (localStorage), `format.ts` (dates, money, durations, phone masking), `csv.ts` (CSV text and browser download), `useEscapeKey.ts`.
+- `src/components/`: `AppNavigation` (sidebar with Work/Manage groups, phone top bar, tab bar with More sheet), `navigation.ts` (items with required permission), `Dialog` (the one modal / sheet / full-screen shell), `AccountMenu`, `Avatar`, `HeatBadge`, `LeadActions`, `LeadRow`, `LeadTimeline`, `LeadNotes`, `LeadTags`, `IncomingLeadBanner`, `LocationControl` (demo location picker), `BarList` (single-series bar chart), `PropertyCard` (also `PropertyPhoto`), `NotificationBell` (bell + notifications panel), `Toast`, `Icon`.
+- `src/views/`: `TodayView`, `ChatView` (chat + lead panel), `PipelineView`, `PropertiesView`, `FollowUpsView`, `CallsView`, `VisitsView` (with the visit outcome form), `AttendanceView` (My day, Leave, Register with team calendar, Requests), `ReportsView` (my performance, leaderboard, scorecard, owner insights), `EscalationsView`, `LeadSourcesView`, `TeamView` (with invite dialog), `SettingsView`, `AuditView` (Owner's audit log with CSV exports).
 - `src/modals/`: `AddLeadModal` (with duplicate check), `EditLeadDialog` (structured buyer brief), `ScheduleVisitDialog`, `TemplateDialog`, `AssignDialog` (people picker for assign / reassign / hand-off / deactivate), `DealDialog` (offer tracker + commission split; also `LostDialog`), `PropertyDialog` (add/edit listing), `ShareDialog` (pick lead → pick homes → WhatsApp preview → send), `CallPicker`, `CallModal`.
 - `src/index.css`: the only place raw colours are defined. Design tokens (colour, 4px spacing scale, radius, shadow, `--fs-*` type sizes, `--tap`) and shared classes (`.btn`, `.card`, `.chip`, `.count-badge`, `.status-dot`, `.icon-badge`, `.is-done` and more).
 
@@ -404,7 +419,7 @@ Everything here is **UI only**: each item is a screen or flow driven by seed dat
 - **Add/edit property**, availability (Available / On hold / Sold), listing agent, **owner contact** (masked from Sales).
 - **Matches for this lead** with reasons ("In budget · 3 BHK · Indiranagar"); pick several → **WhatsApp preview** → sent (🎭) → "Viewed" (🎭).
 
-### 8.12 M12 · Notifications and audit
+### 8.12 M12 · Notifications and audit — ✅ built (§3.15); full-number views and permission changes are not logged (see §3.15)
 - **Notifications centre:** lead assigned, overdue, check-in refused, leave request or decision, reassignment.
 - **Audit log** (Owner): exports, reassignments, full-number views, permission changes, deactivations.
 
@@ -447,6 +462,7 @@ Everything here is **UI only**: each item is a screen or flow driven by seed dat
 
 ## 9. Changelog
 Newest first. One line per change: date, what changed, which section was updated.
+- **2026-10-20:** Built M12: notifications bell and panel (per person, unread count, needs-attention row, mark all read; created by assignments, leave and correction requests/decisions, refused check-ins, won deals), Owner-only Audit log (reassignments, team, settings incl. lead sources, properties, deals, exports; repeated edits coalesce) with leads and log CSV export. New permission: see the audit log. Phone top bar shows only the WhatsApp dot under 430 px. Updated §2, §3.8, §3.15, §4–§6, §8.12.
 - **2026-10-20:** Built M11: 8 listings with availability, listing agent and owner contact (masked unless Manager/Owner/listing agent), Add/Edit property, availability filter, scored matches with reasons in the lead panel, Share dialog (pick lead or homes → WhatsApp preview → send, template outside 24 h → Seen), shared listings in the chat, per-listing shares on Performance. New permissions: add/edit properties, see owners' numbers. Removed fixed known issues (Matches/Share, pipeline tab, deals). Updated §3.2, §3.4, §3.8, §3.14, §4–§7, §8.11.
 - **2026-10-20:** Built M10: Closed pipeline column with Won (agreed price + commission split adding to 100%) and Lost (reason), Reopen, move back, desktop drag-and-drop, phone tabs open on the first non-empty stage; Deal panel on the lead (offer tracker, document checklist, split); won deals feed this month's leaderboard; Won/Lost inbox flags; closed leads leave active value. Updated §3.1–§3.3, §3.14, §5, §6, §8.10.
 - **2026-10-20:** Built M4 + M13: automatic replies (tagged) on arrival, animated auto-qualification whose answers become AI suggestions to accept, templates with fields and preview, 24-hour window lock, AI reply drafts (English/Hindi/Kannada), AI lead score, AI call summaries, AI weekly digest, auto-reply settings. Automatic actions are credited "Automatic". Fixed duplicate timeline ids. Storage bumped to v5. Updated §3.2, §3.6, §3.10, §3.11, §3.14, §4–§7, §8.4, §8.13.
