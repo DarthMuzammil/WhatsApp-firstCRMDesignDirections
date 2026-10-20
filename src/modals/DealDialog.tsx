@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import type { Lead } from '../data/demo'
 import { LOST_REASON_OPTIONS, OFFER_BY_LABELS, latestOffer, type Deal, type Offer, type OfferBy, type SplitShare } from '../data/deals'
 import { shortName } from '../data/team'
+import { developerOfProject, findProject, isActiveRegistration, registrationStatus, registrationValidUntil } from '../data/channelPartner'
 import { Dialog } from '../components/Dialog'
 import { Icon } from '../components/Icon'
 import { dayLabel } from '../lib/format'
@@ -35,12 +36,20 @@ export function DealDialog({ lead, store, mode, onClose, onSaved }: { lead: Lead
   const [tokenDay, setTokenDay] = useState(existing?.tokenDay ?? 0)
   const [agreementDay, setAgreementDay] = useState<number | null>(existing?.agreementDay ?? null)
   const [split, setSplit] = useState<SplitShare[]>(existing?.split ?? defaultSplit(lead, store))
+  // M14: a lead registered with a developer can be won as a new-launch booking (off by default).
+  const registration = mode === 'win'
+    ? store.cp.registrationsFor(lead.id).filter((item) => registrationStatus(item).kind !== 'booked' && registrationStatus(item).kind !== 'disputed')
+      .sort((a, b) => Number(isActiveRegistration(b)) - Number(isActiveRegistration(a)) || b.day - a.day)[0]
+    : undefined
+  const [asBooking, setAsBooking] = useState(false)
+  const [unit, setUnit] = useState('')
   const total = split.reduce((sum, share) => sum + share.pct, 0)
   const people = store.members.filter((person) => person.status !== 'deactivated' && (person.roles.includes('sales') || person.roles.includes('presales')))
   const error = total !== 100 ? `Commission split adds up to ${total}%. It must be 100%.`
     : mode === 'win' && !(Number(agreed) > 0) ? 'Enter the agreed price to mark the deal won.'
       : newAmount !== '' && !(Number(newAmount) > 0) ? 'Enter the offer amount in ₹ crore, or clear it.'
-        : ''
+        : asBooking && !unit.trim() ? 'Enter the unit for the new-launch booking.'
+          : ''
 
   const pendingOffer = (): Offer | null => (Number(newAmount) > 0 ? { id: Date.now(), by: newBy, amountCr: Number(newAmount), day: newDay } : null)
   function addOffer() {
@@ -63,6 +72,7 @@ export function DealDialog({ lead, store, mode, onClose, onSaved }: { lead: Lead
     store.updateDeal(lead.id, deal)
     if (mode === 'win') {
       store.closeLead(lead.id, { result: 'won' }, deal.agreedCr)
+      if (registration && asBooking && deal.agreedCr) store.cp.bookFromDeal(registration.id, unit.trim(), deal.agreedCr)
       onSaved(`${lead.name} won at ₹${deal.agreedCr} Cr`)
     } else onSaved('Deal saved')
   }
@@ -124,6 +134,14 @@ export function DealDialog({ lead, store, mode, onClose, onSaved }: { lead: Lead
           ))}
           <button type="button" className="btn btn-soft" onClick={() => setSplit([...split, { memberId: people[0].id, pct: 0 }])}><Icon name="plus" size={16} /> Add person</button>
         </fieldset>
+        {registration && (
+          <fieldset className="launch-booking">
+            <label className="checkbox-row"><input type="checkbox" checked={asBooking} onChange={(event) => setAsBooking(event.target.checked)} /> New-launch booking at {findProject(registration.projectId)?.name}</label>
+            {!isActiveRegistration(registration) && <p className="launch-booking-note" role="note"><Icon name="alert" size={14} /> Registration lapsed on {dayLabel(registrationValidUntil(registration))}. The developer may refuse brokerage.</p>}
+            {asBooking && <label>Unit<input value={unit} onChange={(event) => setUnit(event.target.value)} placeholder="e.g. T1-1404" /></label>}
+            {asBooking && <small className="launch-booking-hint">Adds it to Brokerage: {developerOfProject(registration.projectId)?.brokeragePct}% from {developerOfProject(registration.projectId)?.name}, billable once the buyer pays {developerOfProject(registration.projectId)?.billableAfterPct}%.</small>}
+          </fieldset>
+        )}
         {error && <p className="form-error" role="alert">{error}</p>}
         <button className="btn btn-primary btn-block add-lead-submit" disabled={!!error}>{mode === 'win' ? 'Mark won' : 'Save deal'} <Icon name="check" /></button>
       </form>

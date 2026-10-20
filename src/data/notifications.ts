@@ -3,7 +3,7 @@
 
 /** Screens a notification can open (a subset of the app's views). */
 export type NotificationView = 'attendance' | 'visits' | 'escalations' | 'pipeline' | 'team' | 'brokerage' | 'launches'
-export type NotificationKind = 'assigned' | 'moved' | 'checkin-refused' | 'leave-request' | 'leave-decision' | 'correction' | 'deal-won' | 'cp-overdue' | 'cp-paid' | 'cp-dispute'
+export type NotificationKind = 'assigned' | 'moved' | 'checkin-refused' | 'leave-request' | 'leave-decision' | 'correction' | 'deal-won' | 'cp-overdue' | 'cp-paid' | 'cp-dispute' | 'registration' | 'launch-reply'
 
 export type AppNotification = {
   id: number
@@ -27,6 +27,13 @@ export const SEED_NOTIFICATIONS: AppNotification[] = [
   { id: 7, forId: 'm-priya', kind: 'assigned', text: 'Ishita Banerjee was assigned to you by routing.', at: 'Yesterday', leadId: 12, read: false },
   { id: 8, forId: 'm-kiran', kind: 'assigned', text: 'Pooja Venkatesh was assigned to you by routing.', at: 'Yesterday', leadId: 10, read: false },
   // M14 (spec §8.17): the oldest unpaid developer invoice.
+  // M14: developer registrations about to lapse (7, 3 and 1 days → agent; 1 day and lapsed → their manager too).
+  { id: 10, forId: 'm-priya', kind: 'registration', text: 'Ananya Rao’s registration with Kestrel Developers expires in 3 days. Renew it to keep the brokerage protected.', at: '8:00 AM', leadId: 1, read: false },
+  { id: 11, forId: 'm-rohit', kind: 'registration', text: 'Nisha Kulkarni’s registration with Banyan Bay Developers expires in 7 days.', at: '8:00 AM', leadId: 6, read: false },
+  { id: 12, forId: 'm-sneha', kind: 'registration', text: 'Vikram Shah’s registration with Banyan Bay Developers expires tomorrow.', at: '8:00 AM', leadId: 3, read: false },
+  { id: 13, forId: 'm-farah', kind: 'registration', text: 'Vikram Shah’s registration with Banyan Bay Developers (Sneha P.) expires tomorrow.', at: '8:00 AM', leadId: 3, read: false },
+  { id: 14, forId: 'm-sameer', kind: 'registration', text: 'Meenakshi Raghavan’s registration with Larkspur Estates lapsed 2 days ago. The developer may refuse brokerage.', at: '8:00 AM', leadId: 106, read: false },
+  { id: 15, forId: 'm-neha', kind: 'registration', text: 'Meenakshi Raghavan’s registration with Larkspur Estates (Sameer J.) lapsed 2 days ago.', at: '8:00 AM', leadId: 106, read: false },
   { id: 9, forId: 'm-arjun', kind: 'cp-overdue', text: 'Halcyon Habitats: invoice BDR/26-27/014 for Rajiv Menezes is 43 days overdue.', at: '8:00 AM', view: 'brokerage', read: false },
 ]
 

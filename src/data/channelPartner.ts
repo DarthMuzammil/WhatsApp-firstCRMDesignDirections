@@ -197,3 +197,77 @@ export function reminderText(booking: Booking, tone: 'gentle' | 'firm', senderNa
 
 /** The CP manager's scripted answer to a reminder (🎭). */
 export const REMINDER_REPLY = 'Noted. Checking with accounts, will confirm the date by Friday.'
+
+// ---------- Developer client registrations (spec §8.17.2) ----------
+export type RegistrationMethod = 'Developer’s CP portal' | 'Email to CP manager' | 'WhatsApp to CP manager'
+export const REGISTRATION_METHODS: RegistrationMethod[] = ['Developer’s CP portal', 'Email to CP manager', 'WhatsApp to CP manager']
+export const REGISTRATION_DISPUTE_REASONS = ['Another CP registered first', 'Developer has no record', 'Other']
+
+/** The firm's registration of a buyer with a developer, which protects the brokerage until it lapses. */
+export type Registration = {
+  id: number
+  leadId: number
+  projectId: string
+  /** Who registered the buyer (may differ from the lead's current owner). */
+  byId: string
+  /** Day registered (or last renewed), as an offset from today. */
+  day: number
+  method: RegistrationMethod
+  pan?: string
+  developerRef?: string
+  proof?: boolean
+  /** "Recorded by Priya N. · Tue, 20 Oct, 2:14 PM" for registrations recorded in the demo. */
+  recordedAt?: string
+  disputed?: { reason: string }
+  /** Resolved as lost to another CP: shows as Lapsed. */
+  lost?: boolean
+  booked?: boolean
+}
+
+export const SEED_REGISTRATIONS: Registration[] = [
+  { id: 1, leadId: 1, projectId: 'kestrel-heights', byId: 'm-priya', day: -42, method: 'Developer’s CP portal', developerRef: 'KD-CP-88213' },
+  { id: 2, leadId: 12, projectId: 'larkspur-residences', byId: 'm-priya', day: -10, method: 'Email to CP manager' },
+  { id: 3, leadId: 101, projectId: 'larkspur-residences', byId: 'm-priya', day: -12, method: 'WhatsApp to CP manager', disputed: { reason: 'Another CP registered first' } },
+  { id: 4, leadId: 9, projectId: 'kestrel-heights', byId: 'm-kavya', day: -30, method: 'Developer’s CP portal', developerRef: 'KD-CP-87650' },
+  { id: 5, leadId: 106, projectId: 'larkspur-residences', byId: 'm-sameer', day: -32, method: 'Email to CP manager' },
+  { id: 6, leadId: 5, projectId: 'kestrel-heights', byId: 'm-ritu', day: -20, method: 'Developer’s CP portal', developerRef: 'KD-CP-88004' },
+  { id: 7, leadId: 118, projectId: 'halcyon-grove', byId: 'm-ayesha', day: -5, method: 'Developer’s CP portal' },
+  { id: 8, leadId: 6, projectId: 'banyan-bay', byId: 'm-rohit', day: -23, method: 'WhatsApp to CP manager' },
+  { id: 9, leadId: 3, projectId: 'banyan-bay', byId: 'm-sneha', day: -29, method: 'Email to CP manager' },
+]
+
+export type RegistrationStatus =
+  | { kind: 'registered'; label: string; daysLeft: number }
+  | { kind: 'expiring'; label: string; daysLeft: number }
+  | { kind: 'lapsed'; label: string; daysAgo: number }
+  | { kind: 'disputed'; label: string; reason: string }
+  | { kind: 'booked'; label: string }
+
+/** Day the registration stops protecting the brokerage (offset from today). */
+export function registrationValidUntil(registration: Registration): number {
+  return registration.day + (developerOfProject(registration.projectId)?.registrationDays ?? 30)
+}
+
+export function registrationStatus(registration: Registration): RegistrationStatus {
+  if (registration.booked) return { kind: 'booked', label: 'Booked' }
+  if (registration.disputed) return { kind: 'disputed', label: 'Disputed', reason: registration.disputed.reason }
+  const left = registrationValidUntil(registration)
+  if (registration.lost || left < 0) {
+    const ago = Math.max(0, -left)
+    return { kind: 'lapsed', label: registration.lost ? 'Lapsed · lost to another CP' : ago === 0 ? 'Lapsed today' : `Lapsed ${ago} ${ago === 1 ? 'day' : 'days'} ago`, daysAgo: ago }
+  }
+  if (left <= 7) return { kind: 'expiring', label: left === 0 ? 'Expires today' : left === 1 ? 'Expires tomorrow' : `Expiring · ${left} days left`, daysLeft: left }
+  return { kind: 'registered', label: `Registered · ${left} days left`, daysLeft: left }
+}
+
+/** Still protecting the brokerage (counts for the conflict check). */
+export function isActiveRegistration(registration: Registration): boolean {
+  const kind = registrationStatus(registration).kind
+  return kind === 'registered' || kind === 'expiring' || kind === 'booked'
+}
+
+/** "ABCPM1234K" → "XXXXXX234K" (spec: PAN always shows masked; full only on request for seeFullNumbers). */
+export function maskPan(pan: string): string {
+  return `XXXXXX${pan.slice(-4)}`
+}
+export const PAN_PATTERN = /^[A-Z]{5}[0-9]{4}[A-Z]$/

@@ -1,0 +1,26 @@
+.lead-registrations { margin-bottom: var(--space-5); display: flex; flex-direction: column; gap: var(--space-2); }
+.registration-entry { padding: var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-md); display: flex; flex-direction: column; gap: var(--space-2); background: var(--surface); }
+.registration-entry.status-expiring { border-color: var(--warning-soft); }
+.registration-entry.status-lapsed, .registration-entry.status-disputed { border-color: var(--danger-soft); }
+.registration-top { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-2); }
+.registration-top strong { font-size: var(--fs-body-sm); }
+.registration-status { flex: 0 0 auto; padding: var(--space-half) var(--space-2); border-radius: var(--radius-sm); color: var(--success-ink); background: var(--success-soft); font-size: var(--fs-meta); font-weight: 800; white-space: nowrap; }
+.registration-status.expiring { color: var(--warning-ink); background: var(--warning-soft); }
+.registration-status.lapsed, .registration-status.disputed { color: var(--danger-text); background: var(--danger-soft); }
+.registration-status.booked { color: var(--primary); background: var(--primary-soft); }
+.registration-when { color: var(--ink-soft); font-size: var(--fs-caption); }
+.registration-meter { height: 4px; overflow: hidden; border-radius: var(--radius-pill); background: var(--surface-sunken); }
+.registration-meter i { display: block; height: 100%; border-radius: var(--radius-pill); background: var(--success); }
+.status-expiring .registration-meter i { background: var(--warning-ink); }
+.registration-by { display: flex; flex-direction: column; gap: var(--space-half); color: var(--muted); font-size: var(--fs-caption); }
+.registration-by small { font-size: var(--fs-meta); }
+.registration-pan { color: var(--ink-soft); font-size: var(--fs-caption); font-variant-numeric: tabular-nums; }
+.registration-pan button { margin-left: var(--space-2); padding: 0; border: 0; color: var(--primary); background: transparent; font-size: var(--fs-caption); font-weight: 700; }
+.registration-proof-chip { display: inline-flex; align-items: center; gap: var(--space-1); color: var(--success-ink); }
+.registration-entry footer { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.registration-entry footer .btn { min-height: 34px; font-size: var(--fs-caption); }
+
+@media (max-width: 760px) {
+  .registration-entry footer .btn { min-height: var(--tap); flex: 1; }
+  .registration-pan button { min-height: var(--tap); }
+}

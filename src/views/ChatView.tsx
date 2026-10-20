@@ -20,6 +20,8 @@ import { EditLeadDialog } from '../modals/EditLeadDialog'
 import { DealDialog, LostDialog } from '../modals/DealDialog'
 import { ShareDialog } from '../modals/ShareDialog'
 import { ReminderDialog } from '../modals/ReminderDialog'
+import { RegisterDialog, RegistrationDisputeDialog, RenewDialog } from '../modals/RegistrationDialogs'
+import { LeadRegistrations, type RegistrationAction } from '../components/LeadRegistrations'
 import { ScheduleVisitDialog } from '../modals/ScheduleVisitDialog'
 import { TemplateDialog } from '../modals/TemplateDialog'
 import { QUALIFICATION_QUESTIONS } from '../data/templates'
@@ -49,6 +51,8 @@ export function ChatView({ lead, store, onBack, onCall, onNavigate, notify }: Ch
   const [dealMode, setDealMode] = useState<'edit' | 'win' | 'lost' | null>(null)
   const [sharing, setSharing] = useState(false)
   const [reminding, setReminding] = useState(false)
+  const [registrationAction, setRegistrationAction] = useState<RegistrationAction | null>(null)
+  const actionRegistration = registrationAction && registrationAction.kind !== 'register' ? store.cp.findRegistration(registrationAction.id) : undefined
   // Pre-sales hand a lead they own to Sales (when the company has a separate pre-sales team).
   const canHandOff = store.settings.separatePresales && store.viewerCan('handToSales') && !store.viewerCan('reassignLeads') && lead.ownerId === store.viewer.id
   const actions: LeadActionHandlers = {
@@ -61,16 +65,19 @@ export function ChatView({ lead, store, onBack, onCall, onNavigate, notify }: Ch
   return (
     <div className="chat-layout">
       <ChatPanel lead={lead} store={store} actions={actions} onBack={onBack} onCall={() => onCall(lead)} onShowDetails={() => setDetailsOpen(true)} />
-      <aside className="lead-detail"><LeadDetails lead={lead} store={store} actions={actions} onAssign={setAssignMode} onEdit={() => setEditing(true)} onDeal={setDealMode} /></aside>
+      <aside className="lead-detail"><LeadDetails lead={lead} store={store} actions={actions} onAssign={setAssignMode} onEdit={() => setEditing(true)} onDeal={setDealMode} onRegistration={setRegistrationAction} /></aside>
       {detailsOpen && (
         <Dialog label={`${lead.name} details`} variant="sheet" onClose={() => setDetailsOpen(false)}>
           <header className="lead-detail-sheet-head">
             <strong>Lead details</strong>
             <button className="icon-button bordered" onClick={() => setDetailsOpen(false)} aria-label="Close"><Icon name="close" /></button>
           </header>
-          <div className="lead-detail-sheet-body dialog-scroll"><LeadDetails lead={lead} store={store} actions={actions} onAssign={(mode) => { setDetailsOpen(false); setAssignMode(mode) }} onEdit={() => { setDetailsOpen(false); setEditing(true) }} onDeal={(mode) => { setDetailsOpen(false); setDealMode(mode) }} /></div>
+          <div className="lead-detail-sheet-body dialog-scroll"><LeadDetails lead={lead} store={store} actions={actions} onAssign={(mode) => { setDetailsOpen(false); setAssignMode(mode) }} onEdit={() => { setDetailsOpen(false); setEditing(true) }} onDeal={(mode) => { setDetailsOpen(false); setDealMode(mode) }} onRegistration={(action) => { setDetailsOpen(false); setRegistrationAction(action) }} /></div>
         </Dialog>
       )}
+      {registrationAction?.kind === 'register' && <RegisterDialog lead={lead} store={store} onClose={() => setRegistrationAction(null)} onSaved={(message) => { setRegistrationAction(null); notify(message) }} />}
+      {registrationAction?.kind === 'renew' && actionRegistration && <RenewDialog registration={actionRegistration} store={store} onClose={() => setRegistrationAction(null)} onSaved={(message) => { setRegistrationAction(null); notify(message) }} />}
+      {(registrationAction?.kind === 'dispute' || registrationAction?.kind === 'resolve') && actionRegistration && <RegistrationDisputeDialog registration={actionRegistration} store={store} mode={registrationAction.kind} onClose={() => setRegistrationAction(null)} onSaved={(message) => { setRegistrationAction(null); notify(message) }} />}
       {reminding && <ReminderDialog lead={lead} store={store} onClose={() => setReminding(false)} onSaved={(message) => { setReminding(false); notify(message) }} />}
       {sharing && <ShareDialog store={store} lead={lead} onClose={() => setSharing(false)} onSent={(message) => { setSharing(false); notify(message) }} />}
       {(dealMode === 'edit' || dealMode === 'win') && (
@@ -306,6 +313,7 @@ type LeadDetailsProps = {
   onAssign: (mode: 'reassign' | 'handoff') => void
   onEdit: () => void
   onDeal: (mode: 'edit' | 'win' | 'lost') => void
+  onRegistration: (action: RegistrationAction) => void
 }
 type DetailsTab = 'overview' | 'timeline' | 'notes'
 
@@ -314,7 +322,7 @@ type DetailsTab = 'overview' | 'timeline' | 'notes'
  * Overview runs from what matters when replying (owner, stage and budget, the shared-lead warning, AI score, deal,
  * matching homes) to reference details (buyer brief, tags); ownership history is folded away.
  */
-function LeadDetails({ lead, store, actions, onAssign, onEdit, onDeal }: LeadDetailsProps) {
+function LeadDetails({ lead, store, actions, onAssign, onEdit, onDeal, onRegistration }: LeadDetailsProps) {
   const [tab, setTab] = useState<DetailsTab>('overview')
   const notes = store.notesFor(lead.id)
   const timeline = store.timelineFor(lead.id)
@@ -327,13 +335,13 @@ function LeadDetails({ lead, store, actions, onAssign, onEdit, onDeal }: LeadDet
     <div className="segmented lead-detail-tabs" role="tablist" aria-label="Lead details">
       {tabs.map((item) => <button key={item.id} role="tab" aria-selected={tab === item.id} className={tab === item.id ? 'active' : ''} onClick={() => setTab(item.id)}>{item.label}</button>)}
     </div>
-    {tab === 'overview' && <LeadOverview lead={lead} store={store} actions={actions} onAssign={onAssign} onEdit={onEdit} onDeal={onDeal} />}
+    {tab === 'overview' && <LeadOverview lead={lead} store={store} actions={actions} onAssign={onAssign} onEdit={onEdit} onDeal={onDeal} onRegistration={onRegistration} />}
     {tab === 'timeline' && <LeadTimeline events={timeline} findMember={store.findMember} />}
     {tab === 'notes' && <LeadNotes notes={notes} onAdd={(text) => store.addNote(lead.id, text)} findMember={store.findMember} />}
   </>
 }
 
-function LeadOverview({ lead, store, actions, onAssign, onEdit, onDeal }: LeadDetailsProps) {
+function LeadOverview({ lead, store, actions, onAssign, onEdit, onDeal, onRegistration }: LeadDetailsProps) {
   const owner = store.findMember(lead.ownerId)
   const canReassign = store.viewerCan('reassignLeads')
   const canHandOff = store.settings.separatePresales && store.viewerCan('handToSales') && lead.ownerId === store.viewer.id
@@ -390,6 +398,8 @@ function LeadOverview({ lead, store, actions, onAssign, onEdit, onDeal }: LeadDe
     <AiSuggestions lead={lead} store={store} />
 
     {(lead.stage >= 3 || lead.closed || store.dealFor(lead.id)) && <DealPanel lead={lead} store={store} onDeal={onDeal} />}
+
+    <LeadRegistrations lead={lead} store={store} onAction={onRegistration} />
 
     <LeadMatches lead={lead} store={store} />
 

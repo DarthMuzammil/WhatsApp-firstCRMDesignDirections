@@ -39,7 +39,7 @@ export type Note = { id: number; text: string; byId: string; at: string }
 export type ChatEntry = { from: 'agent' | 'auto' | 'buyer'; text: string; at: string; template?: string; /** Listings sent with the message (spec §8.11). */ propertyIds?: number[] }
 /** A listing sent to a lead on WhatsApp. `seen` flips a few seconds after sending (🎭). */
 export type PropertyShare = { propertyId: number; at: string; seen: boolean }
-export type ActivityKind = 'enquiry' | 'message' | 'assign' | 'stage' | 'visit' | 'call' | 'note' | 'profile' | 'tag' | 'merge' | 'task'
+export type ActivityKind = 'enquiry' | 'message' | 'assign' | 'stage' | 'visit' | 'call' | 'note' | 'profile' | 'tag' | 'merge' | 'task' | 'registration' | 'launch'
 /** Something that happened on a lead during the demo; newest first in the store. */
 export type Activity = { id: number; leadId: number; kind: ActivityKind; text: string; byId: string; at: string }
 /** One row of a lead's timeline (demo activity plus events implied by the seed data). */
@@ -333,7 +333,7 @@ export function useDemoStore() {
 
 
   // ---------- M14 · Channel partner (spec §8.17): bookings, receivables, registrations, launches ----------
-  const cp = useChannelPartner({ viewer, viewerCan, members, findMember, nameOf, log, pushNotification, recordAudit, approversFor })
+  const cp = useChannelPartner({ viewer, viewerCan, members, findMember, nameOf, log, pushNotification, recordAudit, approversFor, allLeads, leads })
   return {
     /** M14 · Channel partner (see state/channelPartner.ts). */
     cp,

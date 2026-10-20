@@ -1,5 +1,5 @@
 import { tracksAttendance } from '../data/attendance'
-import { DEVELOPERS, bookingStatus, brokerageL, developerOfProject, type Booking } from '../data/channelPartner'
+import { DEVELOPERS, bookingStatus, brokerageL, developerOfProject, registrationStatus, type Booking } from '../data/channelPartner'
 import { DAYS_IN_STAGE, STUCK_AFTER_DAYS, monthStats } from '../data/performance'
 import { TEAMS, type Member } from '../data/team'
 import { weeklyDigest } from '../lib/ai'
@@ -55,6 +55,7 @@ export function WeeklyDigest({ store }: { store: DemoStore }) {
     topName: top?.name,
     topCommissionL: top ? Math.round(commission(top.id) * 10) / 10 : undefined,
     owedBy: store.viewerCan('viewReceivables') ? owedMost(store.cp.bookings) : undefined,
+    registrationsExpiring: store.cp.registrations.filter((registration) => registrationStatus(registration).kind === 'expiring').length,
   })
   return (
     <section className="card digest">
@@ -93,6 +94,9 @@ export function BrokeragePulse({ store, onNavigate }: { store: DemoStore; onNavi
   const oldest = overdue.map((booking) => ({ booking, status: bookingStatus(booking) }))
     .sort((a, b) => (b.status.kind === 'overdue' ? b.status.days : 0) - (a.status.kind === 'overdue' ? a.status.days : 0))[0]
   if (bookings.length === 0) return null
+  const regs = store.cp.registrations.map(registrationStatus)
+  const expiring = regs.filter((status) => status.kind === 'expiring').length
+  const lapsed = regs.filter((status) => status.kind === 'lapsed').length
   return (
     <section className="card brokerage-pulse" aria-label="Brokerage from developers">
       <header><Icon name="rupee" size={18} /><div><h2>Brokerage from developers</h2><p>Before GST and TDS</p></div></header>
@@ -104,6 +108,11 @@ export function BrokeragePulse({ store, onNavigate }: { store: DemoStore; onNavi
       <button className={overdue.length ? 'is-danger' : ''} onClick={() => onNavigate('brokerage', 'overdue')}>
         <span>Overdue</span>
         <strong>{overdue.length ? `${formatLakh(overdueLakh)} · oldest ${oldest?.status.kind === 'overdue' ? oldest.status.days : 0} days (${developerOfProject(oldest!.booking.projectId)?.name})` : 'Nothing overdue'}</strong>
+        <Icon name="chevron" size={14} />
+      </button>
+      <button onClick={() => onNavigate('launches', 'registrations')}>
+        <span>Registrations</span>
+        <strong>{expiring} expiring this week · {lapsed} lapsed</strong>
         <Icon name="chevron" size={14} />
       </button>
     </section>

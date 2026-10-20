@@ -46,7 +46,7 @@ await p.screenshot({ path: `${SHOTS}/m12-audit.png`, fullPage: true })
 // Priya: moved-away notification; applies for leave → Neha notified → approves → Priya notified
 await viewAs('Priya Nair')
 ok(await p.locator('.sidebar-nav button:has-text("Audit log")').count() === 0, 'sales: no Audit log')
-ok(await badge() === '2', 'Priya: seed + reassignment = 2 unread')
+ok(await badge() === '3', 'Priya: 2 seed (incl. a registration expiring) + reassignment = 3 unread')
 await p.click(bell)
 ok((await p.locator('.notification-list li').first().innerText()).includes('Ananya Rao moved to Aditya R.'), 'Priya told Ananya moved')
 await p.keyboard.press('Escape')

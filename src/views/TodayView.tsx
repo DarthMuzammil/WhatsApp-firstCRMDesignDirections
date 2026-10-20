@@ -7,6 +7,8 @@ import { Icon } from '../components/Icon'
 import { LeadRow } from '../components/LeadRow'
 import type { View } from '../components/navigation'
 import { BrokeragePulse, DailySummary, WeeklyDigest } from '../components/TeamPulse'
+import { developerOfProject, findProject, registrationStatus, registrationValidUntil, type Registration } from '../data/channelPartner'
+import { RenewDialog } from '../modals/RegistrationDialogs'
 import { formatCrore, todayLabel } from '../lib/format'
 import type { DemoStore } from '../state/useDemoStore'
 import './TodayView.css'
@@ -35,6 +37,7 @@ export function TodayView({ store, onOpenLead, onNavigate, onCall, notify }: Tod
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [showAll, setShowAll] = useState(false)
+  const [renewing, setRenewing] = useState<Registration | null>(null)
 
   const visibleLeads = store.leads.filter((lead) =>
     (filter === 'All' || lead.temp === filter) &&
@@ -48,6 +51,11 @@ export function TodayView({ store, onOpenLead, onNavigate, onCall, notify }: Tod
   const waiting = store.leads.filter((lead) => lead.unread > 0 && !lead.closed).sort((a, b) => b.minutesAgo - a.minutesAgo)
   const overdueCount = waiting.filter((lead) => lead.overdue).length
   const runsVisits = store.viewerCan('handleVisits')
+  // M14: registrations on the viewer's leads that lapse within 3 days (most urgent first).
+  const urgentRegistrations = store.cp.registrations
+    .map((registration) => ({ registration, status: registrationStatus(registration), days: registrationValidUntil(registration) }))
+    .filter((item) => item.status.kind === 'expiring' && item.days <= 3)
+    .sort((a, b) => a.days - b.days)
   // Pre-sales: call the buyer who has waited longest; with nobody waiting, the newest unqualified lead.
   const openLeads = store.leads.filter((lead) => !lead.closed)
   const nextCall = waiting[0] ?? openLeads.filter((lead) => lead.stage === 0).sort((a, b) => a.minutesAgo - b.minutesAgo)[0]
@@ -80,6 +88,22 @@ export function TodayView({ store, onOpenLead, onNavigate, onCall, notify }: Tod
           <button className="btn btn-primary" onClick={() => onNavigate('attendance')}>Check in</button>
         </div>
       )}
+
+      {/* M14: a developer registration on one of the viewer's leads lapses within 3 days. */}
+      {!seesOthers && urgentRegistrations.map(({ registration, days }) => {
+        const lead = store.findLead(registration.leadId)
+        return lead && (
+          <div key={registration.id} className="registration-reminder" role="note">
+            <Icon name="shield" />
+            <span><strong>{lead.name}’s registration with {developerOfProject(registration.projectId)?.name} {days === 0 ? 'expires today' : days === 1 ? 'expires tomorrow' : `expires in ${days} days`}</strong><small>{findProject(registration.projectId)?.name}. Renew it so the developer pays your brokerage.</small></span>
+            <span className="registration-reminder-buttons">
+              <button className="btn btn-secondary" onClick={() => onOpenLead(lead)}>Open lead</button>
+              <button className="btn btn-primary" onClick={() => setRenewing(registration)}>Renew</button>
+            </span>
+          </div>
+        )
+      })}
+      {renewing && <RenewDialog registration={renewing} store={store} onClose={() => setRenewing(null)} onSaved={(message) => { setRenewing(null); notify(message) }} />}
 
       {seesOthers ? <DailySummary store={store} onNavigate={onNavigate} /> : (
         <div className="day-cards">

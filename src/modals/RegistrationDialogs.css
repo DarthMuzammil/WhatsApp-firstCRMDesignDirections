@@ -1,0 +1,12 @@
+.registration-dialog form { max-height: 70dvh; overflow-y: auto; padding-right: var(--space-1); }
+.registration-hint { margin-left: var(--space-1); color: var(--muted); font-size: var(--fs-caption); font-weight: 500; }
+.registration-dialog input[readonly] { color: var(--ink-soft); background: var(--surface-subtle); }
+.registration-proof { align-self: flex-start; padding: var(--space-1) var(--space-3); border-radius: var(--radius-pill); display: inline-flex; align-items: center; gap: var(--space-2); color: var(--success-ink); background: var(--success-soft); font-size: var(--fs-caption); font-weight: 700; }
+.registration-proof-add { align-self: flex-start; }
+.registration-note { color: var(--muted); font-size: var(--fs-caption); line-height: 1.5; }
+.registration-resolve { display: flex; flex-direction: column; gap: var(--space-3); }
+
+@media (max-width: 760px) {
+  .registration-dialog form { max-height: none; }
+  .registration-proof-add { min-height: var(--tap); }
+}

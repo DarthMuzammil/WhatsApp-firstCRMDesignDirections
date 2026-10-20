@@ -1,0 +1,37 @@
+.registration-filters { padding: var(--space-3) var(--space-5); border-bottom: 1px solid var(--border-soft); }
+.registration-filters .chip b { margin-left: var(--space-1); opacity: .7; font-size: var(--fs-caption); }
+.registration-row { padding: var(--space-3) var(--space-5); border-bottom: 1px solid var(--border-soft); display: grid; grid-template-columns: minmax(180px, 1.3fr) minmax(160px, 1.2fr) 170px minmax(120px, 1fr) 96px; align-items: center; gap: var(--space-3); }
+.registration-row:last-of-type { border-bottom: 0; }
+.registration-lead { min-width: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: var(--space-half); text-align: left; background: transparent; }
+.registration-lead strong { overflow: hidden; font-size: var(--fs-body-sm); white-space: nowrap; text-overflow: ellipsis; }
+.registration-lead small, .registration-who, .registration-left { overflow: hidden; color: var(--muted); font-size: var(--fs-caption); white-space: nowrap; text-overflow: ellipsis; }
+.registration-row .registration-status { justify-self: start; }
+.registration-action { display: flex; justify-content: flex-end; }
+.registration-action .btn { min-height: 34px; font-size: var(--fs-caption); }
+@media (hover: hover) {
+  .registration-row:hover { background: var(--surface-subtle); }
+}
+
+.my-bookings { margin-top: var(--space-4); }
+.my-bookings article { padding: var(--space-3) var(--space-5); border-top: 1px solid var(--border-soft); display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.my-bookings article > span { min-width: 0; display: flex; flex-direction: column; gap: var(--space-half); }
+.my-bookings strong { font-size: var(--fs-body-sm); }
+.my-bookings small { color: var(--muted); font-size: var(--fs-caption); }
+.my-bookings p { color: var(--ink-soft); font-size: var(--fs-caption); font-weight: 700; text-align: right; }
+
+@media (max-width: 1100px) {
+  .registration-row { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "lead status" "who left" "action action"; row-gap: var(--space-2); }
+  .registration-lead { grid-area: lead; }
+  .registration-row .registration-status { grid-area: status; justify-self: end; }
+  .registration-who { grid-area: who; }
+  .registration-left { grid-area: left; text-align: right; }
+  .registration-action { grid-area: action; }
+  .registration-action:empty { display: none; }
+}
+@media (max-width: 760px) {
+  .registration-filters { padding: var(--space-3) var(--space-4); }
+  .registration-row { padding: var(--space-4); }
+  .registration-action .btn { width: 100%; min-height: var(--tap); }
+  .my-bookings article { padding: var(--space-3) var(--space-4); flex-direction: column; align-items: flex-start; }
+  .my-bookings p { text-align: left; }
+}

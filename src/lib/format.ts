@@ -96,3 +96,13 @@ export function formatLakh(lakh: number): string {
 export function formatRupees(amount: number): string {
   return `${amount < 0 ? '−' : ''}₹${Math.abs(Math.round(amount)).toLocaleString('en-IN')}`
 }
+
+/** "Tue, 20 Oct" for today (or `date`). */
+export function shortDateLabel(date = new Date()): string {
+  return `${WEEKDAYS[date.getDay()].slice(0, 3)}, ${date.getDate()} ${MONTHS[date.getMonth()].slice(0, 3)}`
+}
+
+/** dayLabel for use mid-sentence: "today" / "tomorrow" / "yesterday" in lower case, dates as they are. */
+export function inlineDayLabel(offsetDays: number, date = new Date()): string {
+  return Math.abs(offsetDays) <= 1 ? dayLabel(offsetDays, date).toLowerCase() : dayLabel(offsetDays, date)
+}

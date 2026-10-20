@@ -20,6 +20,7 @@ export const NAV_ITEMS: NavItem[] = [
   { view: 'visits', icon: 'pin', label: 'Visits', group: 'work', requires: 'handleVisits' },
   { view: 'pipeline', icon: 'pipeline', label: 'Pipeline', group: 'work' },
   { view: 'properties', icon: 'home', label: 'Properties', group: 'work' },
+  { view: 'launches', icon: 'bolt', label: 'New launches', group: 'work' },
   { view: 'tasks', icon: 'calendar', label: 'Follow-ups', group: 'work' },
   { view: 'calls', icon: 'phone', label: 'Calls', group: 'work' },
   { view: 'attendance', icon: 'clock', label: 'Attendance', group: 'work' },

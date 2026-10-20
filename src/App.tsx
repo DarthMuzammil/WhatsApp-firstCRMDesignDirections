@@ -21,6 +21,7 @@ import { ReportsView } from './views/ReportsView'
 import { SettingsView } from './views/SettingsView'
 import { AuditView } from './views/AuditView'
 import { BrokerageView } from './views/BrokerageView'
+import { LaunchesView, type LaunchesTab } from './views/LaunchesView'
 import type { BookingFilter } from './data/channelPartner'
 import { TeamView } from './views/TeamView'
 import { TodayView } from './views/TodayView'
@@ -110,6 +111,7 @@ export default function App() {
         {view === 'team' && <TeamView store={store} notify={notify} />}
         {view === 'settings' && <SettingsView store={store} notify={notify} />}
         {view === 'audit' && <AuditView store={store} notify={notify} />}
+        {view === 'launches' && <LaunchesView key={viewParam ?? 'default'} store={store} initialTab={viewParam as LaunchesTab | undefined} onOpenLead={showLead} notify={notify} />}
         {view === 'brokerage' && <BrokerageView key={viewParam ?? 'all'} store={store} initialFilter={viewParam as BookingFilter | undefined} notify={notify} />}
       </main>
 

@@ -33,3 +33,8 @@
   .offer-new select { grid-column: 1 / -1; grid-row: 3; }
   .offer-list .icon-button { width: var(--tap); height: var(--tap); }
 }
+
+/* M14: win as a new-launch booking */
+.launch-booking { margin: 0; padding: var(--space-3) var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-md); display: flex; flex-direction: column; gap: var(--space-3); }
+.launch-booking-note { padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); display: flex; align-items: center; gap: var(--space-2); color: var(--warning-ink); background: var(--warning-soft); font-size: var(--fs-caption); font-weight: 600; }
+.launch-booking-hint { color: var(--muted); font-size: var(--fs-caption); }

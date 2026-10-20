@@ -23,7 +23,7 @@ First time on a new machine: `pnpm exec playwright-core install chromium`.
 | `leave` | Balances, apply, approve with cover, team calendar (§3.13) |
 | `performance` | My performance, leaderboard, scorecard, insights (§3.14) |
 | `follow-ups` | Follow-ups in time order, Remind me from a chat, Add reminder with a buyer picker, Coming up, phone chat bar (§3.5) |
-| `channel-partner` | M14 brokerage receivables: Today card, strip and charts, booking detail with tax lines, reminders, record payment + undo, invoice numbering, manager and sales views, phone cards (§3.17, §8.17) |
+| `channel-partner` | M14 brokerage receivables (Today card, strip and charts, booking detail with tax lines, reminders, record payment + undo, invoice numbering, manager and sales views) and developer registrations (counts, banner, PAN, conflict, renew, won as a booking), phone cards (§3.17, §3.18, §8.17) |
 | `deal-closing` | Won/Lost, split, reopen, move back, drag and drop (§3.3) |
 | `offer-history` | Dated offers, stale flag, token/agreement dates (§3.2, §3.3) |
 | `inventory` | Listings, add/edit, owner masking, matches, share flow (§3.4) |
