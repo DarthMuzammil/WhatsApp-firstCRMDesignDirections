@@ -62,7 +62,7 @@ Toasts confirm actions at the top of the screen for 2.6 s, with a tick; refusals
 
 ### 3.2 Lead conversation (WhatsApp chat + lead panel)
 **Chat column**
-- Header: **Back** returns to the screen the chat was opened from (Today, Pipeline, Follow-ups or Calls) ✅, avatar, status line, **Details** (phones only, opens the lead panel as a bottom sheet ✅), **Call** opens the call screen ✅. Status line 🎭 comes from lead data: "Online on WhatsApp", "Last seen <time> ago", or "New lead · <phone>" for leads added in the demo.
+- Header: **Back** returns to the screen the chat was opened from (Today, Pipeline, Follow-ups or Calls) ✅, avatar, status line, **Details** (phones only, opens the lead panel as a bottom sheet ✅), **Call** opens the call screen ✅. Status line comes from lead data: "Last message <time> ago" (the buyer's latest message) or "New lead · <phone>" for leads added in the demo. The header shows no online or last-seen status, because WhatsApp's Business API doesn't provide either. Each message the team sends shows a tick, and launch messages show delivered and read ticks (§3.19).
 - **Brief strip:** requirement · budget · move-in timing (per lead).
 - **Action bar** above the thread, on every screen size (three equal buttons on tablet and phone):
   - **Share homes** ✅ opens the Share dialog (§3.4) for this lead.
@@ -94,7 +94,7 @@ Toasts confirm actions at the top of the screen for 2.6 s, with a tick; refusals
 - **Matches · N** ✅: the best listing as a card with its reasons ("Indiranagar", "3 BHK", "In budget"; weaker ones like "6% over budget" or "On hold" in amber), then up to 3 more with their reasons. Listings already sent show **Sent** or **Seen**. With none: "No listing fits this brief yet." Matching (`matchesForLead` in `src/data/inventory.ts`): one of the buyer's localities +3, BHK or villa as asked +2 (any apartment +1 if no size was given), in budget +3 (up to 10% over +1), on hold −1; sold listings never match; a match needs 4 or more; equal scores put the price closest to the middle of the buyer's budget first. Editing the brief changes the matches straight away.
 - (Share homes and Plan visit live in the chat's action bar, above.) **Schedule visit** ✅ opens a dialog: property (matched one preselected), day (Today … 6 days ahead; defaults to the coming Saturday), time slot, and agent (the lead owner; only Managers/Owner can change it). Booking posts a WhatsApp confirmation in the chat ("Visit confirmed: The Courtyard House, Indiranagar, Tomorrow at 3:00 PM…") 🎭, moves the lead to *Visit planned* (never backwards), and logs it. When a visit is booked the button reads "Visit booked · Tomorrow · 3:00 PM" and opens Visits.
 
-*Timeline tab* ✅: everything on the lead, newest first. Demo actions are logged as they happen (with who did it): messages sent, assignments, stage moves, visits booked, calls saved, notes, tag changes, brief edits, merged enquiries. Below them, events implied by the seed data: the buyer's latest message, seeded call recordings, the seeded visit, "Assigned to … by routing", and "First enquiry via <source>" last.
+*Timeline tab* ✅: everything on the lead, newest first. Demo actions are logged as they happen (with who did it): messages sent, assignments, stage moves, visits booked, calls saved, notes, tag changes, brief edits, merged enquiries. Below them, events implied by the seed data: the buyer's latest message, seeded call recordings, the seeded visit, "Assigned to … by routing", and "First enquiry via <source>" last. **Export chat** 🎭 sits above the timeline for people with *Export data* (Owner): a dialog picks text or spreadsheet, and whether to include private team notes. Nothing is downloaded in the demo; it shows "Chat export ready · no file is created" and logs "Exported chat with <name>" to the audit log.
 
 *Notes tab* ✅: private team notes (not sent to the buyer). Add with the text box; each note shows author and time.
 
@@ -117,7 +117,7 @@ Toasts confirm actions at the top of the screen for 2.6 s, with a tick; refusals
 - Filters ✅: locality chips (All + every locality that has a listing) and availability (All / Available / On hold / Sold).
 - Listing card: photo (or a placeholder for listings added in the demo), availability tag, **Save** bookmark ✅, locality, name, BHK (or "4 BHK villa"), sq ft, **Listed by** (listing agent), **Owner** name and number, price, **Edit** (same people as Add) and **Share** (disabled when sold).
 - **Owner's number** is shown in full to Managers, the Owner and that listing's agent; everyone else sees it masked (`+91 99XXX XX244`). When someone who can't see it edits the listing, the number field is locked.
-- **Add / Edit property** ✅: name, locality (Indiranagar, Whitefield, HSR Layout, Koramangala), bedrooms (1–5 BHK), type (Apartment / Villa), asking price (₹ Cr), carpet area (sq ft), availability, listing agent, owner's name and 10-digit mobile. Errors show on Save (name, price, area, owner name, mobile). Changes show up in matches immediately. Added listings get the locality's centre as their address (used for visit check-ins).
+- **Add / Edit property** ✅: name, locality (Indiranagar, Whitefield, HSR Layout, Koramangala), bedrooms (1–5 BHK), type (Apartment / Villa), asking price (₹ Cr), carpet area (sq ft), availability, listing agent, owner's name and 10-digit mobile. Errors show on Save (name, price, area, owner name, mobile). Changes show up in matches immediately. Added listings get the locality's centre as their address (used for visit check-ins). **TODO:** this is wrong for real visits; the address must be a confirmed pin (§8.18).
 - **Share dialog** ✅ (from a listing, or **Share homes** on a lead):
   - From a listing it first asks **which lead**: open leads, searchable, best fit first, each with the reasons this listing fits them (or "Not a close match").
   - Then: the lead's **matches** with reasons and Sent/Seen tags, tickable (the top 3 available are pre-ticked when opened from a lead; the listing itself when opened from a listing), **Show all homes** to pick any unsold listing, and a live **WhatsApp preview** ("Hi Ananya, here are 2 homes that match your brief: … Tell me which ones you'd like to visit.") with the listing cards.
@@ -136,7 +136,7 @@ Toasts confirm actions at the top of the screen for 2.6 s, with a tick; refusals
 
 ### 3.6 Calls & recordings
 - Stats: calls this week 18 🧱, answer rate 72% 🧱, recorded count ✅.
-- Recording list: play/pause toggle (visual only 🎭, moving playhead), waveform, duration, note. Calls saved in the demo get an **AI summary** 🎭 as their note (what was discussed and the next step), labelled "AI summary" and logged on the lead's timeline. Search by buyer ✅. Tapping a person opens the chat.
+- Recording list: play/pause toggle (visual only 🎭, moving playhead), waveform, duration, note. Calls saved in the demo get the note "Saved from the call screen" and are logged on the lead's timeline ("Call recorded (m:ss)"). There is no AI call summary: it depends on call recordings, which need a telephony provider (see §8.15). Search by buyer ✅. Tapping a person opens the chat.
 - **New call** opens the lead picker ✅ (search by name, area or budget; a bottom sheet on phones) and then the call screen.
 - **Call screen** 🎭: "Calling…" (button reads **Cancel**; Escape also cancels while dialling, but never during or after a call) → connected after 1.2 s, live timer ✅, REC badge, Mute / Speaker / Record toggles. **End call** shows the duration and recording status, then **Save recording** adds it to the top of the list ("Just now") and shows a toast ✅ (saved locally). If recording was turned off, **Done** closes without saving. Full screen on phones.
 - Copy: "Secure internet call", "Your personal number stays private", and a consent reminder about recording.
@@ -353,11 +353,11 @@ See `AGENTS.md` for conventions. Each component has a matching `.css` file next 
 - `src/data/brand.ts`: the product name (Bayana) and the brokerage's name (Better Days Realty), used in the nav, account menu and every buyer-facing message.
 - `src/data/templates.ts`: WhatsApp templates, the 24-hour window, default auto-reply, qualification questions.
 - `src/state/useDemoStore.ts`: all saved state, the viewer, visibility filtering, routing, activity log and timeline, duplicate lookup, derived numbers and actions.
-- `src/lib/`: `ai.ts` (demo AI: reply drafts, lead score, call summary, weekly digest, M14 `parseGroupMessage` and the group-message samples), `location.ts` (one-off location readings: demo readings, the browser's real location, distance), `permissions.ts` (role → permissions, who sees which lead), `storage.ts` (localStorage), `format.ts` (dates, money, durations, phone masking), `csv.ts` (CSV text and browser download), `useEscapeKey.ts`.
+- `src/lib/`: `ai.ts` (demo AI: reply drafts, lead score, weekly digest, M14 `parseGroupMessage` and the group-message samples), `location.ts` (one-off location readings: demo readings, the browser's real location, distance), `permissions.ts` (role → permissions, who sees which lead), `storage.ts` (localStorage), `format.ts` (dates, money, durations, phone masking), `csv.ts` (CSV text and browser download), `useEscapeKey.ts`.
 - `src/components/`: `LeadRegistrations` (M14 registrations card in the lead panel), `ForwardShareSheet` (M14 phone share sheet demo), `DemoGuide` (guided demo panel), `AppNavigation` (sidebar with Work/Manage groups, phone top bar, tab bar with More sheet), `navigation.ts` (items with required permission), `Dialog` (the one modal / sheet / full-screen shell), `AccountMenu`, `Avatar`, `HeatBadge`, `LeadActions`, `LeadRow`, `LeadTimeline`, `LeadNotes`, `LeadTags`, `IncomingLeadBanner`, `LocationControl` (slim demo location strip), `TeamPulse` (daily summary tiles and AI weekly digest for the team home), `BarList` (single-series bar chart), `PropertyCard` (also `PropertyPhoto`), `NotificationBell` (bell + notifications panel), `Toast`, `Icon`.
 - `src/state/channelPartner.ts`: M14 state and actions (`store.cp`: visible bookings, margin, invoice, payment, undo, dispute, reminder), used inside `useDemoStore`.
 - `src/views/`: `BrokerageView` (M14 receivables), `LaunchesView` (M14 New launches: launches, registrations, my bookings), `TodayView`, `ChatView` (chat + lead panel), `PipelineView`, `PropertiesView`, `FollowUpsView`, `CallsView`, `VisitsView` (with the visit outcome form), `AttendanceView` (My day, Leave, Register with team calendar, Requests), `ReportsView` (my performance, leaderboard, scorecard, owner insights), `EscalationsView`, `LeadSourcesView`, `TeamView` (with invite dialog), `SettingsView`, `AuditView` (Owner's audit log with CSV exports).
-- `src/modals/`: `BookingDialogs` (M14 booking detail, recording dialogs, reminder), `LaunchWizard` (M14 new launch: details, audience, preview, send), `RegistrationDialogs` (M14 register, renew, dispute/resolve), `AddLeadModal` (with duplicate check), `EditLeadDialog` (structured buyer brief), `ScheduleVisitDialog`, `ReminderDialog` (Remind me / Add reminder), `TemplateDialog`, `AssignDialog` (people picker for assign / reassign / hand-off / deactivate), `DealDialog` (offer tracker + commission split; also `LostDialog`), `PropertyDialog` (add/edit listing), `ShareDialog` (pick lead → pick homes → WhatsApp preview → send), `CallPicker`, `CallModal`.
+- `src/modals/`: `ExportChatDialog` (chat export, UI only), `BookingDialogs` (M14 booking detail, recording dialogs, reminder), `LaunchWizard` (M14 new launch: details, audience, preview, send), `RegistrationDialogs` (M14 register, renew, dispute/resolve), `AddLeadModal` (with duplicate check), `EditLeadDialog` (structured buyer brief), `ScheduleVisitDialog`, `ReminderDialog` (Remind me / Add reminder), `TemplateDialog`, `AssignDialog` (people picker for assign / reassign / hand-off / deactivate), `DealDialog` (offer tracker + commission split; also `LostDialog`), `PropertyDialog` (add/edit listing), `ShareDialog` (pick lead → pick homes → WhatsApp preview → send), `CallPicker`, `CallModal`.
 - `tests/e2e/`: 19 end-to-end suites (537 checks) covering every section of this spec, run with `pnpm test:e2e` (see its README for the suite → section map).
 - `.github/workflows/deploy-pages.yml`: builds and publishes the demo to GitHub Pages on every push to `main`. Page title, description and no-index live in `.figma/make/site.json`.
 - `src/index.css`: the only place raw colours are defined. Design tokens (colour, 4px spacing scale, radius, shadow, `--fs-*` type sizes, `--tap`) and shared classes (`.btn`, `.card`, `.chip`, `.count-badge`, `.status-dot`, `.icon-badge`, `.is-done` and more).
@@ -378,6 +378,9 @@ See `AGENTS.md` for conventions. Each component has a matching `.css` file next 
 - Newly invited people can't log in (there is no login); they only appear in Team and pickers.
 - Activity logged in the demo always says "Just now"; seeded timeline entries use fixed labels ("Earlier", "On arrival").
 - Tags don't filter the inbox yet.
+- **TODO: inbox green "online" dot** (§3.1 avatars, `Avatar` `online` prop, seeded `online` flags). WhatsApp's API doesn't report online status, so the dot has to go before a pilot. The chat header no longer shows it.
+- **Chat export is UI only.** No file is created; the export is logged and nothing else happens.
+- **TODO: property location pins** (§8.18). Listings added in the demo use the locality's centre, so visit check-ins are measured from the wrong place.
 - Listings added in the demo have no photo upload. "Seen" is simulated, and it stays "Sent" if the page is reloaded within those 4 seconds.
 - Photos need an internet connection.
 
@@ -491,7 +494,6 @@ Everything here is **UI only**: each item is a screen or flow driven by seed dat
 ### 8.13 M13 · AI assist (targeted, every output reviewed by a human) — ✅ built as demo text (§3.2, §3.6, §3.14)
 - **Qualification extraction:** fills the buyer brief from the WhatsApp conversation. Fields are marked "Suggested" until confirmed.
 - **Reply drafts** in English, Hindi or Kannada (including mixed); the agent edits and sends, and **nothing is sent automatically**.
-- **Call summary:** after a recorded call, shows a summary, next step and suggested brief updates.
 - **Lead score with reasons:** "Hot: budget confirmed, visit requested, replied in 2 min".
 - **Manager weekly digest:** a plain-language summary of the reports ("Whitefield team response time slipped 40%; 6 leads stuck in Qualified").
 - **Not planned:** a "chat with your CRM" assistant, AI auto-sending, AI-written listing descriptions.
@@ -513,7 +515,7 @@ Everything here is **UI only**: each item is a screen or flow driven by seed dat
   - Promotional cold calls must use the 140 series; recording needs disclosure under the DPDP Act. Confirm with the provider and a lawyer.
   - **Decision for later:** Bayana holds one telephony account for all customers (Bayana does their KYC) or each brokerage connects its own account (simpler to start).
 - **WhatsApp:** WhatsApp Business API through a provider; Meta business verification; templates must be approved before use.
-- **AI:** transcription and LLM costs are per call or message; buyer data falls under the DPDP Act.
+- **AI:** LLM costs are per message; buyer data falls under the DPDP Act.
 
 ### 8.16 Build order (UI)
 1. M1 + M2: roles, team, "View as", owner and reassignment.
@@ -770,8 +772,23 @@ Developers pay CP brokerage late, and only after the buyer has paid a set share 
 
 ---
 
+### 8.18 Property location pins · TODO (not built)
+**Why:** visit check-ins compare the agent's phone with the property's stored location. Listings added in the demo use the locality's centre (§3.4), so a genuine visit can be refused ("1.4 km away") and a visit from the wrong place can be "verified". Both are wrong, so the location must be confirmed before a check-in can count.
+- **Required pin:** Add property needs an address and a pin. The pin is set by dropping it on a map, or by the person standing at the building tapping **Use my location** (the reading and time are saved).
+- **Who sets it:** the listing agent or a manager. Record who set the pin and when, and show it on the listing.
+- **Unpinned listings:** until a listing has a pin, its visits show **Location not set** and can't be checked in as verified.
+- **Corrections:** managers can move a pin. Every change goes in the audit log.
+- **Known limits to design around:**
+  - A pin can be placed on the wrong block, especially in dense areas (Indiranagar, HSR Layout).
+  - Whoever sets the pin could place it near where they'll be. The setter should not gain from the visit, or the reading should be taken on site and recorded.
+  - 200 m is too loose for large townships or villa plots; large projects may need a bigger radius or a pin per tower.
+  - Phone GPS is often 50–150 m off inside buildings. The demo refuses readings worse than 100 m, which would refuse honest indoor check-ins; this rule must be softened before a real pilot.
+  - Fake-GPS apps can't be blocked, so the product says "verified location", never "proof".
+- **Real fix later:** a map and geocoding service (e.g. Google Maps or Mapbox) and a location-accuracy policy. Not part of the UI prototype.
+
 ## 9. Changelog
 Newest first. One line per change: date, what changed, which section was updated.
+- **2026-10-20:** Removed the "Online on WhatsApp" / "Last seen" status from the chat header, which WhatsApp's API doesn't provide; it now shows "Last message <time> ago". Removed the AI call summary (demo text) from saved calls, the Calls screen and the landing page; calls save a plain note. Added **Export chat** UI (owner only, §3.2; nothing is downloaded, the export is audited). Recorded the property location pins as a TODO (§8.18) and the inbox online dot as a TODO (§7).
 - **2026-10-20:** Removed the portal "shared lead" feature: the "shared with ~N brokers" figure on portal sources and leads, the "Also with N brokers" row flag, the lead-panel "Also sent to ~N brokers" warning, the arrival-banner line, and its AI score reason. Portal leads now carry no shared count (we have no source for it). Reworded the problem statement (§1), the guided demo's step 2 and the demo script. Saved-data prefix bumped to `daira:v12:`. Updated §1, §2, §3.1, §3.2, §3.11, §4, §5, §6, §8.5.
 - **2026-10-20:** M14 phase E: guided demo **Bonus: money developers owe you** on the finish card (Owner → Brokerage on Overdue → Rajiv Menezes → gentle reminder with the scripted reply); Brokerage can open on a booking; `DEMO_SCRIPT.md` gains the bonus, sending a launch, registrations and pasting a group message. M14 is complete. Updated §3.16, §8.17.
 - **2026-10-20:** M14 phase D: **WhatsApp group lead capture**. Add lead gets **Paste a message**: a rules-based reader suggests name, number, BHK, areas, budget and must-haves (AI · Suggested until edited or confirmed), tells a broker's number from a buyer's (Co-broking tag), flags listings, runs the duplicate check, and saves with source **Broker groups**, a masked team note and a timeline entry. Account menu → Simulate a forwarded group message opens a phone share sheet that hands the message to Bayana. New lead source Broker groups (Manual capture). Saved-data prefix `daira:v12:`. Updated §2, §3.7, §3.11, §4, §5, §6, §8.17.

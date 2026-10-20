@@ -76,7 +76,7 @@ export type TaskChannel = 'WhatsApp' | 'Call' | 'Send details'
 /** A follow-up. `day` is days from today (missing or 0 = today); reminders set in the demo can be later in the week. */
 export type Task = { id: number; leadId: number; time: string; title: string; note: string; channel: TaskChannel; day?: number }
 
-export type Recording = { id: number; leadId: number; when: string; duration: number; note: string; aiSummary?: boolean }
+export type Recording = { id: number; leadId: number; when: string; duration: number; note: string }
 
 /** The twelve scripted leads the demo story uses (spec §4 table). */
 const STORY_LEADS: LeadSeed[] = [

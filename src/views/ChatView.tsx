@@ -19,6 +19,7 @@ import { AssignDialog } from '../modals/AssignDialog'
 import { EditLeadDialog } from '../modals/EditLeadDialog'
 import { DealDialog, LostDialog } from '../modals/DealDialog'
 import { ShareDialog } from '../modals/ShareDialog'
+import { ExportChatDialog } from '../modals/ExportChatDialog'
 import { ReminderDialog } from '../modals/ReminderDialog'
 import { RegisterDialog, RegistrationDisputeDialog, RenewDialog } from '../modals/RegistrationDialogs'
 import { LeadRegistrations, type RegistrationAction } from '../components/LeadRegistrations'
@@ -211,10 +212,10 @@ function ChatPanel({ lead, store, actions, onBack, onCall, onShowDetails }: Chat
     <section className="chat-panel">
       <header className="chat-head">
         <button className="icon-button" onClick={onBack} aria-label="Back"><Icon name="back" /></button>
-        <LeadAvatar lead={lead} size="sm" showStatus />
+        <LeadAvatar lead={lead} size="sm" />
         <div className="chat-person">
           <strong>{lead.name}</strong>
-          <span>{lead.addedInDemo ? `New lead · ${store.displayPhone(lead.phone)}` : lead.online ? 'Online on WhatsApp' : `Last seen ${relativeMinutes(lead.minutesAgo)} ago`}</span>
+          <span>{lead.addedInDemo ? `New lead · ${store.displayPhone(lead.phone)}` : `Last message ${relativeMinutes(lead.minutesAgo)} ago`}</span>
         </div>
         <button className="icon-button chat-details-button" aria-label={`${lead.name} details`} onClick={onShowDetails}><Icon name="info" /></button>
         <button className="icon-button" aria-label={`Call ${lead.name}`} onClick={onCall}><Icon name="phone" /></button>
@@ -324,6 +325,7 @@ type DetailsTab = 'overview' | 'timeline' | 'notes'
  */
 function LeadDetails({ lead, store, actions, onAssign, onEdit, onDeal, onRegistration }: LeadDetailsProps) {
   const [tab, setTab] = useState<DetailsTab>('overview')
+  const [exporting, setExporting] = useState(false)
   const notes = store.notesFor(lead.id)
   const timeline = store.timelineFor(lead.id)
   const tabs: { id: DetailsTab; label: string }[] = [
@@ -336,7 +338,11 @@ function LeadDetails({ lead, store, actions, onAssign, onEdit, onDeal, onRegistr
       {tabs.map((item) => <button key={item.id} role="tab" aria-selected={tab === item.id} className={tab === item.id ? 'active' : ''} onClick={() => setTab(item.id)}>{item.label}</button>)}
     </div>
     {tab === 'overview' && <LeadOverview lead={lead} store={store} actions={actions} onAssign={onAssign} onEdit={onEdit} onDeal={onDeal} onRegistration={onRegistration} />}
-    {tab === 'timeline' && <LeadTimeline events={timeline} findMember={store.findMember} />}
+    {tab === 'timeline' && <>
+      {store.viewerCan('exportData') && <button className="btn btn-secondary export-chat-button" onClick={() => setExporting(true)}><Icon name="download" size={16} /> Export chat</button>}
+      <LeadTimeline events={timeline} findMember={store.findMember} />
+      {exporting && <ExportChatDialog lead={lead} store={store} onClose={() => setExporting(false)} />}
+    </>}
     {tab === 'notes' && <LeadNotes notes={notes} onAdd={(text) => store.addNote(lead.id, text)} findMember={store.findMember} />}
   </>
 }

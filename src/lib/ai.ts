@@ -28,12 +28,6 @@ export function leadScore(lead: Lead): { score: number; label: string; reasons: 
   return { score, label: score >= 75 ? 'Hot' : score >= 50 ? 'Warm' : 'Cool', reasons: reasons.slice(0, 4) }
 }
 
-/** Summary of a recorded call: what was discussed and the next step. */
-export function callSummary(lead: Lead, durationSec: number): string {
-  const minutes = Math.max(1, Math.round(durationSec / 60))
-  return `${minutes}-min call. ${firstName(lead.name)} is keen on ${lead.need} around ${lead.budget}; ${lead.mustHave !== 'To confirm' ? `must-haves: ${lead.mustHave.toLowerCase()}. ` : ''}Next step: ${lead.visitScheduled ? 'confirm the visit timing on WhatsApp' : 'share 3 matches and propose a weekend visit'}.`
-}
-
 /** Plain-language weekly digest for a manager from the numbers they can see. */
 export function weeklyDigest(input: {
   team: string; overdue: number; unassigned: number; stuck: number; topName?: string; topCommissionL?: number; notCheckedIn: number; pipelineCr: number

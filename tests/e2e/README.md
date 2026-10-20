@@ -16,7 +16,7 @@ First time on a new machine: `pnpm exec playwright-core install chromium`.
 | `shortcuts` | Sidebar Add lead, Due today → chat, toast position (§2, §3.1) |
 | `roles-and-team` | Roles, View as, visibility, masking, reassign, escalations, team, settings (§3.8–§3.10) |
 | `lead-sources` | Sources screen, simulated arrivals, routing (§3.11) |
-| `chat-automation-and-ai` | Auto-reply, qualification, templates, 24 h window, AI drafts/score/summary/digest (§3.2, §3.6) |
+| `chat-automation-and-ai` | Auto-reply, qualification, templates, 24 h window, AI drafts/score/digest, chat header, chat export (§3.2, §3.6) |
 | `lead-record` | Overview/Timeline/Notes, brief editing, tags, duplicate check (§3.2, §3.7) |
 | `visits` | Visit flow, refused/verified check-ins, outcomes (§3.12) |
 | `attendance` | Office/field check-in, register, corrections (§3.13) |

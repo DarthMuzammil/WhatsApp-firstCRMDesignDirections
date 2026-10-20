@@ -13,7 +13,7 @@ import { MAX_ACCURACY_M, OFFICES, SEED_VISITS, formatDistance, slotMinutes, type
 import { DOC_LABELS, OFFER_BY_LABELS, SEED_DEALS, type Closure, type Deal } from '../data/deals'
 import { SEED_PROPERTIES, matchesForLead, priceLabel, type Property } from '../data/inventory'
 import { DEFAULT_AUTO_REPLY, SERVICE_WINDOW_MINUTES } from '../data/templates'
-import { callSummary, maskNumbersInText } from '../lib/ai'
+import { maskNumbersInText } from '../lib/ai'
 import { clockLabel, dayLabel, formatDuration, maskPhone, minutesOfDay } from '../lib/format'
 import { distanceM, type PretendLocation, type Reading } from '../lib/location'
 import { can, canSeeLead, type Permission } from '../lib/permissions'
@@ -781,12 +781,11 @@ export function useDemoStore() {
       setTasks((current) => [...current, { id, leadId, title: task.title, day: task.day, time: task.time, channel: task.channel, note: task.note || lead.need }])
       log(leadId, 'task', `Follow-up set: ${task.title} · ${dayLabel(task.day)} at ${task.time}`)
     },
-    /** Saves a recorded call with an AI summary (demo text) as its note. */
+    /** Saves a recorded call. There is no call summary: the note just says where it came from. */
     addRecording: (leadId: number, duration: number) => {
-      const lead = allLeads.find((item) => item.id === leadId)
-      const note = lead ? callSummary(lead, duration) : 'New recorded call'
-      setRecordings((current) => [{ id: Date.now(), leadId, when: 'Just now', duration, note, aiSummary: true }, ...current])
-      log(leadId, 'call', `Call recorded (${formatDuration(duration)}) · AI summary: ${note}`)
+      const note = 'Saved from the call screen'
+      setRecordings((current) => [{ id: Date.now(), leadId, when: 'Just now', duration, note }, ...current])
+      log(leadId, 'call', `Call recorded (${formatDuration(duration)})`)
     },
     /** Adds a listing (id 0) or replaces an existing one. Returns the saved listing. */
     saveProperty: (property: Property): Property => {

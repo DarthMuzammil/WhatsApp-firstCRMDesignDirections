@@ -1,0 +1,6 @@
+.export-chat-check { display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-3); font-weight: 600; }
+.export-chat-check input { width: 18px; height: 18px; flex: none; }
+.export-chat-done { display: grid; gap: var(--space-4); }
+.export-chat-done p { display: flex; align-items: flex-start; gap: var(--space-2); margin: 0; color: var(--ink-soft); }
+.export-chat-done svg { flex: none; color: var(--success); }
+.export-chat-button { margin: 0 0 var(--space-3); }
