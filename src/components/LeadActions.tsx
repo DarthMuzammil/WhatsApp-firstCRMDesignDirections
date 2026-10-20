@@ -3,25 +3,24 @@ import { Icon, type IconName } from './Icon'
 import './LeadActions.css'
 
 /** What a broker can do for the open lead. Implemented in views/ChatView.tsx. */
-export type LeadActionHandlers = { shareShortlist: () => void; scheduleVisit: () => void; showMatches: () => void }
+export type LeadActionHandlers = { shareHomes: () => void; scheduleVisit: () => void }
 
 type ActionItem = { key: string; icon: IconName; label: string; shortLabel: string; detail: string; done?: boolean; onClick: () => void }
 
 /**
  * The lead's main actions, shared by the phone chat bar and the lead detail panel.
- * - `bar`: three compact buttons (phone chat header)
- * - `cards`: two descriptive cards (detail panel; "Matches" has its own full-width button there)
+ * - `bar`: two compact buttons (phone chat header)
+ * - `cards`: two descriptive cards (detail panel)
  */
 export function LeadActions({ lead, actions, layout, visitLabel }: { lead: Lead; actions: LeadActionHandlers; layout: 'bar' | 'cards'; visitLabel?: string }) {
   const items: ActionItem[] = [
-    { key: 'shortlist', icon: 'whatsapp', label: 'Share shortlist', shortLabel: 'Shortlist', detail: 'Send 3 matching homes', onClick: actions.shareShortlist },
+    { key: 'share', icon: 'whatsapp', label: 'Share homes', shortLabel: 'Share homes', detail: 'Pick matches, preview, send', onClick: actions.shareHomes },
     {
       key: 'visit', icon: lead.visitScheduled ? 'check' : 'calendar', done: lead.visitScheduled,
       label: lead.visitScheduled ? 'Visit booked' : 'Schedule visit', shortLabel: lead.visitScheduled ? 'Visit booked' : 'Plan visit',
       detail: lead.visitScheduled && visitLabel ? visitLabel : 'Pick a day and time', onClick: actions.scheduleVisit,
     },
   ]
-  if (layout === 'bar') items.push({ key: 'matches', icon: 'home', label: 'See matches', shortLabel: 'Matches', detail: '', onClick: actions.showMatches })
 
   return (
     <div className={`lead-actions lead-actions-${layout}`}>

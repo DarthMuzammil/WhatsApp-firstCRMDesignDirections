@@ -89,4 +89,4 @@ export const DAYS_IN_STAGE: Record<number, number> = { 1: 3, 2: 9, 3: 12, 4: 2, 
 export const STUCK_AFTER_DAYS = 7
 
 /** How many times each property was shared on WhatsApp this month (🧱). */
-export const PROPERTY_SHARES: Record<number, number> = { 1: 46, 2: 31, 3: 38 }
+export const PROPERTY_SHARES: Record<number, number> = { 1: 46, 2: 31, 3: 38, 4: 22, 5: 27, 6: 19, 7: 12, 8: 34 }

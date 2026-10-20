@@ -35,6 +35,22 @@
 .attachment-menu.draft-menu button small { color: var(--primary); font-size: var(--fs-meta); font-weight: 800; }
 .draft-button { color: var(--primary); }
 
+/* Shared listings in the chat and matches in the lead panel (spec §8.11) */
+.message-cards { margin-top: var(--space-2); display: flex; flex-direction: column; gap: var(--space-2); }
+.message-shared { width: min(78%, 360px); }
+.message-shared .property-card { border-color: var(--bubble-mine-line); }
+.message-seen { margin-left: var(--space-1); font-weight: 700; }
+.match-reasons { margin-top: var(--space-2); display: flex; flex-wrap: wrap; gap: var(--space-1); }
+.match-reasons i { padding: 0 var(--space-2); border-radius: var(--radius-pill); color: var(--success-ink); background: var(--success-soft); font-size: var(--fs-meta); font-style: normal; font-weight: 700; line-height: 20px; }
+.match-reasons i.weak { color: var(--warning-ink); background: var(--warning-soft); }
+.match-reasons i.sent { color: var(--ink-soft); background: var(--surface-sunken); }
+.match-list { margin: var(--space-3) 0 0; padding: 0; display: flex; flex-direction: column; list-style: none; }
+.match-list li { padding: var(--space-2) 0; border-top: 1px solid var(--border-soft); }
+.match-list li > span:first-child { display: flex; justify-content: space-between; gap: var(--space-2); font-size: var(--fs-caption); }
+.match-list small { color: var(--muted); font-size: var(--fs-caption); white-space: nowrap; }
+.match-list .match-reasons { margin-top: var(--space-1); }
+.match-empty { padding: var(--space-3) 0; color: var(--muted); font-size: var(--fs-caption); }
+
 /* Deal panel (lead panel) */
 .deal-panel { margin: var(--space-4) 0 var(--space-2); padding: var(--space-1) var(--space-4) var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); }
 .deal-panel header { padding: var(--space-3) 0; display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }

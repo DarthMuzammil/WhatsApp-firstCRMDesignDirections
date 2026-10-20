@@ -11,6 +11,8 @@ export type Permission =
   | 'viewReports'
   | 'exportData'
   | 'handToSales'
+  | 'manageInventory'
+  | 'seeOwnerContact'
 
 export const PERMISSION_LABELS: Record<Permission, string> = {
   seeAllLeads: 'See every lead in the company',
@@ -22,12 +24,14 @@ export const PERMISSION_LABELS: Record<Permission, string> = {
   viewReports: 'View team reports',
   exportData: 'Export data',
   handToSales: 'Hand qualified leads to Sales',
+  manageInventory: 'Add and edit properties',
+  seeOwnerContact: 'See property owners’ numbers',
 }
 
 export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
-  owner: ['seeAllLeads', 'seeTeamLeads', 'reassignLeads', 'seeFullNumbers', 'manageTeam', 'manageSettings', 'viewReports', 'exportData'],
-  manager: ['seeTeamLeads', 'reassignLeads', 'seeFullNumbers', 'manageTeam', 'viewReports'],
-  sales: [],
+  owner: ['seeAllLeads', 'seeTeamLeads', 'reassignLeads', 'seeFullNumbers', 'manageTeam', 'manageSettings', 'viewReports', 'exportData', 'manageInventory', 'seeOwnerContact'],
+  manager: ['seeTeamLeads', 'reassignLeads', 'seeFullNumbers', 'manageTeam', 'viewReports', 'manageInventory', 'seeOwnerContact'],
+  sales: ['manageInventory'],
   presales: ['handToSales'],
 }
 

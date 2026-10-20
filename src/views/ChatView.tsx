@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { STAGES, STAGE_SHORT_LABELS, firstName, matchPropertyForLead, relativeMinutes, type Lead } from '../data/demo'
+import { STAGES, STAGE_SHORT_LABELS, firstName, relativeMinutes, type Lead } from '../data/demo'
 import { DOC_LABELS, type DealDocs } from '../data/deals'
 import { roleSummary, shortName } from '../data/team'
 import { Avatar, LeadAvatar } from '../components/Avatar'
@@ -11,13 +11,15 @@ import { LeadNotes } from '../components/LeadNotes'
 import { LeadTags } from '../components/LeadTags'
 import { LeadTimeline } from '../components/LeadTimeline'
 import { PropertyCard } from '../components/PropertyCard'
+import { areaLabel, bedroomsLabel, priceLabel } from '../data/inventory'
 import type { View } from '../components/navigation'
 import { AssignDialog } from '../modals/AssignDialog'
 import { EditLeadDialog } from '../modals/EditLeadDialog'
 import { DealDialog, LostDialog } from '../modals/DealDialog'
+import { ShareDialog } from '../modals/ShareDialog'
 import { ScheduleVisitDialog } from '../modals/ScheduleVisitDialog'
 import { TemplateDialog } from '../modals/TemplateDialog'
-import { QUALIFICATION_QUESTIONS, SERVICE_WINDOW_MINUTES } from '../data/templates'
+import { QUALIFICATION_QUESTIONS } from '../data/templates'
 import { draftReplies, leadScore } from '../lib/ai'
 import { SYSTEM_ID, type DemoStore } from '../state/useDemoStore'
 import './ChatView.css'
@@ -42,14 +44,11 @@ export function ChatView({ lead, store, onBack, onCall, onNavigate, notify }: Ch
   const [editing, setEditing] = useState(false)
   const [scheduling, setScheduling] = useState(false)
   const [dealMode, setDealMode] = useState<'edit' | 'win' | 'lost' | null>(null)
+  const [sharing, setSharing] = useState(false)
   const actions: LeadActionHandlers = {
-    shareShortlist: () => {
-      store.sendMessage(lead.id, `Sharing 3 homes that match your brief for a ${lead.need}. Let me know which ones you’d like to see.`)
-      notify('Property shortlist shared on WhatsApp')
-    },
+    shareHomes: () => { setDetailsOpen(false); setSharing(true) },
     // Booked already: go to the visit; otherwise pick a day and time.
     scheduleVisit: () => (lead.visitScheduled ? onNavigate('visits') : setScheduling(true)),
-    showMatches: () => onNavigate('properties'),
   }
   return (
     <div className="chat-layout">
@@ -64,6 +63,7 @@ export function ChatView({ lead, store, onBack, onCall, onNavigate, notify }: Ch
           <div className="lead-detail-sheet-body dialog-scroll"><LeadDetails lead={lead} store={store} actions={actions} onAssign={(mode) => { setDetailsOpen(false); setAssignMode(mode) }} onEdit={() => { setDetailsOpen(false); setEditing(true) }} onDeal={(mode) => { setDetailsOpen(false); setDealMode(mode) }} /></div>
         </Dialog>
       )}
+      {sharing && <ShareDialog store={store} lead={lead} onClose={() => setSharing(false)} onSent={(message) => { setSharing(false); notify(message) }} />}
       {(dealMode === 'edit' || dealMode === 'win') && (
         <DealDialog lead={lead} store={store} mode={dealMode} onClose={() => setDealMode(null)} onSaved={(message) => { setDealMode(null); notify(message) }} />
       )}
@@ -132,9 +132,11 @@ function ChatPanel({ lead, store, actions, onBack, onCall, onShowDetails }: Chat
   const [templatesOpen, setTemplatesOpen] = useState(false)
   const messagesRef = useRef<HTMLDivElement>(null)
   const chat = store.chatFor(lead.id)
-  const property = matchPropertyForLead(lead)
+  const shares = store.sharesFor(lead.id)
+  const introProperty = store.introProperty(lead)
+  const bestMatch = store.bestMatch(lead)
   // WhatsApp allows free text only within 24 h of the buyer's last message (spec §8.4).
-  const windowClosed = lead.minutesAgo > SERVICE_WINDOW_MINUTES && !chat.some((entry) => entry.from === 'buyer')
+  const windowClosed = store.serviceWindowClosed(lead)
 
   // Auto-qualification for leads that arrived in the demo: question, answer, question… one every ~1.4 s.
   // The step is stored, so leaving and coming back continues where it stopped.
@@ -215,15 +217,16 @@ function ChatPanel({ lead, store, actions, onBack, onCall, onShowDetails }: Chat
           <div className="message theirs">{lead.enquiry}<time>10:16</time></div>
           <div className="message mine message-auto"><span className="message-tag">Automatic</span>Hi {firstName(lead.name)}, thanks for reaching out to Daira! A property expert will reply in a few minutes.<time>10:16 <Icon name="check" size={12} /></time></div>
           <div className="message mine">Hi {firstName(lead.name)}! Yes, I have a strong match within your {lead.budget} budget. Sharing it here.<time>10:18 <Icon name="check" size={12} /></time></div>
-          <div className="message mine message-property"><PropertyCard property={property} /><time>10:18 <Icon name="check" size={12} /></time></div>
+          <div className="message mine message-property"><PropertyCard property={introProperty} /><time>10:18 <Icon name="check" size={12} /></time></div>
           <div className="message theirs">{lead.message}<time>10:24</time></div>
         </>}
         {chat.map((entry, index) => (
-          <div key={index} className={`message new-message ${entry.from === 'buyer' ? 'theirs' : 'mine'} ${entry.from === 'auto' ? 'message-auto' : ''}`}>
+          <div key={index} className={`message new-message ${entry.from === 'buyer' ? 'theirs' : 'mine'} ${entry.from === 'auto' ? 'message-auto' : ''} ${entry.propertyIds ? 'message-shared' : ''}`}>
             {entry.from === 'auto' && <span className="message-tag">Automatic</span>}
             {entry.template && <span className="message-tag">Template · {entry.template}</span>}
             {entry.text}
-            <time>{entry.at}{entry.from !== 'buyer' && <> <Icon name="check" size={12} /></>}</time>
+            {entry.propertyIds && <span className="message-cards">{entry.propertyIds.map(store.findProperty).filter((item) => !!item).map((item) => <PropertyCard key={item.id} property={item} />)}</span>}
+            <time>{entry.at}{entry.from !== 'buyer' && <> <Icon name="check" size={12} /></>}{entry.propertyIds?.every((id) => shares.find((share) => share.propertyId === id)?.seen) && <span className="message-seen">Seen</span>}</time>
           </div>
         ))}
         {qualifying && !qualifyDone && <p className="chat-typing" aria-live="polite">Auto-qualifying… {Math.floor(step / 2) + 1} of {QUALIFICATION_QUESTIONS.length}</p>}
@@ -247,7 +250,7 @@ function ChatPanel({ lead, store, actions, onBack, onCall, onShowDetails }: Chat
         <form className="composer" onSubmit={submit}>
           {menu === 'attach' && (
             <div className="attachment-menu">
-              <button type="button" onClick={() => fillDraft(`Sharing ${property.name} with you: ${property.bedrooms}, ${property.area}, ${property.price}.`)}><Icon name="home" size={16} /> Property</button>
+              <button type="button" onClick={() => fillDraft(`Sharing ${bestMatch.name} with you: ${bedroomsLabel(bestMatch)}, ${areaLabel(bestMatch)}, ${priceLabel(bestMatch)}.`)}><Icon name="home" size={16} /> Property</button>
               <button type="button" onClick={() => fillDraft('Sharing the location pin for our visit.')}><Icon name="pin" size={16} /> Location</button>
             </div>
           )}
@@ -311,7 +314,6 @@ function LeadDetails({ lead, store, actions, onAssign, onEdit, onDeal }: LeadDet
 }
 
 function LeadOverview({ lead, store, actions, onAssign, onEdit, onDeal }: LeadDetailsProps) {
-  const property = matchPropertyForLead(lead)
   const owner = store.findMember(lead.ownerId)
   const canReassign = store.viewerCan('reassignLeads')
   const canHandOff = store.settings.separatePresales && store.viewerCan('handToSales') && lead.ownerId === store.viewer.id
@@ -373,11 +375,9 @@ function LeadOverview({ lead, store, actions, onAssign, onEdit, onDeal }: LeadDe
     <span className="eyebrow lead-detail-label">Tags</span>
     <div className="lead-detail-tags"><LeadTags tags={store.tagsFor(lead.id)} onToggle={(tag) => store.toggleTag(lead.id, tag)} /></div>
 
-    <span className="eyebrow lead-detail-label">Top property match</span>
-    <PropertyCard property={property} layout="stacked" />
+    <LeadMatches lead={lead} store={store} />
 
     <div className="lead-detail-actions"><LeadActions lead={lead} actions={actions} layout="cards" visitLabel={store.upcomingVisits.find((visit) => visit.leadId === lead.id)?.when} /></div>
-    <button className="btn btn-primary btn-block" onClick={actions.showMatches}>See all property matches <Icon name="arrow" size={16} /></button>
   </>
 }
 
@@ -452,4 +452,32 @@ function DealPanel({ lead, store, onDeal }: { lead: Lead; store: DemoStore; onDe
       </footer>
     </div>
   )
+}
+
+/** Listings that fit this lead, with reasons and whether they were already sent (spec §8.11). */
+function LeadMatches({ lead, store }: { lead: Lead; store: DemoStore }) {
+  const matches = store.matchesFor(lead)
+  const shares = store.sharesFor(lead.id)
+  const [best, ...others] = matches
+  const shareLabel = (propertyId: number) => {
+    const share = shares.find((entry) => entry.propertyId === propertyId)
+    return share ? <i className="sent">{share.seen ? 'Seen' : 'Sent'}</i> : null
+  }
+  return <>
+    <span className="eyebrow lead-detail-label">Matches · {matches.length}</span>
+    {best ? <>
+      <PropertyCard property={best.property} layout="stacked" />
+      <span className="match-reasons">{best.reasons.map((reason) => <i key={reason} className={reason === 'On hold' || reason.includes('over budget') ? 'weak' : ''}>{reason}</i>)}{shareLabel(best.property.id)}</span>
+      {others.length > 0 && (
+        <ul className="match-list">
+          {others.slice(0, 3).map((match) => (
+            <li key={match.property.id}>
+              <span><strong>{match.property.name}</strong><small>{bedroomsLabel(match.property)} · {priceLabel(match.property)}</small></span>
+              <span className="match-reasons">{match.reasons.filter((reason) => reason !== match.property.locality).map((reason) => <i key={reason} className={reason === 'On hold' || reason.includes('over budget') ? 'weak' : ''}>{reason}</i>)}{shareLabel(match.property.id)}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </> : <p className="match-empty">No listing fits this brief yet. Add one in Properties.</p>}
+  </>
 }

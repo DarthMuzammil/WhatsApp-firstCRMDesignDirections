@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { firstName, matchPropertyForLead, type Lead } from '../data/demo'
+import { firstName, type Lead } from '../data/demo'
 import { FIELD_LABEL, TEMPLATES, fillTemplate, type Template, type TemplateField } from '../data/templates'
 import { Dialog } from '../components/Dialog'
 import { Icon } from '../components/Icon'
@@ -11,7 +11,7 @@ export function TemplateDialog({ lead, store, onClose, onSend }: { lead: Lead; s
   const [template, setTemplate] = useState<Template>(TEMPLATES[0])
   const [values, setValues] = useState<Record<TemplateField, string>>({
     name: firstName(lead.name),
-    property: matchPropertyForLead(lead).name,
+    property: store.bestMatch(lead).name,
     when: store.upcomingVisits.find((visit) => visit.leadId === lead.id)?.when.replace(' · ', ' at ') ?? 'Saturday at 11:30 AM',
     broker: firstName(store.viewer.name),
   })

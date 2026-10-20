@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
-import { PROPERTIES, matchPropertyForLead, type Lead } from '../data/demo'
+import type { Lead } from '../data/demo'
+import { priceLabel } from '../data/inventory'
 import { shortName } from '../data/team'
 import { VISIT_TIME_SLOTS } from '../data/visits'
 import { Dialog } from '../components/Dialog'
@@ -13,7 +14,7 @@ const DAY_CHOICES = [0, 1, 2, 3, 4, 5, 6]
 export function ScheduleVisitDialog({ lead, store, onBooked, onClose }: { lead: Lead; store: DemoStore; onBooked: (confirmation: string) => void; onClose: () => void }) {
   const canChooseAgent = store.viewerCan('reassignLeads')
   const defaultAgent = lead.ownerId ?? store.viewer.id
-  const [propertyId, setPropertyId] = useState(matchPropertyForLead(lead).id)
+  const [propertyId, setPropertyId] = useState(store.bestMatch(lead).id)
   const [day, setDay] = useState(daysUntilSaturday() || 1)
   const [time, setTime] = useState<string>('11:30 AM')
   const [agentId, setAgentId] = useState(defaultAgent)
@@ -33,7 +34,7 @@ export function ScheduleVisitDialog({ lead, store, onBooked, onClose }: { lead: 
       <form onSubmit={submit}>
         <label>Property
           <select value={propertyId} onChange={(event) => setPropertyId(Number(event.target.value))}>
-            {PROPERTIES.map((property) => <option key={property.id} value={property.id}>{property.name} · {property.locality} · {property.price}</option>)}
+            {store.properties.filter((property) => property.status !== 'sold').map((property) => <option key={property.id} value={property.id}>{property.name} · {property.locality} · {priceLabel(property)}</option>)}
           </select>
         </label>
         <div className="form-row">

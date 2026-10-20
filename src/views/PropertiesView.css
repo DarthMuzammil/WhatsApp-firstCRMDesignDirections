@@ -1,10 +1,14 @@
-.locality-chips { margin: calc(var(--space-2) * -1) 0 var(--space-5); }
+.properties-filters { margin: calc(var(--space-2) * -1) 0 var(--space-5); display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); flex-wrap: wrap; }
+.locality-chips { margin: 0; }
 
 .property-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-4); }
 .listing { overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); box-shadow: var(--shadow-md); transition: transform .25s ease, box-shadow .25s ease; }
 .listing-image { position: relative; height: 240px; overflow: hidden; }
-.listing-image img { width: 100%; height: 100%; object-fit: cover; transition: transform .5s ease; }
-.listing-image > span { position: absolute; left: var(--space-4); top: var(--space-4); padding: var(--space-1) var(--space-2); border-radius: var(--radius-sm); color: var(--success-ink); background: var(--success-soft); font-size: var(--fs-meta); font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+.listing-image .property-photo { width: 100%; height: 100%; display: grid; object-fit: cover; transition: transform .5s ease; }
+.listing-status { position: absolute; left: var(--space-4); top: var(--space-4); padding: var(--space-1) var(--space-2); border-radius: var(--radius-sm); color: var(--success-ink); background: var(--success-soft); font-size: var(--fs-meta); font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+.listing-status.hold { color: var(--warning-ink); background: var(--warning-soft); }
+.listing-status.sold { color: var(--ink-soft); background: var(--surface-sunken); }
+.listing-sold .listing-image .property-photo { filter: grayscale(.6); }
 .listing-image button { position: absolute; right: var(--space-3); top: var(--space-3); width: 40px; height: 40px; padding: 0; border: 0; border-radius: 50%; display: grid; place-items: center; color: var(--muted); background: var(--surface-translucent); }
 .listing-image button.saved { color: var(--surface); background: var(--primary); }
 .listing-copy { padding: var(--space-5); }
@@ -13,13 +17,19 @@
 .listing-copy p { display: flex; align-items: center; gap: var(--space-2); color: var(--ink-soft); font-size: var(--fs-body-sm); }
 .listing-copy p svg { color: var(--faint); }
 .listing-copy p svg:not(:first-child) { margin-left: var(--space-3); }
+.listing-people { margin: var(--space-4) 0 0; display: flex; flex-direction: column; gap: var(--space-1); font-size: var(--fs-caption); }
+.listing-people div { display: flex; justify-content: space-between; gap: var(--space-3); }
+.listing-people dt { color: var(--muted); }
+.listing-people dd { margin: 0; color: var(--ink-soft); font-weight: 600; text-align: right; }
+.listing-buttons { display: flex; align-items: center; gap: var(--space-2); }
+.listing-buttons .btn:disabled { opacity: .45; box-shadow: none; }
 .listing-copy footer { margin-top: var(--space-4); padding-top: var(--space-4); border-top: 1px solid var(--border-soft); display: flex; align-items: center; justify-content: space-between; }
 .listing-copy strong { font-size: var(--fs-title); }
 
 /* Lift and zoom only where hover really exists, so it doesn't stick after a tap */
 @media (hover: hover) {
   .listing:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
-  .listing:hover .listing-image img { transform: scale(1.035); }
+  .listing:hover .listing-image .property-photo { transform: scale(1.035); }
 }
 
 @media (max-width: 1100px) {
@@ -27,7 +37,11 @@
 }
 
 @media (max-width: 760px) {
-  .locality-chips { margin: calc(var(--space-1) * -1) calc(var(--space-4) * -1) var(--space-4); padding: 0 var(--space-4); }
+  .properties-filters { margin: calc(var(--space-1) * -1) 0 var(--space-4); }
+  .locality-chips { margin: 0 calc(var(--space-4) * -1); padding: 0 var(--space-4); }
+  .properties-filters .segmented { width: 100%; }
+  .properties-filters .segmented button { flex: 1; min-height: var(--tap); }
+  .listing-buttons .icon-button { width: var(--tap); height: var(--tap); }
   .property-grid { grid-template-columns: 1fr; }
   .listing-image { height: 210px; }
   .listing-image button { width: var(--tap); height: var(--tap); }

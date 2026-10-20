@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { PROPERTIES, STAGES, STAGE_CLOSE_PROBABILITY, COMMISSION_RATE, type Lead } from '../data/demo'
+import { STAGES, STAGE_CLOSE_PROBABILITY, COMMISSION_RATE, type Lead } from '../data/demo'
 import { pastWorkingDays, tracksAttendance, type AttendanceCode } from '../data/attendance'
 import { DAYS_IN_STAGE, LOST_REASONS, PROPERTY_SHARES, RESPONSE_BANDS, SOURCE_FUNNEL, STUCK_AFTER_DAYS, monthStats, targetFor, type MonthStats, type Period } from '../data/performance'
 import { LEAD_SOURCES } from '../data/sources'
@@ -327,7 +327,7 @@ function Insights({ store, statsFor, onOpenLead, presales }: InsightsProps) {
       </section>
       <section className="card">
         <header className="card-head"><div><h2>Property interest</h2><p>Visits booked (live) and WhatsApp shares this month</p></div></header>
-        <BarList label="Visits by property" rows={PROPERTIES.map((property) => ({ key: String(property.id), label: property.name, sublabel: `${PROPERTY_SHARES[property.id]} shares`, value: visitsPerProperty(property.id), display: `${visitsPerProperty(property.id)} visits` }))} />
+        <BarList label="Visits by property" rows={store.properties.map((property) => ({ key: String(property.id), label: property.name, sublabel: `${(PROPERTY_SHARES[property.id] ?? 0) + store.shareCount(property.id)} shares`, value: visitsPerProperty(property.id), display: `${visitsPerProperty(property.id)} visits` }))} />
       </section>
       <section className="card">
         <header className="card-head"><div><h2>Pre-sales</h2><p>Leads qualified and first reply</p></div></header>

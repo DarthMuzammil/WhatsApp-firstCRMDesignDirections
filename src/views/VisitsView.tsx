@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { PROPERTIES, type Lead } from '../data/demo'
+import type { Lead } from '../data/demo'
 import { shortName } from '../data/team'
 import { VISIT_RESULTS, formatDistance, type VisitResult, type VisitStep } from '../data/visits'
 import { LeadAvatar } from '../components/Avatar'
@@ -34,7 +34,7 @@ export function VisitsView({ store, onOpenLead, notify }: { store: DemoStore; on
     setBusy(visit.id)
     setFeedback(null)
     try {
-      const property = PROPERTIES.find((item) => item.id === visit.propertyId)
+      const property = store.findProperty(visit.propertyId)
       if (!property) throw new Error('Property not found.')
       const reading = store.pretendLocation === 'device'
         ? await deviceReading()
@@ -60,7 +60,7 @@ export function VisitsView({ store, onOpenLead, notify }: { store: DemoStore; on
         <div className="visit-main">
           <button className="visit-lead" onClick={() => store.findLead(visit.leadId) && onOpenLead(visit.lead)}>
             <LeadAvatar lead={visit.lead} size="sm" />
-            <span><strong>{visit.lead.name}</strong><small>{visit.propertyName} · {PROPERTIES.find((p) => p.id === visit.propertyId)?.locality}</small></span>
+            <span><strong>{visit.lead.name}</strong><small>{visit.propertyName} · {store.findProperty(visit.propertyId)?.locality}</small></span>
           </button>
           {(seesOthers || !mine) && agent && <span className="visit-agent"><Icon name="user" size={14} /> {mine ? 'You' : shortName(agent.name)}</span>}
           {visit.steps.length > 0 && <ol className="visit-steps">{visit.steps.map((step, index) => <StepRow key={index} step={step} />)}</ol>}

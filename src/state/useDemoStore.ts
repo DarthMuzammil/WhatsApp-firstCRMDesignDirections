@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import {
-  COMMISSION_RATE, EXTRA_REMINDER, PROPERTIES, RESPONSE_SLA_MINUTES, SEED_LEADS, SEED_RECORDINGS, SEED_TASKS, STAGES, STAGE_CLOSE_PROBABILITY,
+  COMMISSION_RATE, EXTRA_REMINDER, RESPONSE_SLA_MINUTES, SEED_LEADS, SEED_RECORDINGS, SEED_TASKS, STAGES, STAGE_CLOSE_PROBABILITY,
   firstName, phoneKey, relativeMinutes, type Lead, type LeadSeed, type Recording, type Task,
 } from '../data/demo'
 import { SEED_CORRECTIONS, SEED_TODAY, seedAttendance, type AttendanceCode, type CorrectionRequest, type TodayAttendance } from '../data/attendance'
@@ -9,7 +9,8 @@ import { INCOMING_LEAD_TEMPLATES, LEAD_SOURCES, findSource } from '../data/sourc
 import { DEFAULT_VIEWER_ID, SEED_MEMBERS, TEAMS, type Member, type MemberStatus, type TeamId } from '../data/team'
 import { MAX_ACCURACY_M, OFFICES, SEED_VISITS, formatDistance, slotMinutes, type Office, type Visit, type VisitOutcome } from '../data/visits'
 import { DOC_LABELS, SEED_DEALS, type Closure, type Deal } from '../data/deals'
-import { DEFAULT_AUTO_REPLY } from '../data/templates'
+import { SEED_PROPERTIES, matchesForLead, type Property } from '../data/inventory'
+import { DEFAULT_AUTO_REPLY, SERVICE_WINDOW_MINUTES } from '../data/templates'
 import { callSummary } from '../lib/ai'
 import { clockLabel, dayLabel, formatDuration, maskPhone } from '../lib/format'
 import { distanceM, type PretendLocation, type Reading } from '../lib/location'
@@ -33,7 +34,9 @@ export type CompanySettings = {
 export type Assignment = { leadId: number; fromId: string | null; toId: string; byId: string; reason: string; at: string }
 export type Note = { id: number; text: string; byId: string; at: string }
 /** A WhatsApp message added during the demo: by the team, by the auto-reply, or by the buyer (scripted). */
-export type ChatEntry = { from: 'agent' | 'auto' | 'buyer'; text: string; at: string; template?: string }
+export type ChatEntry = { from: 'agent' | 'auto' | 'buyer'; text: string; at: string; template?: string; /** Listings sent with the message (spec §8.11). */ propertyIds?: number[] }
+/** A listing sent to a lead on WhatsApp. `seen` flips a few seconds after sending (🎭). */
+export type PropertyShare = { propertyId: number; at: string; seen: boolean }
 export type ActivityKind = 'enquiry' | 'message' | 'assign' | 'stage' | 'visit' | 'call' | 'note' | 'profile' | 'tag' | 'merge'
 /** Something that happened on a lead during the demo; newest first in the store. */
 export type Activity = { id: number; leadId: number; kind: ActivityKind; text: string; byId: string; at: string }
@@ -59,7 +62,7 @@ function isOpenVisit(visit: Pick<Visit, 'status'>): boolean {
 
 /** Timeline entries implied by a seeded visit. */
 function seedVisitEvents(visit: Visit): TimelineEvent[] {
-  const property = PROPERTIES.find((item) => item.id === visit.propertyId)?.name ?? 'the property'
+  const property = SEED_PROPERTIES.find((item) => item.id === visit.propertyId)?.name ?? 'the property'
   const events: TimelineEvent[] = []
   if (visit.outcome) events.push({ key: `sv-out-${visit.id}`, kind: 'visit', text: `Visit outcome: ${visit.outcome.result} · ${visit.outcome.feedback}`, at: `${dayLabel(visit.day)} · ${visit.steps.at(-1)?.at ?? visit.time}` })
   const checkIn = visit.steps.find((step) => step.kind === 'check-in')
@@ -117,6 +120,9 @@ export function useDemoStore() {
   const [completedTaskIds, setCompletedTaskIds] = useLocalState<number[]>('completed-tasks', [])
   const [recordings, setRecordings] = useLocalState<Recording[]>('recordings', SEED_RECORDINGS)
   const [savedPropertyIds, setSavedPropertyIds] = useLocalState<number[]>('saved-properties', [])
+  const [properties, setProperties] = useLocalState<Property[]>('properties', SEED_PROPERTIES)
+  const [shares, setShares] = useLocalState<Record<number, PropertyShare[]>>('property-shares', {})
+  const findProperty = (id: number) => properties.find((item) => item.id === id)
 
   // ---------- People ----------
   const onLeave = (memberId: string, day: number) => leaveRequests.some((request) => request.memberId === memberId && coversDay(request, day))
@@ -228,7 +234,7 @@ export function useDemoStore() {
   const visibleVisits: VisitView[] = visits
     .map((visit) => {
       const lead = allLeads.find((item) => item.id === visit.leadId)
-      return lead ? { ...visit, lead, propertyName: PROPERTIES.find((p) => p.id === visit.propertyId)?.name ?? 'Property', when: `${dayLabel(visit.day)} · ${visit.time}` } : null
+      return lead ? { ...visit, lead, propertyName: findProperty(visit.propertyId)?.name ?? 'Property', when: `${dayLabel(visit.day)} · ${visit.time}` } : null
     })
     .filter((visit): visit is VisitView => !!visit && (visibleIds.has(visit.leadId) || visit.agentId === viewer.id))
     .sort((a, b) => a.day - b.day || slotMinutes(a.time) - slotMinutes(b.time))
@@ -278,6 +284,20 @@ export function useDemoStore() {
     viewerCan,
     /** Full number for managers/owner, masked for everyone else (spec §8.0). */
     displayPhone: (phone: string) => (can(viewer, 'seeFullNumbers') ? phone : maskPhone(phone)),
+    // ---------- Inventory (spec §8.11) ----------
+    properties,
+    findProperty,
+    /** Listings that fit the lead, best first, with reasons. */
+    matchesFor: (lead: Lead) => matchesForLead(lead, properties),
+    /** The single best listing for a lead (falls back to the first available one). */
+    bestMatch: (lead: Lead): Property => matchesForLead(lead, properties)[0]?.property ?? properties.find((item) => item.status === 'available') ?? properties[0],
+    /** Owner's number: full for Managers, the Owner and the listing agent; masked for everyone else. */
+    ownerPhone: (property: Property) => (can(viewer, 'seeOwnerContact') || property.listingAgentId === viewer.id ? property.ownerPhone : maskPhone(property.ownerPhone)),
+    sharesFor: (leadId: number) => shares[leadId] ?? [],
+    /** Times a listing was shared in the demo, across all leads. */
+    shareCount: (propertyId: number) => Object.values(shares).flat().filter((share) => share.propertyId === propertyId).length,
+    /** The listing already sent in a seeded chat (fixed by the seed inventory, so later listings don't rewrite history). */
+    introProperty: (lead: Lead): Property => findProperty(matchesForLead(lead, SEED_PROPERTIES)[0]?.property.id ?? 1) ?? properties[0],
     members,
     findMember,
     settings,
@@ -313,6 +333,8 @@ export function useDemoStore() {
     recordings: visibleRecordings,
     savedPropertyIds,
     chatFor: (leadId: number) => chats[leadId] ?? [],
+    /** WhatsApp only allows free text within 24 hours of the buyer's last message; after that, templates only (spec §8.4). */
+    serviceWindowClosed: (lead: Lead) => lead.minutesAgo > SERVICE_WINDOW_MINUTES && !(chats[lead.id] ?? []).some((entry) => entry.from === 'buyer'),
     aiSuggestionsFor: (leadId: number) => aiSuggestions[leadId],
     qualifyStepFor: (leadId: number) => qualifySteps[leadId] ?? 0,
     unreadTotal,
@@ -458,7 +480,7 @@ export function useDemoStore() {
     scheduleVisit: (leadId: number, plan: { day: number; time: string; propertyId: number; agentId: string }) => {
       const lead = findLead(leadId)
       if (!lead) return ''
-      const property = PROPERTIES.find((item) => item.id === plan.propertyId)
+      const property = findProperty(plan.propertyId)
       setVisits((current) => [...current, { id: Date.now(), leadId, ...plan, status: 'planned', steps: [] }])
       setStageOverrides((current) => ({ ...current, [leadId]: Math.max(lead.stage, 2) }))
       const agent = findMember(plan.agentId)
@@ -545,7 +567,7 @@ export function useDemoStore() {
      */
     recordVisitStep: (visitId: number, step: 'left-office' | 'check-in' | 'check-out', reading: Reading): VisitStepResult => {
       const visit = visits.find((item) => item.id === visitId)
-      const property = PROPERTIES.find((item) => item.id === visit?.propertyId)
+      const property = visit ? findProperty(visit.propertyId) : undefined
       if (!visit || !property) return { ok: false, message: 'Visit not found.' }
       const at = clockLabel()
       const radius = settings.checkInRadiusM
@@ -620,6 +642,21 @@ export function useDemoStore() {
       const note = lead ? callSummary(lead, duration) : 'New recorded call'
       setRecordings((current) => [{ id: Date.now(), leadId, when: 'Just now', duration, note, aiSummary: true }, ...current])
       log(leadId, 'call', `Call recorded (${formatDuration(duration)}) · AI summary: ${note}`)
+    },
+    /** Adds a listing (id 0) or replaces an existing one. Returns the saved listing. */
+    saveProperty: (property: Property): Property => {
+      const saved = property.id ? property : { ...property, id: Math.max(0, ...properties.map((item) => item.id)) + 1, addedInDemo: true }
+      setProperties((current) => (property.id ? current.map((item) => (item.id === property.id ? saved : item)) : [...current, saved]))
+      return saved
+    },
+    /** Sends listings to a lead on WhatsApp (as a template outside the 24-hour window); "Seen" follows a few seconds later 🎭. */
+    shareProperties: (leadId: number, propertyIds: number[], text: string, template?: string) => {
+      const at = clockLabel()
+      setChats((current) => ({ ...current, [leadId]: [...(current[leadId] ?? []), { from: 'agent', text, at, template, propertyIds }] }))
+      setShares((current) => ({ ...current, [leadId]: [...(current[leadId] ?? []).filter((share) => !propertyIds.includes(share.propertyId)), ...propertyIds.map((propertyId) => ({ propertyId, at, seen: false }))] }))
+      const names = propertyIds.map((id) => findProperty(id)?.name).filter(Boolean).join(', ')
+      log(leadId, 'message', `${template ? `Template “${template}” sent with` : 'Shared on WhatsApp:'} ${names}`)
+      window.setTimeout(() => setShares((current) => ({ ...current, [leadId]: (current[leadId] ?? []).map((share) => (propertyIds.includes(share.propertyId) ? { ...share, seen: true } : share)) })), 4000)
     },
     toggleSavedProperty: (propertyId: number) =>
       setSavedPropertyIds((current) => (current.includes(propertyId) ? current.filter((id) => id !== propertyId) : [...current, propertyId])),

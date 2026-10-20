@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { matchPropertyForLead, parseBudget, type Lead } from '../data/demo'
+import type { Lead } from '../data/demo'
 import { LOST_REASON_OPTIONS, type Deal, type SplitShare } from '../data/deals'
 import { shortName } from '../data/team'
 import { Dialog } from '../components/Dialog'
@@ -21,7 +21,7 @@ function defaultSplit(lead: Lead, store: DemoStore): SplitShare[] {
  */
 export function DealDialog({ lead, store, mode, onClose, onSaved }: { lead: Lead; store: DemoStore; mode: 'edit' | 'win'; onClose: () => void; onSaved: (message: string) => void }) {
   const existing = store.dealFor(lead.id)
-  const asking = existing?.askedCr ?? parseBudget(matchPropertyForLead(lead).price)?.min ?? lead.budgetCr
+  const asking = existing?.askedCr ?? store.bestMatch(lead).priceCr
   const [asked, setAsked] = useState(String(asking))
   const [offered, setOffered] = useState(existing?.offeredCr !== undefined ? String(existing.offeredCr) : '')
   const [agreed, setAgreed] = useState(existing?.agreedCr !== undefined ? String(existing.agreedCr) : mode === 'win' && existing?.offeredCr ? String(existing.offeredCr) : '')
@@ -53,7 +53,7 @@ export function DealDialog({ lead, store, mode, onClose, onSaved }: { lead: Lead
       <button type="button" className="icon-button bordered add-lead-close" onClick={onClose} aria-label="Close"><Icon name="close" /></button>
       <span className="eyebrow">{mode === 'win' ? 'Close the deal' : 'Offer tracker'}</span>
       <h2>{lead.name}</h2>
-      <p className="add-lead-intro">{lead.need} · {matchPropertyForLead(lead).name}</p>
+      <p className="add-lead-intro">{lead.need} · {store.bestMatch(lead).name}</p>
       <form onSubmit={submit}>
         <div className="form-row">
           {money('Asking price', asked, setAsked, 'Cr')}
