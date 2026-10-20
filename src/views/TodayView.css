@@ -38,10 +38,17 @@
 .day-stat-bars i:nth-child(4) { height: 24px; }
 
 /* Inbox + due-today */
-.today-grid { margin-top: var(--space-6); display: grid; grid-template-columns: minmax(0, 1fr) 340px; align-items: start; gap: var(--space-4); }
+.today-grid { margin-top: var(--space-6); display: grid; grid-template-columns: minmax(0, 1fr) 340px; grid-template-areas: "inbox due"; align-items: start; gap: var(--space-4); }
+.today-grid.has-digest { grid-template-rows: auto 1fr; grid-template-areas: "inbox digest" "inbox due"; }
 .daily-summary + .today-grid { margin-top: 0; }
-.today-aside { min-width: 0; display: flex; flex-direction: column; gap: var(--space-4); }
-.today-aside .digest ul { padding-left: var(--space-7); }
+.today-inbox { grid-area: inbox; }
+.today-digest { grid-area: digest; min-width: 0; }
+.today-digest .digest ul { padding-left: var(--space-7); }
+.today-grid .due-today { grid-area: due; }
+.inbox-more { width: 100%; min-height: 52px; border: 0; border-top: 1px solid var(--border-soft); display: flex; align-items: center; justify-content: center; gap: var(--space-1); color: var(--primary); background: transparent; font-size: var(--fs-body-sm); font-weight: 700; }
+@media (hover: hover) {
+  .inbox-more:hover { background: var(--primary-soft); }
+}
 .inbox-filters { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
 .source-filter { height: 42px; padding: 0 var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-md); color: var(--ink-soft); background: var(--surface); font-size: var(--fs-body-sm); font-weight: 600; }
 .due-item { width: 100%; padding: var(--space-4) var(--space-5); border: 0; border-bottom: 1px solid var(--border-soft); display: flex; gap: var(--space-4); text-align: left; background: transparent; }
@@ -56,7 +63,8 @@
 @media (max-width: 1100px) {
   .day-cards { grid-template-columns: 1fr 1fr; }
   .day-focus { grid-column: 1 / -1; }
-  .today-grid { grid-template-columns: 1fr; }
+  .today-grid, .today-grid.has-digest { grid-template-columns: 1fr; grid-template-rows: none; grid-template-areas: "digest" "inbox" "due"; }
+  .today-grid:not(.has-digest) { grid-template-areas: "inbox" "due"; }
 }
 
 @media (max-width: 760px) {

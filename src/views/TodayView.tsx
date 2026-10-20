@@ -12,6 +12,8 @@ import type { DemoStore } from '../state/useDemoStore'
 import './TodayView.css'
 
 const INBOX_FILTERS: ('All' | Temperature)[] = ['All', 'Hot', 'Warm', 'New']
+/** Rows shown before "Show all" when no filter or search is on, so the screen doesn't turn into a 46-row scroll. */
+const INBOX_PREVIEW = 12
 
 type TodayViewProps = {
   store: DemoStore
@@ -32,12 +34,15 @@ export function TodayView({ store, onOpenLead, onNavigate, onCall, notify }: Tod
   const [sourceFilter, setSourceFilter] = useState('All')
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState('')
+  const [showAll, setShowAll] = useState(false)
 
   const visibleLeads = store.leads.filter((lead) =>
     (filter === 'All' || lead.temp === filter) &&
     (sourceFilter === 'All' || lead.source === sourceFilter) &&
     `${lead.name} ${lead.need} ${lead.locality}`.toLowerCase().includes(query.trim().toLowerCase()),
   )
+  const filtering = filter !== 'All' || sourceFilter !== 'All' || query.trim() !== ''
+  const shownLeads = showAll || filtering ? visibleLeads : visibleLeads.slice(0, INBOX_PREVIEW)
   const [nextVisit, ...laterVisits] = store.upcomingVisits
   // Buyers waiting for a reply, longest wait first (live).
   const waiting = store.leads.filter((lead) => lead.unread > 0 && !lead.closed).sort((a, b) => b.minutesAgo - a.minutesAgo)
@@ -139,8 +144,8 @@ export function TodayView({ store, onOpenLead, onNavigate, onCall, notify }: Tod
         </div>
       )}
 
-      <div className="today-grid">
-        <section className="card">
+      <div className={`today-grid ${seesOthers ? 'has-digest' : ''}`}>
+        <section className="card today-inbox">
           <header className="card-head inbox-head">
             <div>
               <h2>Lead inbox</h2>
@@ -157,7 +162,10 @@ export function TodayView({ store, onOpenLead, onNavigate, onCall, notify }: Tod
             </div>
           </header>
           <div>
-            {visibleLeads.map((lead) => <LeadRow key={lead.id} lead={lead} onOpen={() => onOpenLead(lead)} ownerLabel={seesOthers ? ownerLabel(lead) : undefined} />)}
+            {shownLeads.map((lead) => <LeadRow key={lead.id} lead={lead} onOpen={() => onOpenLead(lead)} ownerLabel={seesOthers ? ownerLabel(lead) : undefined} />)}
+            {shownLeads.length < visibleLeads.length && (
+              <button className="inbox-more" onClick={() => setShowAll(true)}>Show all {visibleLeads.length} conversations <Icon name="chevron" size={16} /></button>
+            )}
             {visibleLeads.length === 0 && (
               <div className="empty-state">
                 <span className="icon-badge"><Icon name="check" /></span>
@@ -168,8 +176,8 @@ export function TodayView({ store, onOpenLead, onNavigate, onCall, notify }: Tod
           </div>
         </section>
 
-        <div className="today-aside">
-        {seesOthers && <WeeklyDigest store={store} />}
+        {/* Desktop: digest and follow-ups beside the inbox. Tablet/phone: digest above the inbox, follow-ups below. */}
+        {seesOthers && <div className="today-digest"><WeeklyDigest store={store} /></div>}
         <aside className="card due-today">
           <header className="card-head"><div><h2>{seesOthers ? 'Team follow-ups today' : 'Due today'}</h2><p>{store.remainingTasks.length} of {store.tasks.length} follow-ups left</p></div></header>
           {store.remainingTasks.slice(0, 4).map((task) => {
@@ -185,7 +193,6 @@ export function TodayView({ store, onOpenLead, onNavigate, onCall, notify }: Tod
           {store.remainingTasks.length === 0 && <div className="empty-state"><span className="icon-badge"><Icon name="check" /></span><h3>All done for today</h3></div>}
           <button className="due-all" onClick={() => onNavigate('tasks')}>Open follow-ups <Icon name="arrow" size={16} /></button>
         </aside>
-        </div>
       </div>
     </section>
   )

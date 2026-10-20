@@ -46,7 +46,7 @@ await p.screenshot({ path: `${SHOTS}/m5-duplicate.png` })
 await p.click('.duplicate-alert .btn:has-text("Merge enquiry")'); await p.waitForTimeout(200)
 ok((await p.locator('.add-lead h2').innerText()) === 'Enquiry merged', 'merge confirmation shown')
 await p.click('.add-lead .btn-primary'); await p.waitForTimeout(200)
-ok(await p.locator('.lead-row').count() === 12, 'no duplicate lead created (still 12)')
+await p.click('.inbox-more'); ok(await p.locator('.lead-row').count() === 46, 'no duplicate lead created (still 46)')
 await p.click('.lead-row:has-text("Ananya")'); await p.click(`${panel} .lead-detail-tabs button:has-text("Notes")`)
 ok((await p.locator(`${panel} .lead-notes article p`).first().innerText()).startsWith('New enquiry merged'), 'merged enquiry recorded as a note')
 // Duplicate from a Sales viewer for another team's lead

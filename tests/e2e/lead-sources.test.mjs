@@ -25,7 +25,8 @@ ok(await p.locator('.chat-person strong').innerText() === 'Meera Iyer' && (await
 ok(await p.locator('.quick-replies .chip').first().innerText() === 'Send a welcome message', 'fresh lead offers welcome message')
 await p.click('.lead-detail .lead-detail-tabs button:has-text("Timeline")')
 ok((await p.locator('.lead-detail .lead-timeline li p').allInnerTexts()).some(t => t.startsWith('New enquiry via 99acres · routed to Lakshmi Narayan')), 'timeline records the arrival and routing')
-await nav('Today'); ok(await p.locator('.lead-row').count() === 13, 'inbox now has 13 leads')
+await nav('Today'); ok(await p.locator('.lead-row').count() === 12 && (await p.locator('.inbox-more').innerText()).includes('Show all 47'), 'inbox shows 12 of 47 leads (46 + the arrival), with Show all')
+await p.click('.inbox-more'); ok(await p.locator('.lead-row').count() === 47, 'Show all lists all 47')
 // By-source routing, pre-sales off
 await nav('Settings'); await p.click('.setting-row'); await p.click('.routing-options button:has-text("By source")')
 await nav('Lead sources'); await p.selectOption('.source-row:has-text("Housing") .source-team select', 'whitefield')
@@ -38,7 +39,7 @@ await p.click('.source-row:has-text("MagicBricks") .btn:has-text("Disconnect")')
 ok(await p.locator('.source-row:has-text("MagicBricks") .btn:has-text("Simulate")').isDisabled() && (await p.locator('.source-row:has-text("MagicBricks") .source-status').innerText()).includes('Not connected'), 'disconnected source cannot simulate')
 // Source filter
 await nav('Today'); await p.selectOption('.source-filter', 'Walk-in')
-ok(await p.locator('.lead-row').count() === 1 && (await p.locator('.lead-row strong').first().innerText()) === 'Pooja Venkatesh', 'source filter Walk-in shows only Pooja')
+ok((await p.locator('.lead-row strong').allInnerTexts()).sort().join(',') === 'Pooja Venkatesh,Sowmya Ramesh', 'source filter Walk-in shows only the walk-ins (Pooja, Sowmya)')
 await p.selectOption('.source-filter', 'All')
 // Sales viewer: no Lead sources, simulated lead not visible -> no Reply button
 await menu('Priya Nair')

@@ -1,6 +1,8 @@
 // Seed data for the client demo. Everything the UI shows comes from here or
 // from user actions stored by `state/useDemoStore.ts`.
 
+import { BOOK_LEADS } from './bookOfLeads'
+
 export type Temperature = 'Hot' | 'Warm' | 'New'
 export type Purpose = 'Live-in' | 'Investment'
 export type AvatarColor = 'coral' | 'violet' | 'blue' | 'gold'
@@ -73,7 +75,8 @@ export type Task = { id: number; leadId: number; time: string; title: string; no
 
 export type Recording = { id: number; leadId: number; when: string; duration: number; note: string; aiSummary?: boolean }
 
-export const SEED_LEADS: LeadSeed[] = [
+/** The twelve scripted leads the demo story uses (spec §4 table). */
+const STORY_LEADS: LeadSeed[] = [
   {
     id: 1, name: 'Ananya Rao', initials: 'AR', need: '3 BHK in Indiranagar', budget: '₹2.4–2.8 Cr', budgetCr: 2.6, locality: 'Indiranagar',
     message: 'See you at 11:30 today. Can we also see the corner unit?', enquiry: 'Hi, I’m looking for a 3 BHK in Indiranagar. Is anything good available?',
@@ -147,6 +150,9 @@ export const SEED_LEADS: LeadSeed[] = [
     moveIn: 'Within 3 months', mustHave: 'Low floor · Pet friendly', initialStage: 1, ownerId: 'm-priya', sharedWith: 6,
   },
 ]
+
+/** Every seeded lead: the scripted twelve first (they top the inbox), then the rest of the book. */
+export const SEED_LEADS: LeadSeed[] = [...STORY_LEADS, ...BOOK_LEADS]
 
 export const SEED_TASKS: Task[] = [
   { id: 1, leadId: 1, time: '10:30 AM', title: 'Confirm today’s 11:30 visit', note: 'The Courtyard House · Indiranagar', channel: 'WhatsApp' },

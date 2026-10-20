@@ -56,6 +56,13 @@ export const SEED_VISITS: Visit[] = [
   },
   { id: 5, leadId: 6, propertyId: 3, agentId: 'm-rohit', day: 1, time: '10:30 AM', status: 'planned', steps: [] },
   { id: 6, leadId: 3, propertyId: 3, agentId: 'm-sneha', day: -1, time: '5:00 PM', status: 'no-show', steps: [] },
+  // Upcoming visits for leads in the wider book (data/bookOfLeads.ts).
+  { id: 101, leadId: 106, propertyId: 1, agentId: 'm-sameer', day: 1, time: '2:00 PM', status: 'planned', steps: [] },
+  { id: 102, leadId: 129, propertyId: 3, agentId: 'm-meghna', day: 1, time: '5:00 PM', status: 'planned', steps: [] },
+  { id: 103, leadId: 109, propertyId: 5, agentId: 'm-divya', day: 2, time: '4:00 PM', status: 'planned', steps: [] },
+  { id: 104, leadId: 113, propertyId: 4, agentId: 'm-ritu', day: 2, time: '11:30 AM', status: 'planned', steps: [] },
+  { id: 105, leadId: 120, propertyId: 2, agentId: 'm-karthik', day: 3, time: '10:30 AM', status: 'planned', steps: [] },
+  { id: 106, leadId: 131, propertyId: 6, agentId: 'm-tarun', day: 4, time: '12:30 PM', status: 'planned', steps: [] },
 ]
 
 /** "11:30 AM" → minutes after midnight, for sorting. */

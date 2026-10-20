@@ -16,6 +16,7 @@ Bayana is a clickable client-demo prototype of a WhatsApp-first CRM for independ
 - `src/main.tsx` - React entrypoint. Imports `src/index.css` **before** `App` so component styles can override global ones. Keep that order.
 - `src/App.tsx` - App shell. Owns the current view, the open lead, the screen a chat was opened from (`chatOrigin`, used by Back and the nav highlight), modals (add lead, call picker, call) and toasts. Renders one view at a time.
 - `src/data/brand.ts` - The product name (`APP_NAME`, Bayana) and the brokerage's name (`BROKERAGE`, Better Days Realty). Buyer-facing text uses `BROKERAGE.name`, never the product name.
+- `src/data/bookOfLeads.ts` - The wider book of 34 quieter seed leads (no unread messages, so escalations and "waiting" counts come only from the twelve scripted leads in demo.ts). Keep Lakshmi Narayan at zero leads: routing gives her the guided demo's enquiry.
 - `src/data/demo.ts` - Seed data and types for leads, properties, tasks, recordings, pipeline stages and demo metrics. Change demo content here.
 - `src/data/team.ts` - The brokerage's people, teams, roles and the "View as" personas.
 - `src/data/sources.ts` - Lead sources (portals, ads, offline) and the buyer pool for simulated arrivals.
@@ -46,6 +47,7 @@ Every push to `main` publishes the demo to GitHub Pages (https://darthmuzammil.g
 
 - Every component has a co-located `.css` file with the same name, imported at the top of the component. Global tokens and shared classes live in `src/index.css`.
 - **Tokens only.** Raw colours (hex) may appear only in the `:root` block of `src/index.css`. Everywhere else (component CSS and inline styles) use variables: colour (`--ink`, `--muted`, `--primary`, `--success-*`, `--navy-*` …), spacing (`--space-half`, `--space-1` … `--space-10` on a 4px grid), radius (`--radius-xs` … `--radius-xl`, `--radius-pill`), shadow (`--shadow-*`) and font size (`--fs-*`; 11px `--fs-meta` is the minimum, for timestamps and badges only). Need a new colour? Add a named token to `:root` first. Fixed element sizes (e.g. a 36px avatar) may stay in px.
+- **Colour roles.** Mint (`--mint`) only on navy surfaces (sidebar, dark cards, call screen, toasts, guided demo) and the brand mark. On light surfaces the main button is indigo (`.btn-primary`); WhatsApp and positive actions use soft green (`.btn-success`, `.chip-success`). Don't add a mint button on a light background.
 - **Contrast.** Every text colour token passes WCAG AA (4.5:1) on the surfaces it is used on. Keep it that way when adding or changing colour tokens.
 - **Reuse shared pieces, don't copy them:**
   - `components/Dialog` for every modal, sheet or full-screen overlay (backdrop, Escape, click-outside, focus trap and focus return are built in)

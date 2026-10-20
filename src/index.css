@@ -36,7 +36,7 @@
   --primary-soft: #eeecff;
   --primary-soft-hover: #e2dfff;
   --primary-line: #cfcaf2;
-  --mint: #9ff0c2;
+  --mint: #9ff0c2; /* only on navy surfaces and the brand mark; see AGENTS.md "Colour roles" */
 
   /* ---------- Colour: navy panels (sidebar, focus card, call screen) ---------- */
   --navy: #202947;

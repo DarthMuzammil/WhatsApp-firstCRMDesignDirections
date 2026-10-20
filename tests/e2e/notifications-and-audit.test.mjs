@@ -39,9 +39,9 @@ ok(await p.locator('.audit-list li').count() === 3, 'filter Reassignments: 2 see
 await p.click('.audit-view .chip:has-text("All")')
 const [dl] = await Promise.all([p.waitForEvent('download'), p.click('.audit-exports .btn:has-text("Export leads")')])
 const csv = fs.readFileSync(await dl.path(), 'utf8').split('\n')
-ok(dl.suggestedFilename() === 'daira-leads.csv' && csv.length === 13 && csv[0].startsWith('Name,Phone,Source,Owner'), `leads CSV: header + 12 rows (${csv.length})`)
+ok(dl.suggestedFilename() === 'daira-leads.csv' && csv.length === 47 && csv[0].startsWith('Name,Phone,Source,Owner'), `leads CSV: header + 46 rows (${csv.length})`)
 ok(csv.some(l => l.startsWith('Ananya Rao,+91') && l.includes('Aditya Rao')), 'CSV has full numbers and current owner')
-ok((await p.locator('.audit-list li p').first().innerText()) === 'Exported leads as CSV (12 rows)', 'export audited')
+ok((await p.locator('.audit-list li p').first().innerText()) === 'Exported leads as CSV (46 rows)', 'export audited')
 await p.screenshot({ path: `${SHOTS}/m12-audit.png`, fullPage: true })
 // Priya: moved-away notification; applies for leave → Neha notified → approves → Priya notified
 await viewAs('Priya Nair')

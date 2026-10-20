@@ -46,7 +46,7 @@ for (const [tag, w, h] of [['desk', 1440, 900], ['tab', 900, 1000], ['mob', 390,
   await p.locator('.add-lead .add-lead-submit').click(); await audit('chat-after')
   await nav('Pipeline'); await audit('pipeline')
   if (tag === 'mob') { await p.locator('.stage-tabs button').nth(1).click(); await audit('pipeline-stage1') }
-  if (tag === 'desk') await p.locator('.pipeline-stage[aria-label="New lead"] .deal-card').first().dragTo(p.locator('.pipeline-stage[aria-label="Qualified"]'))
+  if (tag === 'desk') await p.locator('.pipeline-stage[aria-label="New lead"] .deal-card').first().dragTo(p.locator('.pipeline-stage[aria-label="Qualified"]'), { targetPosition: { x: 80, y: 24 } })
   else await p.locator('.pipeline-stage.phone-visible .deal-advance, .deal-advance:visible').first().click()
   await audit('pipeline-moved')
   await nav('Properties'); await audit('properties')

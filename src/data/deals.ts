@@ -56,4 +56,20 @@ export const SEED_DEALS: Record<number, Deal> = {
     agreementDay: 7,
     docs: { kyc: true, token: false, agreement: false }, split: [{ memberId: 'm-manoj', pct: 100 }],
   },
+  // Deals in negotiation from the wider book (data/bookOfLeads.ts).
+  104: {
+    askedCr: 1.62,
+    offers: [{ id: 101, by: 'buyer', amountCr: 1.52, day: -3 }, { id: 102, by: 'owner', amountCr: 1.6, day: -2 }, { id: 103, by: 'buyer', amountCr: 1.55, day: -1 }],
+    docs: { kyc: true, token: false, agreement: false }, split: [{ memberId: 'm-aditya', pct: 100 }],
+  },
+  117: {
+    askedCr: 3.4,
+    offers: [{ id: 104, by: 'buyer', amountCr: 3.2, day: -4 }, { id: 105, by: 'owner', amountCr: 3.38, day: -2 }, { id: 106, by: 'buyer', amountCr: 3.3, day: 0 }],
+    docs: { kyc: false, token: false, agreement: false }, split: [{ memberId: 'm-ayesha', pct: 100 }],
+  },
+  126: {
+    askedCr: 1.95,
+    offers: [{ id: 107, by: 'buyer', amountCr: 1.82, day: -10 }],
+    docs: { kyc: false, token: false, agreement: false }, split: [{ memberId: 'm-ananth', pct: 100 }],
+  },
 }

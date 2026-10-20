@@ -6,11 +6,12 @@ const errs = []
 let p = await b.newPage({ viewport: { width: 1440, height: 900 } })
 p.on('pageerror', e => errs.push(e.message)); p.on('console', m => m.type() === 'error' && errs.push(m.text()))
 await p.goto(BASE_URL); await p.evaluate(() => localStorage.clear()); await p.reload(); await p.waitForTimeout(800)
-const rows = () => p.locator('.lead-row').count()
+// The inbox shows 12 rows until "Show all"; count everything the viewer can see.
+const rows = async () => { const more = p.locator('.inbox-more'); if (await more.count()) await more.click(); return p.locator('.lead-row').count() }
 const nav = async (label) => p.click(`.sidebar-nav button:has-text("${label}")`)
 const viewAs = async (name) => { await p.click('.sidebar-user .account-menu-trigger'); await p.click(`.account-menu-popover button:has-text("${name}")`); await p.waitForTimeout(300) }
 // Owner
-ok(await rows() === 12, `owner sees all 12 leads (got ${await rows()})`)
+ok(await rows() === 46, `owner sees all 46 leads (got ${await rows()})`)
 ok((await p.locator('h1').innerText()) === 'Your team today', 'owner title is "Your team today"')
 ok(await p.locator('.sidebar-group-label').count() === 1 && await p.locator('.sidebar-nav button:has-text("Settings")').count() === 1, 'owner sees Manage group incl. Settings')
 ok((await p.locator('.sidebar-nav button:has-text("Escalations") .count-badge').innerText()) === '5', 'escalations badge = 5 (2 unassigned + 3 overdue)')
@@ -32,15 +33,15 @@ ok((await p.locator('.lead-detail .buyer-brief div:has-text("Phone") strong').in
 await nav('Team'); await p.click('.team-member:has-text("Aditya Rao") .btn:has-text("Deactivate")')
 await p.click('.assign-list button:has-text("Divya Iyer")'); await p.click('.assign-confirm'); await p.waitForTimeout(300)
 ok(await p.locator('.team-member:has-text("Aditya Rao") .member-status').innerText() === 'Deactivated', 'Aditya deactivated')
-ok((await p.locator('.team-member:has-text("Divya Iyer") .team-member-leads strong').innerText()) === '2', 'Divya received Aditya\'s 2 leads')
+ok((await p.locator('.team-member:has-text("Divya Iyer") .team-member-leads strong').innerText()) === '6', 'Divya (2 leads) received Aditya\'s 4 → 6')
 // Manager Neha
 await viewAs('Neha Kapoor')
 ok(await p.locator('.sidebar-nav button:has-text("Settings")').count() === 0 && await p.locator('.sidebar-nav button:has-text("Team")').count() === 1, 'manager: Team yes, Settings no')
-await nav('Today'); ok(await rows() === 5, `manager sees Indiranagar team + unassigned = 5 (got ${await rows()})`)
+await nav('Today'); ok(await rows() === 15, `manager sees Indiranagar team + unassigned = 15 (got ${await rows()})`)
 // Sales Priya
 await viewAs('Priya Nair')
 ok(await p.locator('.sidebar-group-label').count() === 0, 'sales: no Manage group')
-ok(await rows() === 2, `sales sees only own 2 leads (got ${await rows()})`)
+ok(await rows() === 5, `sales sees only own 5 leads (got ${await rows()})`)
 ok((await p.locator('h1').innerText()) === 'Your day, at a glance', 'sales title is personal')
 await p.click('.lead-row:has-text("Ananya")')
 ok((await p.locator('.lead-detail .buyer-brief div:has-text("Phone") strong').innerText()) === '+91 98XXX XX018', 'sales sees masked phone')

@@ -43,7 +43,7 @@ ok(await p.locator('.messages .message-auto').count() === 0, 'auto-reply off: no
 await p.click('.chat-head .icon-button[aria-label^="Call"]'); await p.waitForTimeout(1600); await p.click('.end-call'); await p.click('.call-ended button'); await p.waitForTimeout(300)
 await nav('Calls'); ok((await p.locator('.recording').first().innerText()).includes('AI summary') && (await p.locator('.recording').first().innerText()).includes('Next step'), 'saved call has an AI summary with next step')
 // Digest
-await nav('Today'); ok(await p.locator('.today-aside .digest li').count() >= 3, `weekly digest on the team home has ${await p.locator('.digest li').count()} lines`)
+await nav('Today'); ok(await p.locator('.today-digest .digest li').count() >= 3, `weekly digest on the team home has ${await p.locator('.digest li').count()} lines`)
 await nav('Performance'); ok(await p.locator('.digest').count() === 0, 'digest is not repeated on Performance')
 await p.screenshot({ path: `${SHOTS}/m4-digest.png` })
 await p.close()

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { Lead } from '../data/demo'
 import { TEAMS, shortName } from '../data/team'
 import { QUALIFICATION_QUESTIONS } from '../data/templates'
+import { dayLabel } from '../lib/format'
 import { pretendReading } from '../lib/location'
 import type { DemoStore } from '../state/useDemoStore'
 import { Icon } from './Icon'
@@ -33,9 +34,9 @@ type Step = {
 }
 
 /**
- * Guided demo (spec §8.16 step 7): a presenter's panel that runs the whole loop with real store actions,
- * one click per step: 99acres enquiry → auto-reply and AI brief → hand to Sales → visit → refused and
- * verified check-ins → outcome → won → leaderboard. Every step can be skipped; nothing here is fake
+ * Guided demo (spec §3.16): a presenter's panel that runs the whole loop with real store actions, one click per
+ * step: Owner's team home → 99acres enquiry → auto-reply and AI brief → the telecaller's call queue → hand to Sales
+ * → share and book a visit → Remind me → refused and verified check-ins → outcome → won → leaderboard. Every step can be skipped; nothing here is fake
  * beyond what the rest of the demo already simulates.
  */
 export function DemoGuide({ store, onSimulate, onOpenLead, onNavigate, notify, onClose }: GuideProps) {
@@ -43,6 +44,10 @@ export function DemoGuide({ store, onSimulate, onOpenLead, onNavigate, notify, o
   const [done, setDone] = useState(false)
   const [minimised, setMinimised] = useState(false)
   const [leadId, setLeadId] = useState<number | null>(null)
+  // The Pre-sales person routing gave the enquiry to (Lakshmi Narayan on fresh data).
+  const [presalesId, setPresalesId] = useState<string | null>(null)
+  const presales = presalesId ? store.findMember(presalesId) : undefined
+  const presalesName = shortName(presales?.name ?? 'Pre-sales')
 
   const lead = leadId === null ? undefined : store.findLead(leadId)
   // The salesperson in the lead's locality team (falls back to Priya for areas without a team).
@@ -61,7 +66,16 @@ export function DemoGuide({ store, onSimulate, onOpenLead, onNavigate, notify, o
     notify(result.message, result.ok ? 'success' : 'warning')
   }
 
+  // "Remind me" in the demo: call back on the coming Thursday (a week today if today is Thursday).
+  const thursday = (4 - new Date().getDay() + 7) % 7 || 7
+
   const steps: Step[] = [
+    {
+      title: 'The Owner’s morning',
+      say: 'Arjun opens Bayana to his team’s day: overdue replies, who hasn’t checked in, visits and leave requests, each one tap away, with an AI digest of what needs attention.',
+      action: 'Show the team home',
+      run: () => { store.setViewer(OWNER_ID); onNavigate('today') },
+    },
     {
       title: 'A buyer enquires on 99acres',
       say: 'The enquiry lands in Bayana within seconds: routed to Pre-sales, an automatic WhatsApp reply goes out, and the portal’s “also sent to other brokers” warning shows.',
@@ -71,6 +85,7 @@ export function DemoGuide({ store, onSimulate, onOpenLead, onNavigate, notify, o
         const arrived = onSimulate('99acres')
         if (!arrived) { notify('Connect 99acres in Lead sources to run the guided demo'); return }
         setLeadId(arrived.id)
+        setPresalesId(arrived.ownerId)
         onOpenLead(arrived)
       },
     },
@@ -84,14 +99,26 @@ export function DemoGuide({ store, onSimulate, onOpenLead, onNavigate, notify, o
       run: () => { if (leadId) store.acceptSuggestions(leadId); open() },
     },
     {
+      title: `${presalesName}’s call queue`,
+      say: `Telecallers see a queue, not a dashboard: up next is the buyer to call, with Call now and Message. Telecallers see only their own leads, with phone numbers masked.`,
+      action: `View as ${presalesName}`,
+      run: () => { if (presalesId) store.setViewer(presalesId); onNavigate('today') },
+    },
+    {
       title: 'Pre-sales hands over to Sales',
-      say: `The qualified lead goes to ${agentName} in the ${lead?.locality ?? ''} team. ${agentName} gets a notification, and the hand-over is in the Owner’s audit log.`,
+      say: `Qualified: ${presalesName} taps Hand to Sales in the chat. The lead goes to ${agentName} in the ${lead?.locality ?? ''} team, who gets a notification; the hand-over is in the Owner’s audit log.`,
       action: `Hand to ${agentName}`,
-      run: () => { if (leadId && agent) store.reassignLead(leadId, agent.id, 'Qualified by Pre-sales'); open() },
+      run: () => {
+        if (!leadId || !agent) return
+        store.reassignLead(leadId, agent.id, 'Qualified by Pre-sales')
+        // Now it's the salesperson's lead: carry on as them.
+        store.setViewer(agent.id)
+        open()
+      },
     },
     {
       title: 'Share a match and book the visit',
-      say: `Matches come with reasons. ${property?.name ?? 'The best match'} is shared on WhatsApp and a visit is booked for today, confirmed to the buyer.`,
+      say: `Now on ${agentName}’s phone. Matches come with reasons: ${property?.name ?? 'the best match'} is shared on WhatsApp and a visit is booked for today, confirmed to the buyer.`,
       action: 'Share and book for 4:00 PM',
       run: () => {
         if (!leadId || !property || !agent || !lead) return
@@ -101,17 +128,22 @@ export function DemoGuide({ store, onSimulate, onOpenLead, onNavigate, notify, o
       },
     },
     {
-      title: `Switch to ${agentName}’s phone`,
-      say: `Field agents use Bayana on their phone. ${agentName}’s Visits screen shows today’s visit with Left office, Check in and Check out.`,
-      action: `View as ${agentName}`,
-      run: () => { if (agent) store.setViewer(agent.id); onNavigate('visits') },
+      title: 'A follow-up in four taps',
+      say: `Remind me → Call back → Thursday → Set reminder. It lands in ${agentName}’s Follow-ups under Coming up, with a Call button, and on the lead’s timeline.`,
+      action: 'Remind me: call back Thursday',
+      run: () => {
+        if (!leadId) return
+        store.addTask(leadId, { title: 'Call back', day: thursday, time: '11:00 AM', channel: 'Call' })
+        onNavigate('tasks')
+        notify(`Reminder set · ${dayLabel(thursday)} at 11:00 AM`)
+      },
     },
     {
       title: 'A check-in from the wrong place is refused',
-      say: 'Checking in 1.4 km from the property is refused, and the manager and Owner are told. Location is read once, at the tap: no tracking, no live map.',
+      say: `${agentName}’s Visits screen shows today’s visit with Left office, Check in and Check out. Checking in 1.4 km from the property is refused, and the manager and Owner are told. Location is read once, at the tap: no tracking, no live map.`,
       action: 'Check in from 1.4 km away',
       ready: !!visit,
-      run: () => checkIn('far'),
+      run: () => { onNavigate('visits'); checkIn('far') },
     },
     {
       title: 'A verified check-in at the property',
@@ -195,7 +227,7 @@ export function DemoGuide({ store, onSimulate, onOpenLead, onNavigate, notify, o
       <div className="demo-guide-progress" aria-hidden="true"><i style={{ width: `${(Math.min(index, steps.length) / steps.length) * 100}%` }} /></div>
       {finished ? <>
         <h2>That’s the full loop</h2>
-        <p>From a portal enquiry to a won deal and a moving leaderboard, with every step on the lead’s timeline. Reset demo data before the next client.</p>
+        <p>From the Owner’s morning and a portal enquiry, through the telecaller’s queue and the field visit, to a won deal and a moving leaderboard, with every step on the lead’s timeline. Reset demo data before the next client.</p>
         <footer><button className="btn btn-primary" onClick={onClose}>Finish</button></footer>
       </> : <>
         <h2>{step.title}</h2>
