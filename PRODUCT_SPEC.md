@@ -135,8 +135,8 @@ Toasts confirm actions at the top of the screen for 2.6 s, with a tick; refusals
 - Empty state when everything is done ✅.
 
 ### 3.6 Calls & recordings
-- Stats: calls this week 18 🧱, answer rate 72% 🧱, recorded count ✅.
-- Recording list: play/pause toggle (visual only 🎭, moving playhead), waveform, duration, note. Calls saved in the demo get the note "Saved from the call screen" and are logged on the lead's timeline ("Call recorded (m:ss)"). There is no AI call summary: it depends on call recordings, which need a telephony provider (see §8.15). Search by buyer ✅. Tapping a person opens the chat.
+- Stats: calls this week 18 🧱, answer rate 72% 🧱, recorded count ✅. The first two are demo numbers; in the product they come from the telephony provider's call logs (§8.15).
+- Recording list: play/pause toggle (visual only 🎭, moving playhead; in the product it plays the recording file the provider stores, §8.15), waveform, duration, note. Calls saved in the demo get the note "Saved from the call screen" and are logged on the lead's timeline ("Call recorded (m:ss)"). There is no AI call summary: it depends on call recordings, which need a telephony provider (see §8.15). Search by buyer ✅. Tapping a person opens the chat.
 - **New call** opens the lead picker ✅ (search by name, area or budget; a bottom sheet on phones) and then the call screen.
 - **Call screen** 🎭: "Calling…" (button reads **Cancel**; Escape also cancels while dialling, but never during or after a call) → connected after 1.2 s, live timer ✅, REC badge, Mute / Speaker / Record toggles. **End call** shows the duration and recording status, then **Save recording** adds it to the top of the list ("Just now") and shows a toast ✅ (saved locally). If recording was turned off, **Done** closes without saving. Full screen on phones.
 - Copy: "Secure internet call", "Your personal number stays private", and a consent reminder about recording.
@@ -513,6 +513,7 @@ Everything here is **UI only**: each item is a screen or flow driven by seed dat
   - **Activation** is typically 1–3 business days after KYC (Exotel asks customers to escalate after 24 working hours).
   - In-browser (VoIP) calling needs extra paperwork and per-city KYC, so start with the phone bridge.
   - Promotional cold calls must use the 140 series; recording needs disclosure under the DPDP Act. Confirm with the provider and a lawyer.
+  - **The Calls screen is provider-backed.** Call history, stats (calls, talk time, answer rate) and recordings come from the provider's call logs and recording files, through its API and webhooks. Calls made outside Bayana's Call button, such as a buyer calling back the virtual number, still land on the lead's timeline. In the demo all of this is simulated (§3.6).
   - **Decision for later:** Bayana holds one telephony account for all customers (Bayana does their KYC) or each brokerage connects its own account (simpler to start).
 - **WhatsApp:** WhatsApp Business API through a provider; Meta business verification; templates must be approved before use.
 - **AI:** LLM costs are per message; buyer data falls under the DPDP Act.
@@ -788,6 +789,7 @@ Developers pay CP brokerage late, and only after the buyer has paid a set share 
 
 ## 9. Changelog
 Newest first. One line per change: date, what changed, which section was updated.
+- **2026-10-20:** Calls: stated that the call stats and recording playback are demo data until a telephony provider is connected (§3.6), and that the Calls screen is provider-backed (§8.15).
 - **2026-10-20:** Removed the "Online on WhatsApp" / "Last seen" status from the chat header, which WhatsApp's API doesn't provide; it now shows "Last message <time> ago". Removed the AI call summary (demo text) from saved calls, the Calls screen and the landing page; calls save a plain note. Added **Export chat** UI (owner only, §3.2; nothing is downloaded, the export is audited). Recorded the property location pins as a TODO (§8.18) and the inbox online dot as a TODO (§7).
 - **2026-10-20:** Removed the portal "shared lead" feature: the "shared with ~N brokers" figure on portal sources and leads, the "Also with N brokers" row flag, the lead-panel "Also sent to ~N brokers" warning, the arrival-banner line, and its AI score reason. Portal leads now carry no shared count (we have no source for it). Reworded the problem statement (§1), the guided demo's step 2 and the demo script. Saved-data prefix bumped to `daira:v12:`. Updated §1, §2, §3.1, §3.2, §3.11, §4, §5, §6, §8.5.
 - **2026-10-20:** M14 phase E: guided demo **Bonus: money developers owe you** on the finish card (Owner → Brokerage on Overdue → Rajiv Menezes → gentle reminder with the scripted reply); Brokerage can open on a booking; `DEMO_SCRIPT.md` gains the bonus, sending a launch, registrations and pasting a group message. M14 is complete. Updated §3.16, §8.17.
