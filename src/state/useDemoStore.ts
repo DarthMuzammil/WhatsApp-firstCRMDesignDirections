@@ -13,7 +13,7 @@ import { MAX_ACCURACY_M, OFFICES, SEED_VISITS, formatDistance, slotMinutes, type
 import { DOC_LABELS, OFFER_BY_LABELS, SEED_DEALS, type Closure, type Deal } from '../data/deals'
 import { SEED_PROPERTIES, matchesForLead, priceLabel, type Property } from '../data/inventory'
 import { DEFAULT_AUTO_REPLY, SERVICE_WINDOW_MINUTES } from '../data/templates'
-import { callSummary } from '../lib/ai'
+import { callSummary, maskNumbersInText } from '../lib/ai'
 import { clockLabel, dayLabel, formatDuration, maskPhone, minutesOfDay } from '../lib/format'
 import { distanceM, type PretendLocation, type Reading } from '../lib/location'
 import { can, canSeeLead, type Permission } from '../lib/permissions'
@@ -563,6 +563,16 @@ export function useDemoStore() {
       const has = (tags[leadId] ?? []).includes(tag)
       setTags((current) => ({ ...current, [leadId]: has ? (current[leadId] ?? []).filter((item) => item !== tag) : [...(current[leadId] ?? []), tag] }))
       log(leadId, 'tag', has ? `Tag removed: ${tag}` : `Tagged ${tag}`)
+    },
+    /**
+     * M14 (spec §8.17.4): a lead captured from a message forwarded out of a brokers' WhatsApp group. The original
+     * message becomes a team note with numbers masked; a broker's own number marks the lead Co-broking.
+     */
+    captureFromGroup: (leadId: number, capture: { group: string; text: string; coBroking: boolean }) => {
+      const id = nextId()
+      setNotes((current) => ({ ...current, [leadId]: [{ id, text: `Forwarded from ${capture.group}: ${maskNumbersInText(capture.text)}`, byId: viewer.id, at: 'Just now' }, ...(current[leadId] ?? [])] }))
+      if (capture.coBroking) setTags((current) => ({ ...current, [leadId]: [...(current[leadId] ?? []).filter((tag) => tag !== 'Co-broking'), 'Co-broking'] }))
+      log(leadId, 'enquiry', `Captured from WhatsApp group ${capture.group}${capture.coBroking ? ' · co-broking' : ''}`)
     },
     /** Duplicate found on capture: keep the existing lead and record the new enquiry on it. */
     mergeEnquiry: (leadId: number, summary: string) => {

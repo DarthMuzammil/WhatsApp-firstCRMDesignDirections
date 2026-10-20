@@ -56,3 +56,85 @@ export function weeklyDigest(input: {
   return lines.filter(Boolean)
 }
 
+
+// ---------- M14 · WhatsApp group lead capture (spec §8.17.4) ----------
+/** What `parseGroupMessage` found. Every field is a suggestion the person confirms or edits. */
+export type GroupMessageReading = {
+  /** 10-digit mobile number. */
+  phone?: string
+  name?: string
+  /** "3 BHK", "4 BHK villa", "Villa". */
+  kind?: string
+  localities: string[]
+  budget?: string
+  budgetCr?: number
+  mustHaves: string[]
+  /** The number belongs to the broker who posted it, not the buyer. */
+  numberIsBroker: boolean
+  /** Broker's firm, e.g. "MG Estates". */
+  brokerFirm?: string
+  /** Reads like a property for sale, not a buyer's requirement. */
+  looksLikeListing: boolean
+}
+
+const AREA_ALIASES: [RegExp, string][] = [
+  [/\bindira\s?nagar\b/i, 'Indiranagar'], [/\bwhitefield\b/i, 'Whitefield'], [/\bWF\b/, 'Whitefield'], [/\bhsr(\s?layout)?\b/i, 'HSR Layout'], [/\bkoramangala\b|\bkora\b/i, 'Koramangala'],
+]
+const MUST_HAVES: [RegExp, string][] = [
+  [/\bOC received\b/i, 'OC received'], [/\bloan pre-?approved\b/i, 'Loan pre-approved'], [/\bnear metro\b/i, 'Near metro'], [/\beast facing\b/i, 'East facing'],
+  [/\bNRI\b/, 'NRI buyer'], [/\bgated\b/i, 'Gated community'], [/\bready to move\b/i, 'Ready to move'],
+]
+
+/**
+ * Reads a requirement forwarded from a brokers' WhatsApp group (🎭: rules, not a model). Finds the mobile number
+ * (+91, a leading 0 and spaces allowed), the name after "Client:", "Contact" or "Call", BHK or villa, localities
+ * (including "HSR", "Kora", "WF"), the budget ("1.8–2.1 Cr", "90 L") and must-haves. A number posted by a broker
+ * ("brokers call", "Properties", "Estates") is flagged, and so is text that reads like a listing.
+ */
+export function parseGroupMessage(text: string): GroupMessageReading {
+  const phoneMatch = text.match(/(?:\+?91[\s-]?|\b0)?([6-9]\d{4})[\s-]?(\d{5})\b/)
+  const phone = phoneMatch ? phoneMatch[1] + phoneMatch[2] : undefined
+  // The name sits right before the number: "Client: Arnav Sethi 98451…", "Contact Farhan 97390…", "call Manjunath 99000…".
+  const nameMatch = text.match(/\b(?:client|contact|call)\b:?\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\s+(?:\+?91[\s-]?|0)?[6-9]\d{4}/)
+    ?? text.match(/\b(?:Client|Contact|Call)\b:?\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\s+(?:\+?91[\s-]?|0)?[6-9]\d{4}/i)
+  const name = nameMatch?.[1]
+  const bhk = text.match(/\b(\d)\s?BHK\b/i)
+  const villa = /\bvilla\b/i.test(text)
+  const kind = bhk ? `${bhk[1]} BHK${villa ? ' villa' : ''}` : villa ? 'Villa' : undefined
+  const localities: string[] = []
+  // Areas in the order the message mentions them.
+  const found = AREA_ALIASES.map(([pattern, area]) => ({ area, at: text.search(pattern) })).filter((item) => item.at >= 0).sort((a, b) => a.at - b.at)
+  for (const { area } of found) if (!localities.includes(area)) localities.push(area)
+  const range = text.match(/(\d+(?:\.\d+)?)\s?(?:[-–]|to)\s?(\d+(?:\.\d+)?)\s?(Cr|crore|L|lakh)\b/i)
+  const single = text.match(/(?:budget|₹)\s?(\d+(?:\.\d+)?)\s?(Cr|crore|L|lakh)\b/i) ?? text.match(/\b(\d+(?:\.\d+)?)\s?(Cr|L)\b/)
+  let budget: string | undefined
+  let budgetCr: number | undefined
+  const toCr = (value: number, unit: string) => (/^l/i.test(unit) ? value / 100 : value)
+  const trim = (value: number) => String(Number(value.toFixed(2)))
+  if (range) {
+    const low = toCr(Number(range[1]), range[3]); const high = toCr(Number(range[2]), range[3])
+    budget = `₹${trim(low)}–${trim(high)} Cr`; budgetCr = (low + high) / 2
+  } else if (single) {
+    const value = toCr(Number(single[1]), single[2])
+    budget = `₹${trim(value)} Cr`; budgetCr = value
+  }
+  const mustHaves = MUST_HAVES.filter(([pattern]) => pattern.test(text)).map(([, label]) => label)
+  const firm = text.match(/\(([^)]*(?:Estates|Properties|Realty|Realtors)[^)]*)\)/i)?.[1]
+  const numberIsBroker = /\bbrokers?\b[^.]*\bcall\b|\bproperties\b|\bestates\b/i.test(text)
+  const looksLikeListing = /\b(available|resale|for sale)\b/i.test(text)
+  return { phone, name, kind, localities, budget, budgetCr, mustHaves, numberIsBroker, brokerFirm: firm, looksLikeListing }
+}
+
+/** "98451 62730" style numbers in a pasted message, masked for the team note. */
+export function maskNumbersInText(text: string): string {
+  return text.replace(/(?:\+?91[\s-]?|\b0)?([6-9]\d)(\d{2})(\d)[\s-]?(\d{2})(\d{3})\b/g, (_, a) => `${a}XXX XX${_.replace(/\D/g, '').slice(-3)}`)
+}
+
+/** The four sample forwards offered in paste mode. */
+export const GROUP_MESSAGE_SAMPLES = [
+  '*URGENT requirement* 3 BHK in HSR / Koramangala, budget 1.8–2.1 Cr, OC received only. Client: Arnav Sethi 98451 62730. Loan pre-approved.',
+  'Need 2 BHK Indiranagar near metro, 1.5–1.7 Cr. Contact Farhan 97390 22814',
+  'Client requirement: 4 BHK villa Whitefield, 3.5–4 Cr, NRI visiting next week. Brokers with options call Manjunath 99000 81234 (MG Estates)',
+  'Resale available: 2 BHK Indiranagar, 1,150 sq ft, ₹1.65 Cr, east facing. Call 98860 44120',
+]
+export const BROKER_GROUPS = ['HSR Brokers Network', 'Whitefield Property Connect', 'Bengaluru Realty Partners', 'Other']

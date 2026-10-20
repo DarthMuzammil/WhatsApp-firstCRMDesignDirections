@@ -49,7 +49,7 @@ export function LeadSourcesView({ store, onSimulate }: { store: DemoStore; onSim
               <small>{source.kind}{source.sharedWith ? ` · shared with ~${source.sharedWith} brokers` : ''}</small>
             </span>
             <span className={`source-status ${setting.connected ? 'on' : ''}`}>
-              <i className="status-dot" /> {setting.connected ? (source.kind === 'Offline' ? 'Manual entry' : 'Connected') : 'Not connected'}
+              <i className="status-dot" /> {setting.connected ? (source.manual ?? (source.kind === 'Offline' ? 'Manual entry' : 'Connected')) : 'Not connected'}
             </span>
             <span className="source-stat"><strong>{source.leadsThisWeek}</strong><small>leads this week</small></span>
             <span className="source-stat"><strong>{source.avgResponseMin ? `${source.avgResponseMin} min` : '—'}</strong><small>first reply</small></span>
@@ -66,7 +66,7 @@ export function LeadSourcesView({ store, onSimulate }: { store: DemoStore; onSim
               </select>
             </label>
             <span className="source-actions">
-              {canEdit && source.kind !== 'Offline' && (
+              {canEdit && source.kind !== 'Offline' && !source.manual && (
                 <button className="btn btn-secondary" onClick={() => store.updateSource(source.name, { connected: !setting.connected })}>{setting.connected ? 'Disconnect' : 'Connect'}</button>
               )}
               {source.canSimulate && <button className="btn btn-soft" disabled={!setting.connected} onClick={() => onSimulate(source.name)}><Icon name="bolt" size={16} /> Simulate</button>}

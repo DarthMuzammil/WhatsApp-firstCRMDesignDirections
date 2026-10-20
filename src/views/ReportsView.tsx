@@ -232,7 +232,7 @@ function Insights({ store, statsFor, onOpenLead, presales }: InsightsProps) {
   const sources = LEAD_SOURCES.map((source) => {
     const leads = source.leadsThisWeek * 4
     const spend = leads * store.sourceSettings[source.name].costPerLead
-    const funnel = SOURCE_FUNNEL[source.name]
+    const funnel = SOURCE_FUNNEL[source.name] ?? { visits: 0, deals: 0 }
     return { source, leads, spend, ...funnel, costPerDeal: funnel.deals > 0 ? spend / funnel.deals : 0 }
   })
   const stuck = store.leads.filter((lead) => (DAYS_IN_STAGE[lead.id] ?? 0) > STUCK_AFTER_DAYS).sort((a, b) => (DAYS_IN_STAGE[b.id] ?? 0) - (DAYS_IN_STAGE[a.id] ?? 0))

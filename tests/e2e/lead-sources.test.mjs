@@ -9,9 +9,9 @@ await p.goto(BASE_URL); await p.evaluate(() => localStorage.clear()); await p.re
 const nav = (l) => p.click(`.sidebar-nav button:has-text("${l}")`)
 const menu = async (item) => { await p.click('.sidebar-user .account-menu-trigger'); await p.click(`.account-menu-popover button:has-text("${item}")`); await p.waitForTimeout(300) }
 await nav('Lead sources')
-ok(await p.locator('.source-row').count() === 8, '8 sources listed')
+ok(await p.locator('.source-row').count() === 9, '9 sources listed (incl. Broker groups)')
 const stat = (i) => p.locator('.stat-strip > div strong').nth(i).innerText()
-ok(await stat(0) === '168' && await stat(1) === '₹43,170' && await stat(2) === '₹257', `totals: 168 leads, ₹43,170 spend, ₹257 blended (got ${await stat(0)}, ${await stat(1)}, ${await stat(2)})`)
+ok(await stat(0) === '175' && await stat(1) === '₹43,170' && await stat(2) === '₹247', `totals: 175 leads (incl. 7 from broker groups), ₹43,170 spend, ₹247 blended (got ${await stat(0)}, ${await stat(1)}, ${await stat(2)})`)
 await p.fill('.source-row:has-text("99acres") .source-input input', '500'); await p.waitForTimeout(100)
 ok(await stat(1) === '₹45,070', 'editing 99acres cost to ₹500 updates spend to ₹45,070')
 await p.screenshot({ path: `${SHOTS}/m3-sources.png` })

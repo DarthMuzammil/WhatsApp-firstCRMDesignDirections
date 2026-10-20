@@ -3,6 +3,8 @@ import type { Lead } from './data/demo'
 import { MobileTabBar, MobileTopBar, Sidebar } from './components/AppNavigation'
 import { navItemsFor, type View } from './components/navigation'
 import { DemoGuide } from './components/DemoGuide'
+import { ForwardShareSheet } from './components/ForwardShareSheet'
+import { GROUP_MESSAGE_SAMPLES } from './lib/ai'
 import { IncomingLeadBanner, type Arrival } from './components/IncomingLeadBanner'
 import { Toast, useToast } from './components/Toast'
 import { AddLeadModal } from './modals/AddLeadModal'
@@ -42,6 +44,9 @@ export default function App() {
   // Screen the chat was opened from: Back returns here and the nav keeps it highlighted.
   const [chatOrigin, setChatOrigin] = useState<Exclude<View, 'chat'>>('today')
   const [addLeadOpen, setAddLeadOpen] = useState(false)
+  // M14: Add lead opened from the phone share sheet starts in paste mode with the forwarded message.
+  const [addLeadPaste, setAddLeadPaste] = useState<string | null>(null)
+  const [forwardOpen, setForwardOpen] = useState(false)
   const [callPickerOpen, setCallPickerOpen] = useState(false)
   const [callingLeadId, setCallingLeadId] = useState<number | null>(null)
   const [arrival, setArrival] = useState<Arrival | null>(null)
@@ -93,8 +98,8 @@ export default function App() {
   // Phones show an open chat full screen, like WhatsApp: no top bar or tab bar (Back returns).
   return (
     <div className={`app ${view === 'chat' ? 'is-chat' : ''}`}>
-      <Sidebar store={store} view={navView} onNavigate={navigate} onAddLead={() => setAddLeadOpen(true)} onSimulateLead={simulateLead} onStartDemo={() => setDemoOpen(true)} onOpenLead={showLead} />
-      <MobileTopBar store={store} onNavigate={navigate} onAddLead={() => setAddLeadOpen(true)} onSimulateLead={simulateLead} onStartDemo={() => setDemoOpen(true)} onOpenLead={showLead} />
+      <Sidebar store={store} view={navView} onNavigate={navigate} onAddLead={() => setAddLeadOpen(true)} onSimulateLead={simulateLead} onSimulateForward={() => setForwardOpen(true)} onStartDemo={() => setDemoOpen(true)} onOpenLead={showLead} />
+      <MobileTopBar store={store} onNavigate={navigate} onAddLead={() => setAddLeadOpen(true)} onSimulateLead={simulateLead} onSimulateForward={() => setForwardOpen(true)} onStartDemo={() => setDemoOpen(true)} onOpenLead={showLead} />
 
       <main className="app-main" ref={mainRef}>
         {view === 'today' && <TodayView store={store} onOpenLead={showLead} onNavigate={navigate} onCall={startCall} notify={notify} />}
@@ -126,7 +131,8 @@ export default function App() {
         />
       )}
 
-      {addLeadOpen && <AddLeadModal store={store} onClose={() => setAddLeadOpen(false)} onOpenLead={showLead} />}
+      {addLeadOpen && <AddLeadModal store={store} onClose={() => { setAddLeadOpen(false); setAddLeadPaste(null) }} onOpenLead={showLead} initialMode={addLeadPaste ? 'paste' : 'type'} initialText={addLeadPaste ?? ''} />}
+      {forwardOpen && <ForwardShareSheet message={GROUP_MESSAGE_SAMPLES[0]} onClose={() => setForwardOpen(false)} onShareToApp={() => { setForwardOpen(false); setAddLeadPaste(GROUP_MESSAGE_SAMPLES[0]); setAddLeadOpen(true) }} />}
       {callPickerOpen && <CallPicker leads={store.leads} onClose={() => setCallPickerOpen(false)} onChoose={startCall} />}
       {callingLead && (
         <CallModal

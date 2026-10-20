@@ -22,7 +22,7 @@ for (const [tag, w, h] of [['desk', 1440, 900], ['tab', 900, 1000], ['mob', 390,
     ok(!r.small.length && !r.taps.length && !r.over.length && !r.hscroll, `${tag} ${name}: layout clean${r.small.length || r.taps.length || r.over.length || r.hscroll ? ' ' + JSON.stringify(r) : ''}`)
     await p.screenshot({ path: `${SHOTS}/m1-${tag}-${name}.png` })
   }
-  for (const v of ['Visits', 'Attendance', 'Performance', 'Escalations', 'Lead sources', 'Team', 'Settings']) { await go(v); await audit(v.toLowerCase()) }
+  for (const v of ['Visits', 'Attendance', 'Performance', 'Escalations', 'Lead sources', 'Team', 'Settings', 'New launches']) { await go(v); await audit(v.toLowerCase()) }
   await go('Escalations'); await p.click('.escalation .btn >> nth=0'); await p.waitForTimeout(500); await audit('assign')
   await p.keyboard.press('Escape')
   await go('Brokerage'); await audit('brokerage')

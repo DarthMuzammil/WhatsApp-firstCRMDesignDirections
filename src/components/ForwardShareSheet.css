@@ -1,0 +1,11 @@
+.forward-sheet { padding: var(--space-5); gap: var(--space-4); }
+.forward-message { padding: var(--space-3); border-radius: var(--radius-md); display: flex; gap: var(--space-2); color: var(--ink-soft); background: var(--surface); font-size: var(--fs-caption); line-height: 1.5; }
+.forward-message svg { flex: 0 0 auto; margin-top: 2px; color: var(--success); }
+.forward-title { font-size: var(--fs-body); }
+.forward-targets { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-2); }
+.forward-targets button { min-height: 88px; border: 0; border-radius: var(--radius-md); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-2); color: var(--ink-soft); background: transparent; font-size: var(--fs-caption); font-weight: 700; }
+.forward-targets button > span { width: 52px; height: 52px; border-radius: var(--radius-lg); display: grid; place-items: center; color: var(--ink-soft); background: var(--surface-sunken); }
+.forward-targets button.is-app > span { color: var(--mint); background: var(--navy); }
+@media (hover: hover) {
+  .forward-targets button:hover { background: var(--surface-sunken); }
+}

@@ -17,6 +17,8 @@ export type LeadSource = {
   sharedWith?: number
   /** Can the demo simulate a lead arriving from here? (Referrals and walk-ins are entered by hand.) */
   canSimulate: boolean
+  /** Status for sources captured by hand rather than connected ("Manual capture"). */
+  manual?: string
 }
 
 export const LEAD_SOURCES: LeadSource[] = [
@@ -28,6 +30,8 @@ export const LEAD_SOURCES: LeadSource[] = [
   { name: 'Walk-in', kind: 'Offline', leadsThisWeek: 6, avgResponseMin: 0, defaultCostPerLead: 0, defaultTeamId: 'indiranagar', canSimulate: false },
   { name: 'Referral', kind: 'Offline', leadsThisWeek: 9, avgResponseMin: 0, defaultCostPerLead: 0, defaultTeamId: 'whitefield', canSimulate: false },
   { name: 'Quick capture', kind: 'Offline', leadsThisWeek: 4, avgResponseMin: 0, defaultCostPerLead: 0, defaultTeamId: 'indiranagar', canSimulate: false },
+  // M14: requirements forwarded from brokers' WhatsApp groups and pasted into Add lead (spec §8.17.4).
+  { name: 'Broker groups', kind: 'Messaging', leadsThisWeek: 7, avgResponseMin: 0, defaultCostPerLead: 0, defaultTeamId: 'hsr', canSimulate: false, manual: 'Manual capture' },
 ]
 
 /** Buyers used, in turn, when the demo simulates an incoming lead. */

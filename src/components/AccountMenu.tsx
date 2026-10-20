@@ -17,12 +17,14 @@ type AccountMenuProps = {
   onViewAs: (memberId: string) => void
   /** Demo: make a new enquiry arrive from a connected source. */
   onSimulateLead: () => void
+  /** Demo (M14): a requirement forwarded from a broker group is shared to Bayana from the phone. */
+  onSimulateForward: () => void
   onStartDemo: () => void
   onReset: () => void
 }
 
 /** Popover with the demo "View as" switcher and Reset demo data (with confirmation). */
-export function AccountMenu({ trigger, label, placement, viewer, personas, onViewAs, onSimulateLead, onStartDemo, onReset }: AccountMenuProps) {
+export function AccountMenu({ trigger, label, placement, viewer, personas, onViewAs, onSimulateLead, onSimulateForward, onStartDemo, onReset }: AccountMenuProps) {
   const [open, setOpen] = useState(false)
   const [confirming, setConfirming] = useState(false)
   // Escape closes the menu (the reset confirmation, a Dialog, handles its own Escape).
@@ -51,6 +53,10 @@ export function AccountMenu({ trigger, label, placement, viewer, personas, onVie
           <button role="menuitem" onClick={() => { setOpen(false); onSimulateLead() }}>
             <span className="account-menu-icon"><Icon name="bolt" size={16} /></span>
             <span><strong>Simulate incoming lead</strong><small>A new enquiry arrives and is routed</small></span>
+          </button>
+          <button role="menuitem" onClick={() => { setOpen(false); onSimulateForward() }}>
+            <span className="account-menu-icon"><Icon name="whatsapp" size={16} /></span>
+            <span><strong>Simulate a forwarded group message</strong><small>Share a broker group’s requirement to Bayana</small></span>
           </button>
           <button role="menuitem" onClick={() => { setOpen(false); setConfirming(true) }}>
             <span className="account-menu-icon"><Icon name="refresh" size={16} /></span>

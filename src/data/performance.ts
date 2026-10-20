@@ -82,6 +82,7 @@ export const SOURCE_FUNNEL: Record<string, { visits: number; deals: number }> = 
   'Walk-in': { visits: 15, deals: 3 },
   Referral: { visits: 26, deals: 6 },
   'Quick capture': { visits: 6, deals: 1 },
+  'Broker groups': { visits: 9, deals: 1 },
 }
 
 /** Days each seeded lead has been in its current stage, for the "stuck leads" list. */
