@@ -1,0 +1,78 @@
+import { chromium } from 'playwright-core'
+import { BASE_URL, SHOTS } from './helpers.mjs'
+const b = await chromium.launch()
+const ok = (c, m) => console.log(c ? 'PASS' : 'FAIL', m)
+const errs = []
+let p = await b.newPage({ viewport: { width: 1440, height: 900 } })
+p.on('pageerror', e => errs.push(e.message)); p.on('console', m => m.type() === 'error' && errs.push(m.text()))
+await p.goto(BASE_URL); await p.evaluate(() => localStorage.clear()); await p.reload(); await p.waitForTimeout(800)
+const rows = () => p.locator('.lead-row').count()
+const nav = async (label) => p.click(`.sidebar-nav button:has-text("${label}")`)
+const viewAs = async (name) => { await p.click('.sidebar-user .account-menu-trigger'); await p.click(`.account-menu-popover button:has-text("${name}")`); await p.waitForTimeout(300) }
+// Owner
+ok(await rows() === 12, `owner sees all 12 leads (got ${await rows()})`)
+ok((await p.locator('h1').innerText()) === 'Your team today', 'owner title is "Your team today"')
+ok(await p.locator('.sidebar-group-label').count() === 1 && await p.locator('.sidebar-nav button:has-text("Settings")').count() === 1, 'owner sees Manage group incl. Settings')
+ok((await p.locator('.sidebar-nav button:has-text("Escalations") .count-badge').innerText()) === '5', 'escalations badge = 5 (2 unassigned + 3 overdue)')
+ok(await p.locator('.lead-row:has-text("Farhan") .lead-flag.warning').count() === 1, 'unassigned flag on Farhan')
+ok(await p.locator('.lead-row:has-text("Deepak") .lead-flag.danger').count() === 1, 'overdue flag on Deepak')
+ok((await p.locator('.lead-row:has-text("Ananya") .lead-owner').innerText()) === 'Priya N.', 'owner label "Priya N." on Ananya')
+// Escalations: assign Farhan
+await nav('Escalations'); await p.click('.escalation:has-text("Farhan") .btn')
+await p.click('.assign-list button:has-text("Aditya Rao")'); await p.click('.assign-confirm'); await p.waitForTimeout(300)
+ok((await p.locator('.sidebar-nav button:has-text("Escalations") .count-badge').innerText()) === '4', 'assigning Farhan drops escalations to 4')
+// Lead details: owner card + history + full phone for owner
+await p.click('.sidebar-nav button:has-text("Today")'); await p.click('.lead-row:has-text("Farhan")')
+ok((await p.locator('.lead-detail .lead-owner-card strong').innerText()) === 'Aditya Rao', 'Farhan now owned by Aditya')
+ok(await p.locator('.lead-detail .owner-history li').count() === 1, 'assignment history shows 1 entry')
+ok((await p.locator('.lead-detail .buyer-brief div:has-text("Phone") strong').innerText()).includes('97390 22814'), 'owner sees full phone number')
+// Team: deactivate Aditya -> leads move to Divya
+await nav('Team'); await p.click('.team-member:has-text("Aditya Rao") .btn:has-text("Deactivate")')
+await p.click('.assign-list button:has-text("Divya Iyer")'); await p.click('.assign-confirm'); await p.waitForTimeout(300)
+ok(await p.locator('.team-member:has-text("Aditya Rao") .member-status').innerText() === 'Deactivated', 'Aditya deactivated')
+ok((await p.locator('.team-member:has-text("Divya Iyer") .team-member-leads strong').innerText()) === '2', 'Divya received Aditya\'s 2 leads')
+// Manager Neha
+await viewAs('Neha Kapoor')
+ok(await p.locator('.sidebar-nav button:has-text("Settings")').count() === 0 && await p.locator('.sidebar-nav button:has-text("Team")').count() === 1, 'manager: Team yes, Settings no')
+await nav('Today'); ok(await rows() === 5, `manager sees Indiranagar team + unassigned = 5 (got ${await rows()})`)
+// Sales Priya
+await viewAs('Priya Nair')
+ok(await p.locator('.sidebar-group-label').count() === 0, 'sales: no Manage group')
+ok(await rows() === 2, `sales sees only own 2 leads (got ${await rows()})`)
+ok((await p.locator('h1').innerText()) === 'Your day, at a glance', 'sales title is personal')
+await p.click('.lead-row:has-text("Ananya")')
+ok((await p.locator('.lead-detail .buyer-brief div:has-text("Phone") strong').innerText()) === '+91 98XXX XX018', 'sales sees masked phone')
+ok(await p.locator('.lead-detail .lead-owner-card .btn').count() === 0, 'sales cannot reassign')
+// Pre-sales Kiran: hand off Sana
+await viewAs('Kiran Patel'); await p.waitForTimeout(300)
+ok(await rows() === 2, `pre-sales sees own 2 leads (got ${await rows()})`)
+await p.click('.lead-row:has-text("Sana")'); await p.click('.lead-detail .lead-owner-card .btn:has-text("Hand to Sales")')
+await p.click('.assign-list button:has-text("Sneha Pillai")'); await p.click('.assign-confirm'); await p.waitForTimeout(400)
+ok(await p.locator('.chat-layout').count() === 0 && await rows() === 1, 'after hand-off Sana leaves Kiran\'s view and chat closes')
+// Owner toggles separate pre-sales off -> Kiran has no hand-off button
+await viewAs('Arjun Khanna'); await nav('Settings'); await p.click('button.setting-row:has-text("Separate pre-sales")'); await p.waitForTimeout(200)
+ok(await p.locator('button.setting-row:has-text("Separate pre-sales")').getAttribute('aria-checked') === 'false', 'separate pre-sales switched off')
+await viewAs('Kiran Patel'); await p.click('.lead-row:has-text("Pooja")')
+ok(await p.locator('.lead-owner-card .btn').count() === 0, 'no Hand to Sales when pre-sales is off')
+// Switching role while on Settings falls back
+await viewAs('Arjun Khanna'); await nav('Settings'); await viewAs('Priya Nair')
+ok(await p.locator('.today-view').count() === 1, 'non-owner on Settings falls back to Today')
+await p.screenshot({ path: `${SHOTS}/m1-sales.png` })
+await viewAs('Arjun Khanna'); await nav('Team'); await p.screenshot({ path: `${SHOTS}/m1-team.png`, fullPage: false })
+await nav('Escalations'); await p.screenshot({ path: `${SHOTS}/m1-escalations.png` })
+await nav('Settings'); await p.screenshot({ path: `${SHOTS}/m1-settings.png` })
+await p.click('.sidebar-user .account-menu-trigger'); await p.screenshot({ path: `${SHOTS}/m1-viewas.png` })
+await p.close()
+// Phone: More sheet
+p = await b.newPage({ viewport: { width: 390, height: 844 } })
+p.on('pageerror', e => errs.push(e.message))
+await p.goto(BASE_URL); await p.evaluate(() => localStorage.clear()); await p.reload(); await p.waitForTimeout(800)
+await p.click('.mobile-tab-bar button:has-text("More")'); await p.waitForTimeout(500)
+const items = await p.locator('.more-sheet button').allInnerTexts()
+ok(items.length === 9, `phone More sheet has Properties, Calls, Attendance, Performance, Escalations, Lead sources, Team, Settings, Audit log (${items.map(t => t.split('\n')[0]).join(', ')})`)
+await p.screenshot({ path: `${SHOTS}/m1-mob-more.png` })
+await p.click('.more-sheet button:has-text("Escalations")'); await p.waitForTimeout(300); await p.screenshot({ path: `${SHOTS}/m1-mob-escalations.png`, fullPage: true })
+await p.click('.mobile-tab-bar button:has-text("Inbox")'); await p.click('.lead-row:has-text("Ananya")'); await p.click('.chat-details-button'); await p.waitForTimeout(600)
+await p.screenshot({ path: `${SHOTS}/m1-mob-details.png` })
+console.log('errors:', errs.length ? errs : 'none')
+await b.close()

@@ -30,6 +30,7 @@ Daira is a clickable client-demo prototype of a WhatsApp-first CRM for independe
 - `src/lib/` - Small helpers: `ai.ts` (demo AI text; outputs are suggestions people confirm, never auto-sent), `location.ts` (one-off location readings and distance; never add background tracking), `permissions.ts` (role → permissions, `canSeeLead`), `storage.ts` (localStorage hook, key prefix `daira:v6:`), `format.ts` (dates, money, durations, `maskPhone`), `csv.ts`, `useEscapeKey.ts`.
 - `src/components/` - Shared UI: `DemoGuide` (the guided demo: one store action per step; keep it working when you change a flow it drives), `AppNavigation` (desktop sidebar, phone top bar and tab bar), `navigation.ts` (nav items and the `View` type), `Dialog` (the one modal/sheet/full-screen shell), `Avatar`, `HeatBadge`, `LeadActions`, `LeadRow`, `LeadTimeline`, `LeadNotes`, `LeadTags`, `IncomingLeadBanner`, `LocationControl`, `BarList`, `PropertyCard`, `AccountMenu` (reset demo data, with confirmation), `NotificationBell`, `Toast`, `Icon` (inline SVG icon set).
 - `src/views/` - One file per screen: `TodayView`, `ChatView` (chat + lead detail panel), `PipelineView`, `PropertiesView`, `FollowUpsView`, `CallsView`, `VisitsView`, `AttendanceView`, `ReportsView`, `EscalationsView`, `LeadSourcesView`, `TeamView`, `SettingsView`, `AuditView`.
+- `tests/e2e/` - End-to-end checks (headless Chromium, one `*.test.mjs` per area) and `run.mjs`, run with `pnpm test:e2e`.
 - `src/modals/` - `AddLeadModal`, `EditLeadDialog`, `ScheduleVisitDialog`, `TemplateDialog`, `AssignDialog` (shared people picker), `DealDialog` (offer + split, `LostDialog`), `PropertyDialog`, `ShareDialog` (share listings on WhatsApp), `CallPicker`, `CallModal`.
 
 ## Deployment
@@ -57,13 +58,14 @@ Every push to `main` publishes the demo to GitHub Pages (https://darthmuzammil.g
 - `Avatar` renders a `<span class="avatar">`. Layout selectors like `.parent > span` must use `span:not(.avatar)` or they will stretch the avatar.
 - When a stored data shape changes, bump the `daira:v6:` prefix in `src/lib/storage.ts` so old saved data is ignored.
 - **Roles and visibility:** never filter leads or hide features by checking a role name. Use `store.viewerCan(permission)` and the already-filtered `store.leads` / `store.tasks` / `store.recordings`. Show phone numbers through `store.displayPhone()` so masking applies. Any new action that changes a lead should also write to the activity log (the store's `log()` helper) so it appears on the lead's timeline; pass `SYSTEM_ID` for things the product does by itself. Inside the store, use `pushNotification()` to tell other people about something that concerns them and `recordAudit()` for changes the Owner should be able to trace (reassignments, team, settings, listings, deals, exports). Inside React state updaters, never read mutable counters: compute ids (e.g. with `nextId()`) before calling the setter. New Manage screens go in `NAV_ITEMS` with a `requires` permission.
-- Verify changes with `npx tsc --noEmit -p .` and `npx vite build`, then check the phone (390px), tablet (900px) and desktop (1440px) layouts.
+- Verify changes with `npx tsc --noEmit -p .`, `npx vite build` and `pnpm test:e2e` (all suites must pass; see `tests/e2e/README.md`), then look at the phone (390px), tablet (900px) and desktop (1440px) layouts. When you change a flow, update or add the e2e suite that covers it in the same commit.
 
 ## Dependencies
 
 - Runtime: React 19 and React DOM 19
 - Styling: Tailwind CSS v4 with the `@tailwindcss/vite` plugin
 - Build tooling: Vite 8, TypeScript 5.7, and `@vitejs/plugin-react`
+- Testing: `playwright-core` (end-to-end checks in `tests/e2e/`)
 - Formatting: oxfmt
 
 ## Styling
