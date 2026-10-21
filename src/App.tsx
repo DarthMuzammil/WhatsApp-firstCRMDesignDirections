@@ -20,6 +20,7 @@ import type { BookingFilter } from './data/channelPartner'
 import { TodayView } from './views/TodayView'
 import { VisitsView } from './views/VisitsView'
 import { lazyView } from './lib/lazyView'
+import { ScreenBoundary } from './components/ScreenBoundary'
 import './App.css'
 
 // The screens an agent lives in (Today, chat, Visits, Pipeline, Properties, Follow-ups) ship in the first download.
@@ -35,7 +36,11 @@ const SettingsView = lazyView(() => import('./views/SettingsView').then((m) => m
 const AuditView = lazyView(() => import('./views/AuditView').then((m) => m.AuditView))
 const BrokerageView = lazyView(() => import('./views/BrokerageView').then((m) => m.BrokerageView))
 const LaunchesView = lazyView(() => import('./views/LaunchesView').then((m) => m.LaunchesView))
-const LAZY_VIEWS = [CallsView, AttendanceView, ReportsView, EscalationsView, LeadSourcesView, TeamView, SettingsView, AuditView, BrokerageView, LaunchesView]
+const LAZY_BY_VIEW: Partial<Record<View, { preload: () => Promise<unknown>; retry: () => Promise<unknown> }>> = {
+  calls: CallsView, attendance: AttendanceView, reports: ReportsView, escalations: EscalationsView, sources: LeadSourcesView,
+  team: TeamView, settings: SettingsView, audit: AuditView, brokerage: BrokerageView, launches: LaunchesView,
+}
+const LAZY_VIEWS = Object.values(LAZY_BY_VIEW)
 
 /** Shown for the moment a lazy screen takes to arrive (normally never seen, because the chunks are prefetched). */
 function ScreenLoading() {
@@ -94,6 +99,8 @@ export default function App() {
   }, [])
 
   function navigate(next: View, param?: string) {
+    // A screen whose download failed earlier (weak signal) gets a fresh attempt when it is opened.
+    LAZY_BY_VIEW[next]?.retry().catch(() => undefined)
     setViewParam(param)
     setView(next === 'chat' && !openLead ? 'today' : next)
   }
@@ -124,6 +131,7 @@ export default function App() {
       <MobileTopBar store={store} onNavigate={navigate} onAddLead={() => setAddLeadOpen(true)} onSimulateLead={simulateLead} onSimulateForward={() => setForwardOpen(true)} onStartDemo={() => setDemoOpen(true)} onOpenLead={showLead} />
 
       <main className="app-main" ref={mainRef}>
+        <ScreenBoundary key={view} onRetry={() => { LAZY_BY_VIEW[view]?.retry().catch(() => undefined) }}>
         <Suspense fallback={<ScreenLoading />}>
         {view === 'today' && <TodayView store={store} onOpenLead={showLead} onNavigate={navigate} onCall={startCall} notify={notify} />}
         {view === 'chat' && openLead && <ChatView key={openLead.id} lead={openLead} store={store} onBack={() => setView(chatOrigin)} onCall={startCall} onNavigate={navigate} notify={notify} />}
@@ -143,6 +151,7 @@ export default function App() {
         {/* Brokerage params: a filter ("overdue"), optionally with a booking to open ("overdue#1"). */}
         {view === 'brokerage' && <BrokerageView key={viewParam ?? 'all'} store={store} initialFilter={viewParam?.split('#')[0] as BookingFilter | undefined} initialOpenId={viewParam?.includes('#') ? Number(viewParam.split('#')[1]) : undefined} notify={notify} />}
         </Suspense>
+        </ScreenBoundary>
       </main>
 
       <MobileTabBar store={store} view={navView} onNavigate={navigate} />

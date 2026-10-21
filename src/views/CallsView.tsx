@@ -55,7 +55,9 @@ export function CallsView({ store, onOpenLead, onNewCall }: { store: DemoStore; 
             </article>
           )
         })}
-        {rows.length === 0 && <div className="empty-state"><span className="icon-badge"><Icon name="mic" /></span><h3>No recordings found</h3><p>Try another buyer name or start a new call.</p></div>}
+        {rows.length === 0 && (query.trim()
+          ? <div className="empty-state"><span className="icon-badge"><Icon name="mic" /></span><h3>No recordings found</h3><p>Try another buyer name or start a new call.</p></div>
+          : <div className="empty-state"><span className="icon-badge"><Icon name="mic" /></span><h3>No recorded calls yet</h3><p>Calls you make from Bayana are recorded and saved here, on the buyer’s timeline too.</p><button className="btn btn-secondary" onClick={onNewCall}><Icon name="phone" size={16} /> New call</button></div>)}
       </section>
       <p className="recording-consent"><Icon name="mic" size={14} /> Always ask for consent before recording a call. Recording rules can vary by context and location.</p>
     </section>

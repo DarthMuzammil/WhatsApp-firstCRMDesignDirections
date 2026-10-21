@@ -17,6 +17,14 @@ ok((await rm.locator('.deal-budget').innerText()).includes('3.2'), 'seeded offer
 ok(await p.locator('.deal-advance:visible, .deal-won:visible, .deal-lost:visible, .deal-back:visible').count() === 0, 'desktop: no move buttons on cards (drag and drop only)')
 const closedCol = () => p.locator('.pipeline-stage[aria-label="Closed"]')
 // Closed always shows a Won drop target and, below it, a Lost one (lit up while a card is dragged).
+// Drag like a person: press on the card, move gradually, release over a part of the column that is on screen.
+// (A fixed offset from a column's top can land above the window when the page is scrolled, and then nothing gets the drop.)
+async function dragToColumn(card, column) {
+  await card.scrollIntoViewIfNeeded(); await card.hover(); await p.mouse.down()
+  const box = await column.boundingBox()
+  const y = Math.min(Math.max(box.y + 24, 120), box.y + box.height - 24)
+  await p.mouse.move(box.x + 80, y, { steps: 12 }); await p.mouse.up()
+}
 const dropWon = (card) => card.dragTo(closedCol(), { targetPosition: { x: 80, y: 90 } })
 const dropLost = (card) => card.dragTo(closedCol(), { targetPosition: { x: 80, y: 170 } })
 await dropWon(rm)
@@ -33,17 +41,23 @@ ok(Math.abs(after - before - 5.1) < 0.15, `Vivek commission +₹5.1 L (3.2 Cr ×
 await nav('Pipeline')
 await dropLost(neg.locator('.deal-card:has-text("Lavanya")'))
 await p.selectOption('.confirm-dialog .lost-reason select', 'Stopped responding')
-await p.click('.confirm-dialog .btn-danger'); await p.waitForTimeout(700) // let the card finish its entrance animation in Closed before dragging it
-ok((await closed.locator('.deal-card:has-text("Lavanya")').innerText()).includes('Stopped responding'), 'lost with reason in Closed')
-// Columns are long now: drop near the top of the target column (its header), which is always on screen.
-await closed.locator('.deal-card:has-text("Lavanya")').dragTo(neg, { targetPosition: { x: 80, y: 24 } }); await p.waitForTimeout(300)
-ok(await neg.locator('.deal-card:has-text("Lavanya")').count() === 1 && (await p.locator('.toast').innerText()).includes('reopened'), 'drag a closed card back to a stage reopens it there')
+await p.click('.confirm-dialog .btn-danger')
+// Wait for the card to land in Closed and finish its entrance animation: a drag started mid-animation can miss under load.
+const lostCard = closed.locator('.deal-card:has-text("Lavanya")')
+await lostCard.waitFor()
+await lostCard.evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)))
+ok((await lostCard.innerText()).includes('Stopped responding'), 'lost with reason in Closed')
+await dragToColumn(lostCard, neg)
+const reopened = await neg.locator('.deal-card:has-text("Lavanya")').waitFor({ timeout: 4000 }).then(() => true, () => false)
+if (!reopened) await p.screenshot({ path: `${SHOTS}/m10-dragback-failed.png` })
+await p.locator('.toast:has-text("reopened")').waitFor({ timeout: 3000 }).catch(() => {})
+ok(reopened && (await p.locator('.toast').innerText()).includes('reopened'), 'drag a closed card back to a stage reopens it there')
 const ananya = p.locator('.deal-card:has-text("Ananya Rao")')
 const fromStage = await ananya.evaluate(e => e.closest('.pipeline-stage').getAttribute('aria-label'))
-await ananya.dragTo(p.locator('.pipeline-stage[aria-label="Qualified"]'), { targetPosition: { x: 80, y: 24 } })
+await dragToColumn(ananya, p.locator('.pipeline-stage[aria-label="Qualified"]'))
 const toStage = await ananya.evaluate(e => e.closest('.pipeline-stage').getAttribute('aria-label'))
 ok(fromStage !== toStage, `move back: ${fromStage} → ${toStage}`)
-await ananya.dragTo(p.locator('.pipeline-stage[aria-label="Negotiation"]'), { targetPosition: { x: 80, y: 24 } })
+await dragToColumn(ananya, p.locator('.pipeline-stage[aria-label="Negotiation"]'))
 ok(await neg.locator('.deal-card:has-text("Ananya Rao")').count() === 1, 'drag and drop to Negotiation')
 await p.screenshot({ path: `${SHOTS}/m10-pipeline.png`, fullPage: true })
 // Lead panel deal card

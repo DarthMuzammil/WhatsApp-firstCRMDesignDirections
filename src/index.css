@@ -258,6 +258,7 @@ h1, h2, h3 { font-weight: 700; }
 .icon-badge { width: 44px; height: 44px; flex: 0 0 auto; border-radius: 50%; display: grid; place-items: center; color: var(--success-ink); background: var(--success-soft); }
 .icon-badge.lg { width: 60px; height: 60px; }
 .icon-badge.sm { width: 40px; height: 40px; }
+.icon-badge.warning { color: var(--warning-ink); background: var(--warning-soft); }
 
 /* Round radio indicator for single-choice lists (assign picker, routing options) */
 .radio-dot { width: 22px; height: 22px; flex: 0 0 auto; border: 1.5px solid var(--border-strong); border-radius: 50%; display: grid; place-items: center; color: var(--surface); }

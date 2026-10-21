@@ -151,7 +151,7 @@ export function TodayView({ store, onOpenLead, onNavigate, onCall, notify }: Tod
             <span className="day-card-label">Waiting for a reply</span>
             <strong>{waiting.length}</strong>
             <p>{waiting.length === 0 ? 'Every buyer has heard back' : overdueCount > 0 ? `${overdueCount} over ${RESPONSE_SLA_MINUTES} min · reply first` : `All within ${RESPONSE_SLA_MINUTES} min`}</p>
-            {closingSoon.size > 0 && <p className="day-stat-note"><Icon name="clock" size={12} /> {closingSoon.size} {closingSoon.size === 1 ? 'chat closes' : 'chats close'} within 3 h</p>}
+            {closingSoon.size > 0 && <p className="day-stat-note"><Icon name="clock" size={12} /> {`${closingSoon.size} ${closingSoon.size === 1 ? 'chat closes' : 'chats close'} within 3\u00a0h`}</p>}
             <div className="day-stat-avatars">
               {waiting.slice(0, 3).map((lead) => <Avatar key={lead.id} initials={lead.initials} color={lead.color} size="sm" />)}
             </div>

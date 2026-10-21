@@ -63,7 +63,7 @@ ok(await riskRows() === 3 && neha.includes('Tanvi') && neha.includes('Ritika') &
 await viewAs('Priya Nair'); await nav('Performance')
 ok(await p.locator('.speed-card').count() === 0 && await p.locator('.risk-card').count() === 0, 'sales: no speed table or risk list')
 await nav('Today')
-ok((await p.locator('.day-stat.warm').innerText()).includes('1 chat closes within 3 h'), 'Priya\'s Waiting card notes 1 chat closing (Mohit)')
+ok((await p.locator('.day-stat.warm').innerText()).replace(/\u00a0/g, ' ').includes('1 chat closes within 3 h'), 'Priya\'s Waiting card notes 1 chat closing (Mohit)')
 ok(await p.locator('.lead-row:has-text("Mohit") time.is-closing').count() === 1, 'Mohit counts down in Priya\'s inbox')
 await p.close()
 // Phone
@@ -72,5 +72,16 @@ await p.goto(BASE_URL); await p.evaluate(() => localStorage.clear()); await p.re
 await p.click('.mobile-tab-bar button:has-text("More")'); await p.click('.more-sheet button:has-text("Performance")'); await p.waitForTimeout(400)
 ok(await p.locator('.speed-card').count() === 1 && await p.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), 'phone: speed table scrolls inside its card, no sideways page scroll')
 await p.locator('.risk-card').scrollIntoViewIfNeeded(); await p.screenshot({ path: `${SHOTS}/analytics-phone-risk.png` })
+// Sales on a phone: the closing-chats note keeps "3 h" together on one line
+await p.click('.mobile-top-bar .account-menu-trigger'); await p.click('.account-menu-popover button:has-text("Priya Nair")'); await p.waitForTimeout(300)
+await p.click('.mobile-tab-bar button:has-text("Today")'); await p.waitForTimeout(300)
+const together = await p.evaluate(() => {
+  const note = document.querySelector('.day-stat-note'); if (!note) return 'missing'
+  const text = [...note.childNodes].find((n) => n.nodeType === 3 && /3\s*h/.test(n.textContent))
+  if (!text) return 'no text'
+  const at = text.textContent.search(/3\s*h/); const range = document.createRange(); range.setStart(text, at); range.setEnd(text, at + 3)
+  return new Set([...range.getClientRects()].map((r) => Math.round(r.top))).size === 1
+})
+ok(together === true, `phone: "3 h" in "1 chat closes within 3 h" stays on one line (${together})`)
 ok(errs.length === 0, 'no console errors ' + errs.join(' | '))
 await b.close()
