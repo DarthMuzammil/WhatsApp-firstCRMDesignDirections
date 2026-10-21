@@ -109,7 +109,7 @@ function RegistrationsTab({ store, onOpenLead, notify }: { store: DemoStore; onO
       <header className="card-head">
         <div><h2>Developer registrations</h2><p>Protects your brokerage until it lapses. Renew before the developer’s window closes.</p></div>
       </header>
-      <div className="chip-row registration-filters" role="group" aria-label="Filter registrations">
+      <div className="chip-row filter-chips registration-filters" role="group" aria-label="Filter registrations">
         {REG_FILTERS.map((item) => <button key={item.key} className={`chip ${filter === item.key ? 'active' : ''}`} aria-pressed={filter === item.key} onClick={() => setFilter(item.key)}>{item.label} <b>{count(item.key)}</b></button>)}
       </div>
       {shown.map(({ registration, status }) => {

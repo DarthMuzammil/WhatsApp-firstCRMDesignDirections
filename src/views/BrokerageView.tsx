@@ -139,7 +139,7 @@ export function BrokerageView({ store, initialFilter = 'all', initialOpenId, not
 
       <section className="card brokerage-list">
         <header className="card-head brokerage-filters">
-          <div className="chip-row" role="group" aria-label="Filter bookings">
+          <div className="chip-row filter-chips" role="group" aria-label="Filter bookings">
             {FILTERS.map((key) => {
               const count = all.filter((booking) => matchesBookingFilter(booking, key)).length
               return <button key={key} className={`chip ${filter === key ? 'active' : ''}`} aria-pressed={filter === key} onClick={() => setFilter(key)}>{BOOKING_FILTER_LABELS[key]}{key !== 'all' && <b>{count}</b>}</button>

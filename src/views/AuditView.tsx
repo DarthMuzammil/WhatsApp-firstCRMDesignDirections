@@ -49,7 +49,7 @@ export function AuditView({ store, notify }: { store: DemoStore; notify: (messag
         </span>
       </header>
 
-      <div className="chip-row" role="group" aria-label="Filter by type">
+      <div className="chip-row filter-chips" role="group" aria-label="Filter by type">
         {(['all', ...Object.keys(AUDIT_KIND_LABELS)] as KindFilter[]).map((option) => (
           <button key={option} className={`chip ${kind === option ? 'active' : ''}`} aria-pressed={kind === option} onClick={() => setKind(option)}>
             {option === 'all' ? 'All' : AUDIT_KIND_LABELS[option]}

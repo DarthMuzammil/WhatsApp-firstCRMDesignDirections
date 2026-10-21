@@ -234,6 +234,11 @@ h1, h2, h3 { font-weight: 700; }
 
 /* Pill chip: quick replies, locality filters, pipeline stage tabs */
 .chip-row { display: flex; gap: var(--space-2); overflow-x: auto; scrollbar-width: none; }
+/* Filter chips wrap onto a second line on tablets and desktops, where a hidden scrollbar would cut chips off mid-word;
+   phones keep the single swipeable row. */
+@media (min-width: 761px) {
+  .chip-row.filter-chips { flex-wrap: wrap; overflow-x: visible; }
+}
 .chip { flex: 0 0 auto; min-height: 38px; padding: 0 var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-pill); display: inline-flex; align-items: center; gap: var(--space-2); color: var(--ink-soft); background: var(--surface); font-size: var(--fs-body-sm); font-weight: 600; white-space: nowrap; }
 .chip:hover { border-color: var(--border-strong); }
 .chip.active { color: var(--surface); border-color: var(--primary); background: var(--primary); }

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { Lead } from '../data/demo'
 import { TEAMS, shortName } from '../data/team'
 import { QUALIFICATION_QUESTIONS } from '../data/templates'
@@ -67,6 +67,12 @@ export function DemoGuide({ store, onSimulate, onOpenLead, onNavigate, notify, o
     if (!visit || !at) return
     const result = store.recordVisitStep(visit.id, 'check-in', at)
     notify(result.message, result.ok ? 'success' : 'warning')
+  }
+
+  // Show the visit the step is about: on phones the panel covers the lower half of the screen, so bring the card up.
+  const revealVisit = () => {
+    if (!visit) return
+    window.setTimeout(() => document.querySelector(`.visit-card[data-visit-id="${visit.id}"]`)?.scrollIntoView({ block: 'start', behavior: 'smooth' }), 350)
   }
 
   // "Remind me" in the demo: call back on the coming Thursday (a week today if today is Thursday).
@@ -146,14 +152,14 @@ export function DemoGuide({ store, onSimulate, onOpenLead, onNavigate, notify, o
       say: `${agentName}’s Visits screen shows today’s visit with Left office, Check in and Check out. Checking in 1.4 km from the property is refused, and the manager and Owner are told. Location is read once, at the tap: no tracking, no live map.`,
       action: 'Check in from 1.4 km away',
       ready: !!visit,
-      run: () => { onNavigate('visits'); checkIn('far') },
+      run: () => { onNavigate('visits'); checkIn('far'); revealVisit() },
     },
     {
       title: 'A verified check-in at the property',
       say: 'Within 200 m of the address the check-in is verified, with the distance and time on the lead’s timeline.',
       action: 'Check in at the property',
       ready: !!visit,
-      run: () => checkIn('client'),
+      run: () => { checkIn('client'); revealVisit() },
     },
     {
       title: 'Visit outcome',
@@ -166,6 +172,7 @@ export function DemoGuide({ store, onSimulate, onOpenLead, onNavigate, notify, o
         store.recordVisitStep(visit.id, 'check-out', at)
         store.completeVisit(visit.id, { result: 'Liked it', feedback: 'Liked the layout and the light; wants to negotiate.', nextStep: 'Send the owner an offer' })
         notify('Visit completed: the buyer liked it')
+        revealVisit()
       },
     },
     {
@@ -204,6 +211,12 @@ export function DemoGuide({ store, onSimulate, onOpenLead, onNavigate, notify, o
       },
     },
   ]
+
+  // While the panel is open, phones leave room under the content so nothing has to sit behind it (DemoGuide.css).
+  useEffect(() => {
+    document.documentElement.classList.toggle('demo-guide-open', !minimised)
+    return () => document.documentElement.classList.remove('demo-guide-open')
+  }, [minimised])
 
   const finished = index >= steps.length
   /** M14 bonus: as the Owner, open Brokerage on Overdue with the most overdue invoice and send the gentle reminder. */

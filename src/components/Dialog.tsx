@@ -29,7 +29,12 @@ export function Dialog({ label, onClose, variant = 'center', dismissible = true,
   const panelRef = useRef<HTMLDivElement>(null)
   // Captured during the first render, before any autoFocus child steals focus.
   const [opener] = useState(() => document.activeElement as HTMLElement | null)
-  useEscapeKey(onClose, dismissible)
+  // Escape closes only the topmost dialog: a picker opened from the phone details sheet must not close the sheet too.
+  // Dialogs render into document.body in the order they open, so the last one in the document is on top.
+  useEscapeKey(() => {
+    const open = document.querySelectorAll('[role="dialog"][aria-modal="true"]')
+    if (open[open.length - 1] === panelRef.current) onClose()
+  }, dismissible)
 
   // Move focus into the dialog (unless a child already took it with autoFocus) and give it back on close.
   useEffect(() => {

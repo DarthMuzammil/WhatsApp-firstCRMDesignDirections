@@ -39,7 +39,7 @@ export function PropertiesView({ store, notify }: { store: DemoStore; notify: (m
       </header>
 
       <div className="properties-filters">
-        <div className="chip-row locality-chips" role="group" aria-label="Filter by locality">
+        <div className="chip-row filter-chips locality-chips" role="group" aria-label="Filter by locality">
           {localities.map((option) => (
             <button key={option} className={`chip ${locality === option ? 'active' : ''}`} aria-pressed={locality === option} onClick={() => setLocality(option)}>{option}</button>
           ))}

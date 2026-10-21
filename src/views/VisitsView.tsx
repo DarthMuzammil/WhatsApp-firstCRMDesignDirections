@@ -58,7 +58,7 @@ export function VisitsView({ store, onOpenLead, notify }: { store: DemoStore; on
     const canAct = mine && visit.day === 0 && (visit.status === 'planned' || visit.status === 'on-the-way' || visit.status === 'checked-in')
     const message = feedback?.visitId === visit.id ? feedback : null
     return (
-      <article key={visit.id} className={`visit-card status-${visit.status}`}>
+      <article key={visit.id} className={`visit-card status-${visit.status}`} data-visit-id={visit.id}>
         <div className="visit-time"><strong>{visit.time}</strong><small>{visit.when.split(' · ')[0]}</small></div>
         <div className="visit-main">
           <button className="visit-lead" onClick={() => store.findLead(visit.leadId) && onOpenLead(visit.lead)}>

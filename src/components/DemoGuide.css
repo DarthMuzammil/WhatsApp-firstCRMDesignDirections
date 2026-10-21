@@ -22,4 +22,7 @@
   .demo-guide .icon-button { width: var(--tap); height: var(--tap); }
   .demo-guide footer .btn, .demo-guide-skip { min-height: var(--tap); }
   .demo-guide-pill { right: var(--space-4); bottom: calc(76px + env(safe-area-inset-bottom)); min-height: var(--tap); }
+  /* The panel covers about 270 px above the tab bar: let screens and the chat scroll their last items above it. */
+  .demo-guide-open .app-main { padding-bottom: 300px; }
+  .demo-guide-open .messages { padding-bottom: 280px; }
 }

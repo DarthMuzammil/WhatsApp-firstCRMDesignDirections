@@ -39,7 +39,7 @@ Layouts: **phone** ≤ 760px, **tablet** 761–1100px, **desktop** > 1100px. Eve
 
 While a chat is open, the nav keeps the screen it was opened from highlighted. **On phones an open chat is full screen** (no top bar or tab bar, like WhatsApp); **Back** returns to the screen it came from. If switching "View as" hides the open lead or screen, the app falls back to that screen or to Today.
 
-Toasts confirm actions at the top of the screen for 2.6 s, with a tick; refusals (e.g. a check-in from too far away in the guided demo) show a red alert icon instead. Dialogs close with **Escape** or by tapping outside, keep keyboard focus inside while open, and return focus to the button that opened them. On phones, pickers and lead details open as bottom sheets.
+Toasts confirm actions at the top of the screen for 2.6 s, with a tick; refusals (e.g. a check-in from too far away in the guided demo) show a red alert icon instead. Dialogs close with **Escape** or by tapping outside, keep keyboard focus inside while open, and return focus to the button that opened them. When one dialog opens on top of another (e.g. Export chat from the phone's lead details sheet), Escape closes only the top one. Filter chip rows (Properties localities, Brokerage, Audit log, Registrations) wrap onto a second line on tablet and desktop so no chip is cut off; on phones they stay one swipeable row. On phones, pickers and lead details open as bottom sheets.
 
 ---
 
@@ -81,7 +81,7 @@ Toasts confirm actions at the top of the screen for 2.6 s, with a tick; refusals
 **Lead panel** (side panel on desktop/tablet; bottom sheet from **Details** on phones), in three tabs: **Overview · Timeline · Notes** (counts in the labels).
 
 *Overview tab*
-- **Lead owner card** ✅: owner's name and role (or "Unassigned").
+- **Lead owner card** ✅: owner's name and role (or "Unassigned"). In a narrow panel (tablet) the button moves under the name rather than squeezing it.
   - Manager/Owner: **Reassign** (or **Assign**) opens a people picker with open-lead counts and a reason (Workload balance / Locality expertise / Leave cover / Buyer request / Other).
   - Pre-sales, when the lead is theirs and *Separate pre-sales team* is on: **Hand to Sales** (picker of Sales people). The lead then leaves their view and the chat closes.
   - Sales: no reassign button.
@@ -260,7 +260,7 @@ Monthly figures (leads handled, visits booked/verified, deals, commission, first
 - Not built: logging each time someone views a full phone number (Managers and the Owner always see full numbers in this prototype); editing permissions (the table is read-only, so there are no permission changes to log).
 
 ### 3.16 Guided demo (presenter mode)
-- **Start guided demo** (account menu) opens a dark panel bottom right (above the tab bar on phones) for whoever is presenting to a client. It can be minimised to a "Demo · step N of 12" pill or ended at any time, and each step has **Skip**.
+- **Start guided demo** (account menu) opens a dark panel bottom right (above the tab bar on phones) for whoever is presenting to a client. It can be minimised to a "Demo · step N of 12" pill or ended at any time, and each step has **Skip**. On phones, while the panel is open, screens and the chat leave room underneath it so their last items can scroll clear of it, and the visit steps (8–10) scroll the visit card into view above the panel.
 - Each step shows what to point out and one button that does it with the real demo actions (so everything it does also lands on timelines, notifications, the audit log and reports). After it runs, the button becomes **Next step**.
   1. **The Owner's morning**: View as the Owner, opens the team home (daily summary tiles and the AI digest).
   2. **A buyer enquires on 99acres**: a 99acres enquiry arrives (the next simulated buyer; Meera Iyer on fresh data), routed to Pre-sales (Lakshmi Narayan, who has the fewest open leads) with the auto-reply, and its chat opens.
@@ -368,7 +368,7 @@ See `AGENTS.md` for conventions. Each component has a matching `.css` file next 
 - `src/state/channelPartner.ts`: M14 state and actions (`store.cp`: visible bookings, margin, invoice, payment, undo, dispute, reminder), used inside `useDemoStore`.
 - `src/views/`: `BrokerageView` (M14 receivables), `LaunchesView` (M14 New launches: launches, registrations, my bookings), `TodayView`, `ChatView` (chat + lead panel), `PipelineView`, `PropertiesView`, `FollowUpsView`, `CallsView`, `VisitsView` (with the visit outcome form), `AttendanceView` (My day, Leave, Register with team calendar, Requests), `ReportsView` (my performance, leaderboard, scorecard, owner insights), `EscalationsView`, `LeadSourcesView`, `TeamView` (with invite dialog), `SettingsView`, `AuditView` (Owner's audit log with CSV exports).
 - `src/modals/`: `ExportChatDialog` (chat export, UI only), `BookingDialogs` (M14 booking detail, recording dialogs, reminder), `LaunchWizard` (M14 new launch: details, audience, preview, send), `RegistrationDialogs` (M14 register, renew, dispute/resolve), `AddLeadModal` (with duplicate check), `EditLeadDialog` (structured buyer brief), `ScheduleVisitDialog`, `ReminderDialog` (Remind me / Add reminder), `TemplateDialog`, `AssignDialog` (people picker for assign / reassign / hand-off / deactivate), `DealDialog` (offer tracker + commission split; also `LostDialog`), `PropertyDialog` (add/edit listing), `ShareDialog` (pick lead → pick homes → WhatsApp preview → send), `CallPicker`, `CallModal`.
-- `tests/e2e/`: 21 end-to-end suites (616 checks) covering every section of this spec, run with `pnpm test:e2e` (see its README for the suite → section map).
+- `tests/e2e/`: 21 end-to-end suites (626 checks) covering every section of this spec, run with `pnpm test:e2e` (see its README for the suite → section map).
 - `.github/workflows/deploy-pages.yml`: builds and publishes the demo to GitHub Pages on every push to `main`. Page title, description and no-index live in `.figma/make/site.json`.
 - `src/index.css`: the only place raw colours are defined. Design tokens (colour, 4px spacing scale, radius, shadow, `--fs-*` type sizes, `--tap`) and shared classes (`.btn`, `.card`, `.chip`, `.count-badge`, `.status-dot`, `.icon-badge`, `.is-done` and more).
 
@@ -391,6 +391,7 @@ See `AGENTS.md` for conventions. Each component has a matching `.css` file next 
 - The map for placing a property pin is a plain grid (🎭, no map tiles) and "Use my location" is only as good as the phone's GPS; the product needs a real map service (§8.18). The demo still refuses readings less accurate than 100 m, which would refuse honest indoor check-ins in a real pilot.
 - Listings added in the demo have no photo upload. "Seen" is simulated, and it stays "Sent" if the page is reloaded within those 4 seconds.
 - Photos need an internet connection.
+- On phones a toast shown while a bottom sheet is open (e.g. the guided demo's bonus reminder) covers the sheet's title for 2.6 s. Moving it to the bottom covered the sheet's buttons instead, which is worse, so it stays at the top.
 
 ## 8. Planned modules (approved; built items are marked ✅)
 Everything here is **UI only**: each item is a screen or flow driven by seed data and scripted events. Each module notes what it simulates. When a module ships, move it into §2–§7 and add a changelog line.
@@ -832,6 +833,7 @@ Picked on 2026-10-20 from the competitor research (`bayana-night-run/competitor-
 
 ## 9. Changelog
 Newest first. One line per change: date, what changed, which section was updated.
+- **2026-10-21:** Bug review fixes. Escape closes only the topmost dialog (it closed the phone details sheet together with the dialog opened from it). Filter chip rows wrap on tablet and desktop (Brokerage and Audit log chips were cut off mid-word at 900 px). The lead owner card no longer squeezes the owner's name to one word per line in the tablet chat panel. Guided demo on phones: the visit steps bring the visit card above the panel, and screens leave room under the open panel. Updated §2, §3.2, §3.16, §7; checks added to ux-basics, guided-demo and layout-audit-manage.
 - **2026-10-21:** A screen whose file fails to download (weak signal) no longer blanks the app: it is fetched again when opened, and if that fails it shows "Couldn't load this screen" with **Try again** while navigation keeps working (new `ScreenBoundary`, `lazyView.retry()`, new `resilience` suite). Calls with no recordings says "No recorded calls yet" with **New call** (a search with no match still says "No recordings found"). The Waiting card's "chats close within 3 h" keeps "3 h" together on phones. Made the deal-closing drag checks drop on a visible part of the column (test-only). Updated §3.1, §3.6, §6.
 - **2026-10-20:** Built the owner analytics shortlist (§8.19 → §3.1, §3.2, §3.14): **24-hour window countdown** (inbox rows read "Closes in 1h 40m", a Closing · N filter, a chat-header note and a reply-within line above the composer, a note on the Waiting card and a digest line; three seed leads now close within 3 hours); **Speed to lead** table for Managers and the Owner (median first human reply per person × source with colour bands, live timing of replies to demo arrivals, a digest line); **Leads at risk** (quiet 7+ days or stuck, with reason chips, ₹ at risk and a by-agent table; replaces Stuck leads); **Listings that earn their visits** (per-listing shares, booked, verified, deals, visit → deal %, Retire? / Location not set / Sold chips; replaces the Property interest chart). New `lib/analytics.ts`, saved key `first-replies`, new `owner-analytics` suite; `performance` suite updated.
 - **2026-10-20:** Added the owner analytics shortlist from the competitor research as TODO (§8.19): speed to lead by agent and source, the 24-hour window countdown, leads at risk, and listings that earn their visits.

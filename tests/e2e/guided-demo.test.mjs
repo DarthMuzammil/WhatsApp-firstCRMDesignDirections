@@ -52,6 +52,14 @@ for (const W of [1440, 390]) {
   await next()
   await act()
   ok(await p.locator('.visits-view, .visit-card').count() > 0 && (await p.locator('.toast').innerText()).includes('Move closer'), 'Visits opens and the far check-in is refused')
+  // The guide scrolls the visit into view, clear of its own panel (on phones the panel covers the lower half).
+  await p.waitForTimeout(1200)
+  const clear = await p.evaluate(() => {
+    const card = document.querySelector('.visit-card:has(.visit-steps li.refused)')?.getBoundingClientRect()
+    const guide = document.querySelector('.demo-guide')?.getBoundingClientRect()
+    return !!card && !!guide && card.top >= 60 && (card.bottom <= guide.top || card.right <= guide.left)
+  })
+  ok(clear, 'the refused visit card is on screen, not behind the guide panel')
   await next(); await act()
   ok((await p.locator('.toast').innerText()).includes('Checked in at Lakeview'), 'verified check-in')
   await next(); await act()

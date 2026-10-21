@@ -1,6 +1,8 @@
 .visit-sections { display: flex; flex-direction: column; gap: var(--space-4); }
 .visit-card { padding: var(--space-4) var(--space-5); border-bottom: 1px solid var(--border-soft); display: grid; grid-template-columns: 76px minmax(0, 1fr) auto; align-items: start; gap: var(--space-4); }
 .visit-card:last-of-type { border-bottom: 0; }
+/* Scrolled to by the guided demo: stop short of the top edge (and of the phone's fixed top bar, below). */
+.visit-card { scroll-margin-top: var(--space-4); }
 .visit-card.status-completed, .visit-card.status-no-show { background: var(--surface-subtle); }
 .visit-time { display: flex; flex-direction: column; gap: var(--space-half); padding-top: var(--space-1); }
 .visit-time strong { font-size: var(--fs-body); }
@@ -39,7 +41,8 @@
 }
 
 @media (max-width: 760px) {
-  .visit-card { padding: var(--space-4); grid-template-columns: 1fr; gap: var(--space-3); }
+  /* 60 px top bar plus room for a toast, which the guided demo shows as it scrolls here */
+  .visit-card { padding: var(--space-4); grid-template-columns: 1fr; gap: var(--space-3); scroll-margin-top: calc(60px + 64px); }
   .visit-time { flex-direction: row; align-items: baseline; gap: var(--space-2); padding-top: 0; }
   .visit-side { flex-direction: row; flex-wrap: wrap; align-items: center; }
   .visit-side .btn { flex: 1; min-width: 0; }
