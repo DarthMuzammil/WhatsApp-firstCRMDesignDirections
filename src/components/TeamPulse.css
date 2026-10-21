@@ -1,14 +1,14 @@
 /* Daily summary tiles (team home) */
 .daily-summary { margin-bottom: var(--space-4); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-3); }
 .summary-item { min-height: 72px; padding: var(--space-3) var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-md); display: grid; grid-template-columns: 1fr auto; align-items: center; column-gap: var(--space-2); text-align: left; background: var(--surface); }
-.summary-item strong { font-size: var(--fs-display-sm); }
+.summary-item strong { font-size: var(--fs-display-sm); font-variant-numeric: tabular-nums; }
 .summary-item span { grid-column: 1; color: var(--muted); font-size: var(--fs-caption); font-weight: 700; }
 .summary-item svg { grid-column: 2; grid-row: 1 / span 2; color: var(--faint); }
 .summary-item.tone-danger { border-color: var(--danger-soft); }
 .summary-item.tone-danger strong { color: var(--danger-text); }
 .summary-item.tone-warning strong { color: var(--warning-ink); }
 @media (hover: hover) {
-  .summary-item:hover { border-color: var(--border-strong); }
+  .summary-item:hover, .brokerage-pulse > button:hover { border-color: var(--border-strong); }
 }
 
 /* Brokerage from developers (M14) */
@@ -35,7 +35,8 @@
 
 /* AI weekly digest */
 .digest .card-head > div { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2); }
-.digest ul { margin: 0; padding: var(--space-3) var(--space-5) var(--space-4) var(--space-8); display: flex; flex-direction: column; gap: var(--space-2); color: var(--ink-soft); font-size: var(--fs-body-sm); line-height: 1.5; }
+.digest ul { margin: 0; padding: var(--space-4) var(--space-5) var(--space-5) var(--space-8); display: flex; flex-direction: column; gap: var(--space-3); color: var(--ink-soft); font-size: var(--fs-body-sm); line-height: 1.5; }
+.digest li::marker { color: var(--primary); }
 
 @media (max-width: 760px) {
   .daily-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }

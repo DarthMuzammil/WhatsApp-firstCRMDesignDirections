@@ -90,7 +90,7 @@ export function PropertiesView({ store, notify }: { store: DemoStore; notify: (m
             </article>
           )
         })}
-        {visible.length === 0 && <div className="empty-state"><span className="icon-badge"><Icon name="home" /></span><strong>No homes match these filters</strong></div>}
+        {visible.length === 0 && <div className="empty-state"><span className="icon-badge"><Icon name="home" /></span><h3>No homes match these filters</h3><p>Try another locality or availability.</p></div>}
       </div>
 
       {editing && <PropertyDialog store={store} property={editing === 'new' ? undefined : editing} focusPin={focusPin} onClose={() => { setEditing(null); setFocusPin(false) }} onSaved={(message) => { setEditing(null); setFocusPin(false); notify(message) }} />}

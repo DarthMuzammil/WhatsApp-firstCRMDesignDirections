@@ -15,6 +15,10 @@ ok((await p.locator('.properties-view .page-head p').innerText()) === '6 availab
 ok((await p.locator('.listing:has-text("Windermere") .listing-people').innerText()).includes('+91 99001 72244'), 'owner sees full owner number')
 await p.click('.properties-filters .segmented button:has-text("Sold")')
 ok(await p.locator('.listing').count() === 1 && await p.locator('.listing .btn-success').isDisabled(), 'Sold filter: 1, Share disabled')
+// Empty state: a heading and a hint, like every other empty state (polish)
+await p.click('.locality-chips button:has-text("HSR")')
+ok((await p.locator('.properties-view .empty-state h3').innerText()) === 'No homes match these filters' && (await p.locator('.properties-view .empty-state p').innerText()).includes('Try another'), 'no listings: empty state with a heading and a hint')
+await p.click('.locality-chips button:has-text("All")')
 await p.click('.properties-filters .segmented button:has-text("All")')
 await p.screenshot({ path: `${SHOTS}/m11-properties.png`, fullPage: true })
 // Add
